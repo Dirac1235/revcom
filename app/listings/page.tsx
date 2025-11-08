@@ -1,47 +1,60 @@
-"use client"
+"use client";
 
-import { createClient } from "@/lib/supabase/server"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { MessageSquare } from "lucide-react"
+import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { MessageSquare } from "lucide-react";
 
 export default async function PublicListingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ search?: string; category?: string; budget_min?: string; budget_max?: string }>
+  searchParams: Promise<{
+    search?: string;
+    category?: string;
+    budget_min?: string;
+    budget_max?: string;
+  }>;
 }) {
-  const supabase = await createClient()
-  const params = await searchParams
+  const supabase = await createClient();
+  const params = await searchParams;
 
   // Build query with filters
   let query = supabase
     .from("requests")
     .select("*, profiles(full_name, email)")
-    .order("created_at", { ascending: false })
+    .order("created_at", { ascending: false });
 
   if (params.search) {
-    query = query.or(`title.ilike.%${params.search}%,description.ilike.%${params.search}%`)
+    query = query.or(
+      `title.ilike.%${params.search}%,description.ilike.%${params.search}%`
+    );
   }
 
   if (params.category) {
-    query = query.eq("category", params.category)
+    query = query.eq("category", params.category);
   }
 
   if (params.budget_min) {
-    query = query.gte("budget_max", Number.parseFloat(params.budget_min))
+    query = query.gte("budget_max", Number.parseFloat(params.budget_min));
   }
 
   if (params.budget_max) {
-    query = query.lte("budget_min", Number.parseFloat(params.budget_max))
+    query = query.lte("budget_min", Number.parseFloat(params.budget_max));
   }
 
-  const { data: listings } = await query
+  const { data: listings } = await query;
 
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
   const categories = [
     "Electronics",
@@ -53,7 +66,7 @@ export default async function PublicListingsPage({
     "Toys & Games",
     "Services",
     "Other",
-  ]
+  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -92,8 +105,12 @@ export default async function PublicListingsPage({
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Browse All Listings</h1>
-          <p className="text-muted-foreground">Discover what buyers are looking for and send offers</p>
+          <h1 className="text-3xl font-bold text-foreground mb-2">
+            Browse All Listings
+          </h1>
+          <p className="text-muted-foreground">
+            Discover what buyers are looking for and send offers
+          </p>
         </div>
 
         {/* Filters */}
@@ -118,13 +135,13 @@ export default async function PublicListingsPage({
                 name="category"
                 defaultValue={params.category || ""}
                 onChange={(e) => {
-                  const url = new URL(window.location.href)
+                  const url = new URL(window.location.href);
                   if (e.target.value) {
-                    url.searchParams.set("category", e.target.value)
+                    url.searchParams.set("category", e.target.value);
                   } else {
-                    url.searchParams.delete("category")
+                    url.searchParams.delete("category");
                   }
-                  window.location.href = url.toString()
+                  window.location.href = url.toString();
                 }}
                 className="w-full px-3 py-2 border border-input rounded-md bg-background text-sm"
               >
@@ -137,7 +154,9 @@ export default async function PublicListingsPage({
               </select>
             </div>
             <div>
-              <label className="text-sm font-medium mb-2 block">Min Budget</label>
+              <label className="text-sm font-medium mb-2 block">
+                Min Budget
+              </label>
               <Input
                 type="number"
                 name="budget_min"
@@ -147,7 +166,9 @@ export default async function PublicListingsPage({
               />
             </div>
             <div>
-              <label className="text-sm font-medium mb-2 block">Max Budget</label>
+              <label className="text-sm font-medium mb-2 block">
+                Max Budget
+              </label>
               <Input
                 type="number"
                 name="budget_max"
@@ -163,7 +184,10 @@ export default async function PublicListingsPage({
         <div className="grid gap-4">
           {listings && listings.length > 0 ? (
             listings.map((listing: any) => (
-              <Card key={listing.id} className="hover:shadow-lg transition-shadow">
+              <Card
+                key={listing.id}
+                className="hover:shadow-lg transition-shadow"
+              >
                 <CardHeader>
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
@@ -176,7 +200,9 @@ export default async function PublicListingsPage({
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground mb-4 line-clamp-2">{listing.description}</p>
+                  <p className="text-muted-foreground mb-4 line-clamp-2">
+                    {listing.description}
+                  </p>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm">
                     <div>
                       <p className="text-muted-foreground">Budget Range</p>
@@ -190,11 +216,15 @@ export default async function PublicListingsPage({
                     </div>
                     <div>
                       <p className="text-muted-foreground">Posted</p>
-                      <p className="font-semibold">{new Date(listing.created_at).toLocaleDateString()}</p>
+                      <p className="font-semibold">
+                        {new Date(listing.created_at).toLocaleDateString()}
+                      </p>
                     </div>
                     <div>
                       <p className="text-muted-foreground">Buyer</p>
-                      <p className="font-semibold truncate">{listing.profiles?.full_name || "Anonymous"}</p>
+                      <p className="font-semibold truncate">
+                        {listing.profiles?.full_name || "Anonymous"}
+                      </p>
                     </div>
                   </div>
                   <div className="flex gap-2">
@@ -222,12 +252,14 @@ export default async function PublicListingsPage({
           ) : (
             <Card>
               <CardContent className="pt-6">
-                <p className="text-muted-foreground text-center">No listings found. Try adjusting your filters.</p>
+                <p className="text-muted-foreground text-center">
+                  No listings found. Try adjusting your filters.
+                </p>
               </CardContent>
             </Card>
           )}
         </div>
       </main>
     </div>
-  )
+  );
 }
