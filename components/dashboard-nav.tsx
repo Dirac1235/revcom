@@ -31,40 +31,80 @@ export default function DashboardNav({ user, profile }: any) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [clientUser, setClientUser] = useState(user ?? null);
-  const [clientProfile, setClientProfile] = useState(profile ?? null);
+  // Always initialize as null - we'll fetch from client immediately
+  // This ensures we get the latest auth state, not stale server props
+  const [clientUser, setClientUser] = useState<any>(null);
+  const [clientProfile, setClientProfile] = useState<any>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
   const [search, setSearch] = useState(searchParams?.get("q") ?? "");
 
   const supabase = createClient();
 
   useEffect(() => {
-    supabase.auth.getUser().then((res: any) => {
-      setClientUser(res?.data?.user ?? null);
-    });
+    // Initial fetch - check current auth state
+    // This always runs on mount and gets the latest state from client
+    const fetchUser = async () => {
+      try {
+        const {
+          data: { user: u },
+          error,
+        } = await supabase.auth.getUser();
 
-    const { data } = supabase.auth.onAuthStateChange(
-      (_event: any, session: any) => {
-        const u = session?.user ?? null;
-        setClientUser(u);
-
-        if (u) {
-          supabase
+        if (!error && u) {
+          setClientUser(u);
+          // Fetch profile
+          const { data: profileData } = await supabase
             .from("profiles")
             .select("*")
             .eq("id", u.id)
-            .single()
-            .then((r: any) => setClientProfile(r.data));
+            .single();
+          setClientProfile(profileData);
         } else {
+          setClientUser(null);
           setClientProfile(null);
         }
+      } catch (err) {
+        setClientUser(null);
+        setClientProfile(null);
+      } finally {
+        setIsInitialized(true);
       }
-    );
+    };
 
-    return () => data?.subscription?.unsubscribe();
+    fetchUser();
+
+    // Listen for auth state changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event: any, session: any) => {
+      const u = session?.user ?? null;
+      // Update user state immediately
+      setClientUser(u);
+
+      if (u) {
+        // Fetch and update profile state
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", u.id)
+          .single();
+        setClientProfile(profileData);
+      } else {
+        setClientProfile(null);
+      }
+    });
+
+    return () => {
+      subscription?.unsubscribe();
+    };
   }, []);
 
-  const displayUser = clientUser ?? user;
-  const displayProfile = clientProfile ?? profile;
+  // Always use client state once initialized
+  // Only fall back to server props during initial load (before client state is fetched)
+  const displayUser = isInitialized ? clientUser : clientUser ?? user;
+  const displayProfile = isInitialized
+    ? clientProfile
+    : clientProfile ?? profile;
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -72,10 +112,6 @@ export default function DashboardNav({ user, profile }: any) {
     setClientProfile(null);
     router.push("/");
   };
-
-  /* --------------------------------------------
-    Public Navigation
-  --------------------------------------------- */
 
   if (!displayUser) {
     return (
@@ -107,10 +143,6 @@ export default function DashboardNav({ user, profile }: any) {
       </header>
     );
   }
-
-  /* --------------------------------------------
-    Authenticated Navigation
-  --------------------------------------------- */
 
   return (
     <nav className="border-b bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-blue-100 dark:border-blue-900/50 shadow-sm">

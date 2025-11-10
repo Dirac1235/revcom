@@ -52,34 +52,7 @@ export default async function RootLayout({
     <html lang="en">
       <body className={`font-sans antialiased`}>
         <header className="fixed top-0 left-0 right-0 z-50 border-b bg-white/80 dark:bg-slate-900/80 backdrop-blur-md shadow-sm border-blue-100 dark:border-blue-900/50">
-          {user ? (
-            <DashboardNav user={user} profile={profile} />
-          ) : (
-            <div className="container mx-auto px-8 h-16 flex items-center justify-between">
-              <Link
-                href="/"
-                className="text-xl font-semibold tracking-tight text-blue-600 dark:text-blue-400"
-              >
-                RevCom
-              </Link>
-              <nav className="flex items-center gap-8">
-                <Button
-                  variant="ghost"
-                  asChild
-                  className="font-normal hover:bg-blue-50 dark:hover:bg-blue-950/30"
-                >
-                  <Link href="/auth/login">Sign In</Link>
-                </Button>
-
-                <Button
-                  asChild
-                  className="font-normal bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 shadow-md shadow-blue-500/30"
-                >
-                  <Link href="/auth/sign-up">Get Started</Link>
-                </Button>
-              </nav>
-            </div>
-          )}
+          <DashboardNav user={user} profile={profile} />
         </header>
 
         <main className="pt-16">{children}</main>

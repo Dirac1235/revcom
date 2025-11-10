@@ -37,18 +37,26 @@ export default function LoginPage() {
       });
       if (error) throw error;
 
-      // Wait for the session/user to be available in the client before
-      // navigating. This helps client-side components pick up the new auth
-      // state without a full page reload.
+      // Wait for auth state to be fully updated
       if (data?.session) {
-        // Optionally re-fetch user to ensure storage is populated
-        await supabase.auth.getUser();
+        // Verify user is available
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (user) {
+          // Wait a moment for the auth state change event to propagate
+          // This ensures DashboardNav picks up the state change
+          await new Promise((resolve) => setTimeout(resolve, 150));
+          // Navigate - the DashboardNav will update via onAuthStateChange
+          router.push("/home");
+        } else {
+          throw new Error("Failed to get user after login");
+        }
+      } else {
+        throw new Error("No session created");
       }
-
-      router.push("/home");
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
-    } finally {
       setIsLoading(false);
     }
   };
