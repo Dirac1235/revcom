@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 const Landing = () => {
+  
   return (
     <div className="min-h-screen">
       <header className="fixed top-0 left-0 right-0 z-50 border-b bg-background">

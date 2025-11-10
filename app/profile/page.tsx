@@ -1,34 +1,46 @@
-import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import DashboardNav from "@/components/dashboard-nav"
-import { Star } from "lucide-react"
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import DashboardNav from "@/components/dashboard-nav";
+import { Star } from "lucide-react";
 
 export default async function ProfilePage() {
-  const supabase = await createClient()
+  const supabase = await createClient();
   const {
     data: { user },
     error: userError,
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
   if (userError || !user) {
-    redirect("/auth/login")
+    redirect("/auth/login");
   }
 
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
 
   return (
     <div className="min-h-screen bg-background">
-      <DashboardNav user={user} profile={profile} />
-
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Profile Settings</h1>
-          <p className="text-muted-foreground">Manage your profile information and preferences</p>
+          <h1 className="text-3xl font-bold text-foreground mb-2">
+            Profile Settings
+          </h1>
+          <p className="text-muted-foreground">
+            Manage your profile information and preferences
+          </p>
         </div>
 
         <div className="grid gap-8 max-w-2xl">
@@ -41,15 +53,28 @@ export default async function ProfilePage() {
               <div className="grid gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" value={profile?.email || ""} disabled />
+                  <Input
+                    id="email"
+                    type="email"
+                    value={profile?.email || ""}
+                    disabled
+                  />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="first-name">First Name</Label>
-                  <Input id="first-name" placeholder="Your first name" defaultValue={profile?.first_name || ""} />
+                  <Input
+                    id="first-name"
+                    placeholder="Your first name"
+                    defaultValue={profile?.first_name || ""}
+                  />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="last-name">Last Name</Label>
-                  <Input id="last-name" placeholder="Your last name" defaultValue={profile?.last_name || ""} />
+                  <Input
+                    id="last-name"
+                    placeholder="Your last name"
+                    defaultValue={profile?.last_name || ""}
+                  />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="bio">Bio</Label>
@@ -75,12 +100,16 @@ export default async function ProfilePage() {
             <CardContent>
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm text-muted-foreground">Overall Rating</p>
+                  <p className="text-sm text-muted-foreground">
+                    Overall Rating
+                  </p>
                   <p className="text-3xl font-bold">{profile?.rating || 0}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Total Reviews</p>
-                  <p className="text-3xl font-bold">{profile?.total_reviews || 0}</p>
+                  <p className="text-3xl font-bold">
+                    {profile?.total_reviews || 0}
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -88,5 +117,5 @@ export default async function ProfilePage() {
         </div>
       </main>
     </div>
-  )
+  );
 }

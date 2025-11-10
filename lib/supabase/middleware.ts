@@ -45,7 +45,7 @@ export async function updateSession(request: NextRequest) {
   // Redirect to home if already logged in and accessing auth pages
   if (user && request.nextUrl.pathname.startsWith("/auth")) {
     const url = request.nextUrl.clone()
-    url.pathname = "/"
+    url.pathname = "/home"
     return NextResponse.redirect(url)
   }
 

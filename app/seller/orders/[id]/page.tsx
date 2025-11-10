@@ -102,7 +102,6 @@ export default function SellerOrderDetailPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <DashboardNav user={user} profile={profile} />
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Link href="/seller/orders" className="mb-4 inline-block">

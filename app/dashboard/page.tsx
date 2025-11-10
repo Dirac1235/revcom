@@ -13,24 +13,20 @@ export default async function DashboardPage() {
     error: userError,
   } = await supabase.auth.getUser()
 
-  if (userError || !user) {
-    redirect("/auth/login")
-  }
+  
 
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
+  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user?.id).single()
 
-  const { data: listings } = await supabase.from("listings").select("*").eq("seller_id", user.id).limit(5)
+  const { data: listings } = await supabase.from("listings").select("*").eq("seller_id", user?.id).limit(5)
 
-  const { data: requests } = await supabase.from("requests").select("*").eq("buyer_id", user.id).limit(5)
-
+  const { data: requests } = await supabase.from("requests").select("*").eq("buyer_id", user?.id).limit(5)
   return (
     <div className="min-h-screen bg-background">
-      <DashboardNav user={user} profile={profile} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">Dashboard</h1>
-          <p className="text-muted-foreground">Welcome back, {profile?.first_name || user.email}</p>
+          <p className="text-muted-foreground">Welcome back, {profile?.first_name || user?.email}</p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-6 mb-8">
