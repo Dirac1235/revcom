@@ -16,9 +16,10 @@ import {
 type Listing = {
   id: string;
   title: string;
-  price?: number;
+  budget_min?: number;
+  budget_max?: number;
   category?: string;
-  seller_id?: string;
+  buyer_id?: string;
   status?: string;
 };
 
@@ -51,7 +52,11 @@ export default function HomePage() {
         setUserId(uid);
 
         // fetch listings, filter by query if provided
-        let builder = supabase.from("listings").select("*");
+        let builder = supabase
+          .from("requests")
+          .select("*")
+          .eq("status", "open");
+
         if (query && query.trim() !== "") {
           const q = `%${query.trim()}%`;
           builder = builder.ilike("title", q);
@@ -79,13 +84,15 @@ export default function HomePage() {
   }, [query]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-linear-to-br from-blue-50/50 via-indigo-50/30 to-purple-50/30 dark:from-blue-950/10 dark:via-indigo-950/10 dark:to-purple-950/10">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Listings</h1>
+            <h1 className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+              Buyer Requests
+            </h1>
             <p className="text-muted-foreground">
-              Browse available listings or search for something specific.
+              Browse buyer needs and requests or search for something specific.
             </p>
           </div>
 
@@ -100,20 +107,35 @@ export default function HomePage() {
             >
               <input
                 className="input bg-card border-border px-3 py-2 rounded-md w-56"
-                placeholder="Search listings..."
+                placeholder="Search buyer requests..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
               />
-              <Button type="submit">Search</Button>
+              <Button
+                type="submit"
+                className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 shadow-md shadow-blue-500/30"
+              >
+                Search
+              </Button>
             </form>
 
             {userId ? (
-              <Link href="/seller/listings/create">
-                <Button variant="secondary">Create Listing</Button>
+              <Link href="/buyer/requests/create">
+                <Button
+                  variant="secondary"
+                  className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white shadow-md shadow-blue-500/30"
+                >
+                  Create Request
+                </Button>
               </Link>
             ) : (
               <Link href="/auth/login">
-                <Button variant="ghost">Sign in to create</Button>
+                <Button
+                  variant="ghost"
+                  className="hover:bg-blue-50 dark:hover:bg-blue-950/30"
+                >
+                  Sign in to create
+                </Button>
               </Link>
             )}
           </div>
@@ -125,26 +147,35 @@ export default function HomePage() {
           ) : listings && listings.length > 0 ? (
             <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {listings.map((l: any) => (
-                <Card key={l.id}>
+                <Card
+                  key={l.id}
+                  className="hover:shadow-xl transition-all duration-300 hover:scale-105 border-blue-100 dark:border-blue-900/50 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm"
+                >
                   <CardHeader>
-                    <CardTitle>{l.title}</CardTitle>
+                    <CardTitle className="text-blue-600 dark:text-blue-400">
+                      {l.title}
+                    </CardTitle>
                     <CardDescription>{l.category}</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-2xl font-bold text-primary">
-                      {l.price ? `$${l.price}` : "—"}
+                    <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                      {l.budget_min && l.budget_max
+                        ? `$${l.budget_min} - $${l.budget_max}`
+                        : "Budget not specified"}
                     </p>
                     <p className="text-sm text-muted-foreground mt-2">
-                      Status: {l.status ?? "active"}
+                      Status: {l.status ?? "open"}
                     </p>
-                    {l.seller_id === userId && (
-                      <p className="mt-2 text-sm text-foreground font-medium">
-                        Your listing
+                    {l.buyer_id === userId && (
+                      <p className="mt-2 text-sm font-medium text-blue-600 dark:text-blue-400">
+                        Your request
                       </p>
                     )}
                     <div className="mt-4">
                       <Link href={`/listings/${l.id}`}>
-                        <Button>View</Button>
+                        <Button className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 shadow-md shadow-blue-500/30 w-full">
+                          View
+                        </Button>
                       </Link>
                     </div>
                   </CardContent>
@@ -153,7 +184,7 @@ export default function HomePage() {
             </div>
           ) : (
             <div className="py-12">
-              <p className="text-muted-foreground">No listings found.</p>
+              <p className="text-muted-foreground">No buyer requests found.</p>
             </div>
           )}
         </section>

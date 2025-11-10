@@ -1,6 +1,8 @@
 "use client";
 
-import { createClient } from "@/lib/supabase/server";
+import React, { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,254 +13,295 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { MessageSquare } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Search, Filter } from "lucide-react";
 
-export default async function PublicListingsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{
-    search?: string;
-    category?: string;
-    budget_min?: string;
-    budget_max?: string;
-  }>;
-}) {
-  const supabase = await createClient();
-  const params = await searchParams;
+type Listing = {
+  id: string;
+  title: string;
+  description?: string;
+  budget_min?: number;
+  budget_max?: number;
+  category?: string;
+  buyer_id?: string;
+  status?: string;
+  created_at?: string;
+};
 
-  // Build query with filters
-  let query = supabase
-    .from("requests")
-    .select("*, profiles(full_name, email)")
-    .order("created_at", { ascending: false });
+const categories = [
+  "Electronics",
+  "Furniture",
+  "Clothing",
+  "Books",
+  "Home & Garden",
+  "Sports & Outdoors",
+  "Toys & Games",
+  "Services",
+  "Other",
+];
 
-  if (params.search) {
-    query = query.or(
-      `title.ilike.%${params.search}%,description.ilike.%${params.search}%`
-    );
-  }
+export default function ListingsPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  
+  const searchParam = searchParams?.get("search") ?? "";
+  const categoryParam = searchParams?.get("category") ?? "all";
 
-  if (params.category) {
-    query = query.eq("category", params.category);
-  }
+  const [query, setQuery] = useState<string>(searchParam);
+  const [category, setCategory] = useState<string>(categoryParam === "" ? "all" : categoryParam);
+  const [listings, setListings] = useState<Listing[] | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  if (params.budget_min) {
-    query = query.gte("budget_max", Number.parseFloat(params.budget_min));
-  }
+  useEffect(() => {
+    // Keep query and category in sync with URL
+    setQuery(searchParam);
+    setCategory(categoryParam === "" ? "all" : categoryParam);
+  }, [searchParam, categoryParam]);
 
-  if (params.budget_max) {
-    query = query.lte("budget_min", Number.parseFloat(params.budget_max));
-  }
+  useEffect(() => {
+    let mounted = true;
+    const supabase = createClient();
 
-  const { data: listings } = await query;
+    async function load() {
+      setLoading(true);
+      try {
+        // fetch current user (if any)
+        const userRes = await supabase.auth.getUser();
+        const uid = userRes?.data?.user?.id ?? null;
+        if (!mounted) return;
+        setUserId(uid);
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+        // fetch buyer requests with filters
+        let builder = supabase
+          .from("requests")
+          .select("*")
+          .eq("status", "open");
 
-  const categories = [
-    "Electronics",
-    "Furniture",
-    "Clothing",
-    "Books",
-    "Home & Garden",
-    "Sports & Outdoors",
-    "Toys & Games",
-    "Services",
-    "Other",
-  ];
+        // Apply search filter
+        if (query && query.trim() !== "") {
+          const q = query.trim();
+          builder = builder.or(`title.ilike.%${q}%,description.ilike.%${q}%`);
+        }
+
+        // Apply category filter
+        if (category && category.trim() !== "" && category !== "all") {
+          builder = builder.eq("category", category);
+        }
+
+        const { data: listingsData, error } = await builder
+          .order("created_at", { ascending: false })
+          .limit(100);
+
+        if (error) throw error;
+        if (!mounted) return;
+        setListings(listingsData ?? []);
+      } catch (e) {
+        console.error("Error loading listings:", e);
+        setListings([]);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    }
+
+    load();
+
+    return () => {
+      mounted = false;
+    };
+  }, [query, category]);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const params = new URLSearchParams();
+    if (query.trim()) params.set("search", query.trim());
+    if (category && category !== "all") params.set("category", category);
+    router.push(`/listings?${params.toString()}`);
+  };
+
+  const handleCategoryChange = (value: string) => {
+    setCategory(value);
+    const params = new URLSearchParams();
+    if (query.trim()) params.set("search", query.trim());
+    if (value && value !== "all") params.set("category", value);
+    router.push(`/listings?${params.toString()}`);
+  };
+
+  const clearFilters = () => {
+    setQuery("");
+    setCategory("all");
+    router.push("/listings");
+  };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Navigation */}
-      <nav className="border-b border-border sticky top-0 z-50 bg-background/95 backdrop-blur">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <Link href="/" className="text-2xl font-bold text-primary">
-            RevCom
-          </Link>
-          <div className="flex gap-4 items-center">
-            {user ? (
-              <>
-                <Link href="/dashboard">
-                  <Button variant="outline">Dashboard</Button>
-                </Link>
-                <Link href="/messages">
-                  <Button variant="outline">Messages</Button>
-                </Link>
-                <Link href="/profile">
-                  <Button variant="outline">Profile</Button>
-                </Link>
-              </>
-            ) : (
-              <>
-                <Link href="/auth/login">
-                  <Button variant="outline">Login</Button>
-                </Link>
-                <Link href="/auth/sign-up">
-                  <Button>Sign Up</Button>
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
-      </nav>
-
+    <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-indigo-50/30 to-purple-50/30 dark:from-blue-950/10 dark:via-indigo-950/10 dark:to-purple-950/10">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">
-            Browse All Listings
+          <h1 className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+            Browse Buyer Requests
           </h1>
           <p className="text-muted-foreground">
-            Discover what buyers are looking for and send offers
+            Search and filter through buyer needs and requests
           </p>
         </div>
 
-        {/* Filters */}
-        <div className="bg-card border border-border rounded-lg p-6 mb-8">
-          <div className="grid md:grid-cols-4 gap-4">
-            <div>
-              <label className="text-sm font-medium mb-2 block">Search</label>
-              <form action="/listings" method="GET" className="flex gap-2">
-                <Input
-                  type="text"
-                  name="search"
-                  placeholder="Search listings..."
-                  defaultValue={params.search || ""}
-                  className="flex-1"
-                />
-                <Button type="submit">Search</Button>
-              </form>
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-2 block">Category</label>
-              <select
-                name="category"
-                defaultValue={params.category || ""}
-                onChange={(e) => {
-                  const url = new URL(window.location.href);
-                  if (e.target.value) {
-                    url.searchParams.set("category", e.target.value);
-                  } else {
-                    url.searchParams.delete("category");
-                  }
-                  window.location.href = url.toString();
-                }}
-                className="w-full px-3 py-2 border border-input rounded-md bg-background text-sm"
-              >
-                <option value="">All Categories</option>
-                {categories.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-2 block">
-                Min Budget
-              </label>
-              <Input
-                type="number"
-                name="budget_min"
-                placeholder="Min budget"
-                defaultValue={params.budget_min || ""}
-                className="text-sm"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-2 block">
-                Max Budget
-              </label>
-              <Input
-                type="number"
-                name="budget_max"
-                placeholder="Max budget"
-                defaultValue={params.budget_max || ""}
-                className="text-sm"
-              />
-            </div>
-          </div>
-        </div>
+        {/* Search and Filter Section */}
+        <Card className="mb-8 border-blue-100 dark:border-blue-900/50 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm">
+          <CardContent className="p-6">
+            <form onSubmit={handleSearch} className="space-y-4">
+              <div className="grid md:grid-cols-3 gap-4">
+                {/* Search Input */}
+                <div className="md:col-span-2">
+                  <label className="text-sm font-medium mb-2 block text-foreground">
+                    Search
+                  </label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      type="text"
+                      placeholder="Search by title or description..."
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      className="pl-10 border-blue-200 dark:border-blue-800 focus:border-blue-500 dark:focus:border-blue-400"
+                    />
+                  </div>
+                </div>
 
-        {/* Listings Grid */}
-        <div className="grid gap-4">
-          {listings && listings.length > 0 ? (
-            listings.map((listing: any) => (
-              <Card
-                key={listing.id}
-                className="hover:shadow-lg transition-shadow"
-              >
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <CardTitle className="text-xl">{listing.title}</CardTitle>
-                      <CardDescription>{listing.category}</CardDescription>
-                    </div>
-                    <span className="px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                      {listing.status}
-                    </span>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground mb-4 line-clamp-2">
-                    {listing.description}
-                  </p>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm">
-                    <div>
-                      <p className="text-muted-foreground">Budget Range</p>
-                      <p className="font-semibold">
-                        ${listing.budget_min} - ${listing.budget_max}
+                {/* Category Filter */}
+                <div>
+                  <label className="text-sm font-medium mb-2 block text-foreground">
+                    Category
+                  </label>
+                  <Select value={category || "all"} onValueChange={handleCategoryChange}>
+                    <SelectTrigger className="border-blue-200 dark:border-blue-800 focus:border-blue-500 dark:focus:border-blue-400">
+                      <SelectValue placeholder="All Categories" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Categories</SelectItem>
+                      {categories.map((cat) => (
+                        <SelectItem key={cat} value={cat}>
+                          {cat}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-2">
+                <Button
+                  type="submit"
+                  className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 shadow-md shadow-blue-500/30"
+                >
+                  <Search className="w-4 h-4 mr-2" />
+                  Search
+                </Button>
+                {(query || (category && category !== "all")) && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={clearFilters}
+                    className="hover:bg-blue-50 dark:hover:bg-blue-950/30"
+                  >
+                    Clear Filters
+                  </Button>
+                )}
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+
+        {/* Results Section */}
+        <section>
+          {loading ? (
+            <div className="py-12 text-center">
+              <p className="text-muted-foreground">Loading buyer requests...</p>
+            </div>
+          ) : listings && listings.length > 0 ? (
+            <>
+              <div className="mb-4 text-sm text-muted-foreground">
+                Found {listings.length} request{listings.length !== 1 ? "s" : ""}
+                {query && ` matching "${query}"`}
+                {category && category !== "all" && ` in ${category}`}
+              </div>
+              <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {listings.map((l: any) => (
+                  <Card
+                    key={l.id}
+                    className="hover:shadow-xl transition-all duration-300 hover:scale-105 border-blue-100 dark:border-blue-900/50 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm"
+                  >
+                    <CardHeader>
+                      <CardTitle className="text-blue-600 dark:text-blue-400 line-clamp-2">
+                        {l.title}
+                      </CardTitle>
+                      <CardDescription>
+                        {l.category || "Uncategorized"}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {l.description && (
+                        <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                          {l.description}
+                        </p>
+                      )}
+                      <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+                        {l.budget_min && l.budget_max
+                          ? `$${l.budget_min} - $${l.budget_max}`
+                          : "Budget not specified"}
                       </p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Quantity Needed</p>
-                      <p className="font-semibold">{listing.quantity || 1}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Posted</p>
-                      <p className="font-semibold">
-                        {new Date(listing.created_at).toLocaleDateString()}
+                      <p className="text-xs text-muted-foreground mb-4">
+                        {l.created_at &&
+                          new Date(l.created_at).toLocaleDateString()}
                       </p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Buyer</p>
-                      <p className="font-semibold truncate">
-                        {listing.profiles?.full_name || "Anonymous"}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Link href={`/listings/${listing.id}`}>
-                      <Button variant="outline" size="sm">
-                        View Details
-                      </Button>
-                    </Link>
-                    {user ? (
-                      <Link href={`/messages?listing_id=${listing.id}`}>
-                        <Button size="sm" className="gap-2">
-                          <MessageSquare className="w-4 h-4" />
-                          Send Offer
-                        </Button>
-                      </Link>
-                    ) : (
-                      <Link href="/auth/sign-up">
-                        <Button size="sm">Sign Up to Offer</Button>
-                      </Link>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))
+                      {l.buyer_id === userId && (
+                        <p className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-2">
+                          Your request
+                        </p>
+                      )}
+                      <div className="mt-4">
+                        <Link href={`/listings/${l.id}`}>
+                          <Button className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 shadow-md shadow-blue-500/30 w-full">
+                            View Details
+                          </Button>
+                        </Link>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </>
           ) : (
-            <Card>
-              <CardContent className="pt-6">
-                <p className="text-muted-foreground text-center">
-                  No listings found. Try adjusting your filters.
+            <Card className="border-blue-100 dark:border-blue-900/50 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm">
+              <CardContent className="py-12 text-center">
+                <Filter className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                <p className="text-muted-foreground mb-2">
+                  No buyer requests found.
                 </p>
+                <p className="text-sm text-muted-foreground">
+                  {query || (category && category !== "all")
+                    ? "Try adjusting your search or filters."
+                    : "No buyer requests available at the moment."}
+                </p>
+                {(query || (category && category !== "all")) && (
+                  <Button
+                    variant="ghost"
+                    onClick={clearFilters}
+                    className="mt-4 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+                  >
+                    Clear Filters
+                  </Button>
+                )}
               </CardContent>
             </Card>
           )}
-        </div>
+        </section>
       </main>
     </div>
   );

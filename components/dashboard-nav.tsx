@@ -79,17 +79,27 @@ export default function DashboardNav({ user, profile }: any) {
 
   if (!displayUser) {
     return (
-      <header className="border-b bg-card">
+      <header className="border-b bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-blue-100 dark:border-blue-900/50">
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="text-xl font-semibold tracking-tight">
+          <Link
+            href="/"
+            className="text-xl font-semibold tracking-tight text-blue-600 dark:text-blue-400"
+          >
             RevCom
           </Link>
 
           <div className="flex items-center gap-4">
-            <Button variant="ghost" asChild>
+            <Button
+              variant="ghost"
+              asChild
+              className="hover:bg-blue-50 dark:hover:bg-blue-950/30"
+            >
               <Link href="/auth/login">Sign In</Link>
             </Button>
-            <Button asChild>
+            <Button
+              asChild
+              className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 shadow-md shadow-blue-500/30"
+            >
               <Link href="/auth/sign-up">Get Started</Link>
             </Button>
           </div>
@@ -103,10 +113,13 @@ export default function DashboardNav({ user, profile }: any) {
   --------------------------------------------- */
 
   return (
-    <nav className="border-b bg-card">
+    <nav className="border-b bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-blue-100 dark:border-blue-900/50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
         {/* Brand */}
-        <Link href="/dashboard" className="text-2xl font-bold text-primary">
+        <Link
+          href="/dashboard"
+          className="text-2xl font-bold text-blue-600 dark:text-blue-400"
+        >
           RevCom
         </Link>
 
@@ -119,32 +132,22 @@ export default function DashboardNav({ user, profile }: any) {
             </Link>
           </Button>
 
-          {/* Search */}
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              const q = search.trim();
-              router.push(`/home${q ? `?q=${encodeURIComponent(q)}` : ""}`);
-            }}
-            className="hidden md:flex items-center"
-          >
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search listings..."
-              className="w-48"
-            />
-            <Button type="submit" variant="ghost" size="sm" className="ml-2">
-              Search
-            </Button>
-          </form>
+          {/* Listings */}
+          <Button asChild variant="ghost" size="sm" className="gap-2">
+            <Link href="/listings">
+              <ShoppingBag className="w-4 h-4" />
+              Browse
+            </Link>
+          </Button>
 
           {/* Buyer Tools */}
           {(displayProfile?.user_type === "buyer" ||
             displayProfile?.user_type === "both") && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm">Buyer</Button>
+                <Button variant="ghost" size="sm">
+                  Buyer
+                </Button>
               </DropdownMenuTrigger>
 
               <DropdownMenuContent align="end">
@@ -173,7 +176,9 @@ export default function DashboardNav({ user, profile }: any) {
             displayProfile?.user_type === "both") && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm">Seller</Button>
+                <Button variant="ghost" size="sm">
+                  Seller
+                </Button>
               </DropdownMenuTrigger>
 
               <DropdownMenuContent align="end">

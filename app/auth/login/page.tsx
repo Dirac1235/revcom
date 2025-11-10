@@ -45,7 +45,7 @@ export default function LoginPage() {
         await supabase.auth.getUser();
       }
 
-      router.push("/dashboard");
+      router.push("/home");
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
     } finally {
@@ -54,11 +54,17 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10 bg-background">
-      <div className="w-full max-w-sm">
-        <Card>
+    <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/20 dark:via-indigo-950/20 dark:to-purple-950/20 relative overflow-hidden">
+      {/* Animated gradient orbs */}
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-400/20 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-400/20 rounded-full blur-3xl animate-pulse delay-1000" />
+
+      <div className="w-full max-w-sm relative z-10">
+        <Card className="border-blue-100 dark:border-blue-900/50 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm shadow-xl">
           <CardHeader>
-            <CardTitle className="text-2xl">Login to RevCom</CardTitle>
+            <CardTitle className="text-2xl text-blue-600 dark:text-blue-400">
+              Login to RevCom
+            </CardTitle>
             <CardDescription>
               Enter your email and password to access your account
             </CardDescription>
@@ -75,6 +81,7 @@ export default function LoginPage() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    className="border-blue-200 dark:border-blue-800 focus:border-blue-500 dark:focus:border-blue-400"
                   />
                 </div>
                 <div className="grid gap-2">
@@ -85,10 +92,15 @@ export default function LoginPage() {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    className="border-blue-200 dark:border-blue-800 focus:border-blue-500 dark:focus:border-blue-400"
                   />
                 </div>
                 {error && <p className="text-sm text-red-500">{error}</p>}
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button
+                  type="submit"
+                  className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 shadow-md shadow-blue-500/30"
+                  disabled={isLoading}
+                >
                   {isLoading ? "Logging in..." : "Login"}
                 </Button>
               </div>
@@ -96,7 +108,7 @@ export default function LoginPage() {
                 Don&apos;t have an account?{" "}
                 <Link
                   href="/auth/sign-up"
-                  className="text-primary hover:underline"
+                  className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
                 >
                   Sign up
                 </Link>

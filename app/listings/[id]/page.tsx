@@ -9,7 +9,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { MessageSquare, ChevronLeft } from "lucide-react";
+import {
+  MessageSquare,
+  ChevronLeft,
+  DollarSign,
+  Package,
+  User,
+  Calendar,
+  Tag,
+} from "lucide-react";
+import DashboardNav from "@/components/dashboard-nav";
 
 export default async function ListingDetailPage({
   params,
@@ -20,8 +29,8 @@ export default async function ListingDetailPage({
   const supabase = await createClient();
 
   const { data: listing } = await supabase
-    .from("listings")
-    .select("*, profiles(full_name, email)")
+    .from("requests")
+    .select("*, profiles(first_name, last_name, email)")
     .eq("id", id)
     .single();
 
@@ -33,132 +42,196 @@ export default async function ListingDetailPage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  return (
-    <div className="min-h-screen bg-background">
-      {/* Navigation */}
-      <nav className="border-b border-border sticky top-0 z-50 bg-background/95 backdrop-blur">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <Link href="/" className="text-2xl font-bold text-primary">
-            RevCom
-          </Link>
-          <div className="flex gap-4 items-center">
-            {user ? (
-              <>
-                <Link href="/dashboard">
-                  <Button variant="outline" size="sm">
-                    Dashboard
-                  </Button>
-                </Link>
-                <Link href="/messages">
-                  <Button variant="outline" size="sm">
-                    Messages
-                  </Button>
-                </Link>
-              </>
-            ) : (
-              <>
-                <Link href="/auth/login">
-                  <Button variant="outline" size="sm">
-                    Login
-                  </Button>
-                </Link>
-                <Link href="/auth/sign-up">
-                  <Button size="sm">Sign Up</Button>
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
-      </nav>
+  let profile = null;
+  if (user) {
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .single();
+    profile = profileData;
+  }
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  const buyerName = listing.profiles
+    ? `${listing.profiles.first_name || ""} ${
+        listing.profiles.last_name || ""
+      }`.trim() || "Anonymous"
+    : "Anonymous";
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-indigo-50/30 to-purple-50/30 dark:from-blue-950/10 dark:via-indigo-950/10 dark:to-purple-950/10">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-2 pt-5">
+        {/* Back Button */}
         <Link
           href="/listings"
-          className="flex items-center gap-2 text-primary hover:underline mb-6"
+          className="inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:underline mb-6 transition-colors"
         >
           <ChevronLeft className="w-4 h-4" />
-          Back to Listings
+          Back to Requests
         </Link>
 
-        <Card className="mb-8">
-          <CardHeader>
-            <div className="flex justify-between items-start">
-              <div>
-                <CardTitle className="text-3xl mb-2">{listing.title}</CardTitle>
-                <CardDescription className="text-base">
-                  {listing.category}
+        {/* Main Card */}
+        <Card className="mb-6 border-blue-100 dark:border-blue-900/50 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm shadow-xl">
+          <CardHeader className="pb-4">
+            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-3">
+                  <Tag className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  <span className="px-3 py-1 rounded-full text-sm font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
+                    {listing.category}
+                  </span>
+                </div>
+                <CardTitle className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+                  {listing.title}
+                </CardTitle>
+                <CardDescription className="text-base mt-2">
+                  Posted{" "}
+                  {new Date(listing.created_at).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
                 </CardDescription>
               </div>
-              <span className="px-4 py-2 rounded-full text-sm font-medium bg-green-100 text-green-800">
+              <span className="px-4 py-2 rounded-full text-sm font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 capitalize">
                 {listing.status}
               </span>
             </div>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div>
-              <h3 className="font-semibold text-lg mb-2">Description</h3>
-              <p className="text-muted-foreground whitespace-pre-wrap">
+
+          <CardContent className="space-y-8">
+            {/* Description */}
+            <div className="bg-blue-50/50 dark:bg-blue-950/20 rounded-lg p-6 border border-blue-100 dark:border-blue-900/50">
+              <h3 className="font-semibold text-lg mb-3 text-blue-600 dark:text-blue-400">
+                Description
+              </h3>
+              <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">
                 {listing.description}
               </p>
             </div>
 
+            {/* Budget and Quantity Cards */}
             <div className="grid md:grid-cols-2 gap-6">
-              <div className="border-l-4 border-primary pl-4">
-                <p className="text-sm text-muted-foreground">Budget Range</p>
-                <p className="text-2xl font-bold">
-                  ${listing.budget_min} - ${listing.budget_max}
-                </p>
-              </div>
-              <div className="border-l-4 border-primary pl-4">
-                <p className="text-sm text-muted-foreground">Quantity Needed</p>
-                <p className="text-2xl font-bold">{listing.quantity || 1}</p>
-              </div>
+              <Card className="border-blue-100 dark:border-blue-900/50 bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-blue-950/20 dark:to-indigo-950/20">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+                      <DollarSign className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Budget Range
+                    </p>
+                  </div>
+                  <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                    {listing.budget_min && listing.budget_max
+                      ? `$${listing.budget_min} - $${listing.budget_max}`
+                      : "Not specified"}
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-indigo-100 dark:border-indigo-900/50 bg-gradient-to-br from-indigo-50/50 to-purple-50/50 dark:from-indigo-950/20 dark:to-purple-950/20">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900/30">
+                      <Package className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                    </div>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Quantity Needed
+                    </p>
+                  </div>
+                  <p className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">
+                    {listing.quantity || 1}
+                  </p>
+                </CardContent>
+              </Card>
             </div>
 
-            <div className="bg-card border border-border rounded-lg p-4">
-              <h3 className="font-semibold mb-2">Seller Information</h3>
-              <p className="text-muted-foreground mb-1">
-                <span className="font-medium">Name:</span>{" "}
-                {listing.profiles?.full_name || "Anonymous"}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Posted{" "}
-                {new Date(listing.created_at).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </p>
-              {listing.profiles?.email && (
-                <p className="text-sm text-muted-foreground mt-2">
-                  <span className="font-medium">Contact:</span>{" "}
-                  {listing.profiles.email}
-                </p>
-              )}
-            </div>
+            {/* Buyer Information */}
+            <Card className="border-purple-100 dark:border-purple-900/50 bg-gradient-to-br from-purple-50/50 to-cyan-50/50 dark:from-purple-950/20 dark:to-cyan-950/20">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30">
+                    <User className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <CardTitle className="text-xl text-purple-600 dark:text-purple-400">
+                    Buyer Information
+                  </CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">
+                    Posted on{" "}
+                    {new Date(listing.created_at).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground mb-1">
+                    Name
+                  </p>
+                  <p className="text-lg font-semibold text-foreground">
+                    {buyerName}
+                  </p>
+                </div>
+                {listing.profiles?.email && (
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground mb-1">
+                      Contact Email
+                    </p>
+                    <p className="text-base text-foreground">
+                      {listing.profiles.email}
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
-            <div className="flex gap-2 pt-4">
-              <Link href="/listings">
-                <Button variant="outline">Back to Listings</Button>
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-blue-100 dark:border-blue-900/50">
+              <Link href="/listings" className="flex-1">
+                <Button
+                  variant="outline"
+                  className="w-full border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+                >
+                  <ChevronLeft className="w-4 h-4 mr-2" />
+                  Back to Requests
+                </Button>
               </Link>
               {user ? (
-                listing.seller_id !== user.id ? (
+                listing.buyer_id !== user.id ? (
                   <Link
-                    href={`/messages?listing_id=${listing.id}&to=${listing.seller_id}`}
+                    href={`/messages?request_id=${listing.id}&to=${listing.buyer_id}`}
+                    className="flex-1"
                   >
-                    <Button className="gap-2">
-                      <MessageSquare className="w-4 h-4" />
-                      Message Seller
+                    <Button className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 shadow-md shadow-blue-500/30">
+                      <MessageSquare className="w-4 h-4 mr-2" />
+                      Message Buyer
                     </Button>
                   </Link>
                 ) : (
-                  <Link href={`/seller/listings/${listing.id}`}>
-                    <Button variant="outline">Edit Listing</Button>
+                  <Link
+                    href={`/buyer/requests/${listing.id}/edit`}
+                    className="flex-1"
+                  >
+                    <Button
+                      variant="outline"
+                      className="w-full border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+                    >
+                      Edit Request
+                    </Button>
                   </Link>
                 )
               ) : (
-                <Link href="/auth/sign-up">
-                  <Button>Sign Up to Message Seller</Button>
+                <Link href="/auth/sign-up" className="flex-1">
+                  <Button className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 shadow-md shadow-blue-500/30">
+                    Sign Up to Message Buyer
+                  </Button>
                 </Link>
               )}
             </div>
