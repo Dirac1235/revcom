@@ -1,10 +1,18 @@
-import { createClient } from "@/lib/supabase/server"
-import { redirect } from 'next/navigation'
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Eye } from 'lucide-react'
-import DashboardNav from "@/components/dashboard-nav"
+import { createClient } from "@/lib/supabase/server";
+import { getProfileById } from "@/lib/data/profiles";
+import { getBuyerOrders } from "@/lib/data/orders";
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Eye } from "lucide-react";
+import DashboardNav from "@/components/dashboard-nav";
 
 const statusColors: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-800",
@@ -12,30 +20,24 @@ const statusColors: Record<string, string> = {
   shipped: "bg-purple-100 text-purple-800",
   delivered: "bg-green-100 text-green-800",
   cancelled: "bg-red-100 text-red-800",
-}
+};
 
 export default async function BuyerOrdersPage() {
-  const supabase = await createClient()
+  const supabase = await createClient();
   const {
     data: { user },
     error: userError,
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
   if (userError || !user) {
-    redirect("/auth/login")
+    redirect("/auth/login");
   }
 
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
-
-  const { data: orders } = await supabase
-    .from("orders")
-    .select("*")
-    .eq("buyer_id", user.id)
-    .order("created_at", { ascending: false })
+  const profile = await getProfileById(supabase, user.id);
+  const orders = await getBuyerOrders(supabase, user.id);
 
   return (
     <div className="min-h-screen bg-background">
-
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">My Orders</h1>
@@ -45,14 +47,23 @@ export default async function BuyerOrdersPage() {
         <div className="grid gap-4">
           {orders && orders.length > 0 ? (
             orders.map((order: any) => (
-              <Card key={order.id} className="hover:shadow-lg transition-shadow">
+              <Card
+                key={order.id}
+                className="hover:shadow-lg transition-shadow"
+              >
                 <CardHeader>
                   <div className="flex justify-between items-start">
                     <div>
                       <CardTitle>{order.title}</CardTitle>
-                      <CardDescription>Order ID: {order.id.slice(0, 8)}</CardDescription>
+                      <CardDescription>
+                        Order ID: {order.id.slice(0, 8)}
+                      </CardDescription>
                     </div>
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusColors[order.status]}`}>
+                    <span
+                      className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        statusColors[order.status]
+                      }`}
+                    >
                       {order.status}
                     </span>
                   </div>
@@ -65,11 +76,17 @@ export default async function BuyerOrdersPage() {
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Price</p>
-                      <p className="font-semibold text-lg text-primary">${order.agreed_price}</p>
+                      <p className="font-semibold text-lg text-primary">
+                        ${order.agreed_price}
+                      </p>
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground">Ordered On</p>
-                      <p className="font-semibold">{new Date(order.created_at).toLocaleDateString()}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Ordered On
+                      </p>
+                      <p className="font-semibold">
+                        {new Date(order.created_at).toLocaleDateString()}
+                      </p>
                     </div>
                   </div>
                   <Link href={`/buyer/orders/${order.id}`}>
@@ -84,12 +101,14 @@ export default async function BuyerOrdersPage() {
           ) : (
             <Card>
               <CardContent className="pt-6">
-                <p className="text-muted-foreground">No orders yet. Start exploring and make your first purchase!</p>
+                <p className="text-muted-foreground">
+                  No orders yet. Start exploring and make your first purchase!
+                </p>
               </CardContent>
             </Card>
           )}
         </div>
       </main>
     </div>
-  )
+  );
 }

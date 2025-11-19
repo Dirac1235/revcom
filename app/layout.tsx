@@ -2,8 +2,6 @@ import type React from "react";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import "./globals.css";
 import { createClient } from "@/lib/supabase/server";
 import DashboardNav from "@/components/dashboard-nav";

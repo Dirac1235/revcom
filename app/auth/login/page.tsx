@@ -48,7 +48,7 @@ export default function LoginPage() {
           // This ensures DashboardNav picks up the state change
           await new Promise((resolve) => setTimeout(resolve, 150));
           // Navigate - the DashboardNav will update via onAuthStateChange
-          router.push("/home");
+          router.push("/");
         } else {
           throw new Error("Failed to get user after login");
         }

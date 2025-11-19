@@ -149,7 +149,7 @@ export default function DashboardNav({ user, profile }: any) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
         {/* Brand */}
         <Link
-          href="/dashboard"
+          href="/"
           className="text-2xl font-bold text-blue-600 dark:text-blue-400"
         >
           RevCom
@@ -158,7 +158,7 @@ export default function DashboardNav({ user, profile }: any) {
         <div className="flex items-center gap-3">
           {/* Home */}
           <Button asChild variant="ghost" size="sm" className="gap-2">
-            <Link href="/home">
+            <Link href="/">
               <Home className="w-4 h-4" />
               Home
             </Link>
