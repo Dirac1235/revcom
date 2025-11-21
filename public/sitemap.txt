@@ -1,0 +1,16 @@
+# Sitemap
+https://revcom.et
+https://revcom.et/products
+https://revcom.et/listings
+https://revcom.et/seller/explore
+https://revcom.et/seller/products
+https://revcom.et/seller/products/create
+https://revcom.et/seller/orders
+https://revcom.et/buyer/requests
+https://revcom.et/buyer/requests/create
+https://revcom.et/buyer/orders
+https://revcom.et/messages
+https://revcom.et/profile
+https://revcom.et/dashboard
+https://revcom.et/auth/login
+https://revcom.et/auth/sign-up

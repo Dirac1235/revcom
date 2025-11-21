@@ -1,0 +1,15 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /auth/
+Disallow: /dashboard/
+Disallow: /buyer/
+Disallow: /seller/
+
+# Allow public pages
+Allow: /products
+Allow: /listings
+Allow: /
+
+Sitemap: https://revcom.et/sitemap.txt

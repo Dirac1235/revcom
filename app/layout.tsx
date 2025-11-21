@@ -3,16 +3,22 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
-import { createClient } from "@/lib/supabase/server";
-import DashboardNav from "@/components/dashboard-nav";
+import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
+import { Toaster } from "@/components/ui/toaster";
 
 const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "RevCom",
-  description: "Created with RevCom",
-  generator: "revcom",
+  title: "RevCom - Ethiopia's Premier B2B Marketplace",
+  description: "Connect buyers and sellers across Ethiopia. Post your needs, discover products, and get instant quotes from verified sellers.",
+  keywords: "B2B marketplace, Ethiopia, buyers, sellers, products, requests, quotes",
+  openGraph: {
+    title: "RevCom - Ethiopia's Premier B2B Marketplace",
+    description: "Connect buyers and sellers across Ethiopia. Post your needs, discover products, and get instant quotes from verified sellers.",
+    type: "website",
+  },
 };
 
 export default async function RootLayout({
@@ -20,49 +26,18 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Resolve user/profile if available. Do not redirect here — keep root layout
-  // non-protecting to avoid redirect loops (auth pages need to render). Individual
-  // protected routes/pages should enforce auth as needed.
-  let user: any = null;
-  let profile: any = null;
-
-  try {
-    const supabase = await createClient();
-    const {
-      data: { user: u },
-      error: userError,
-    } = await supabase.auth.getUser();
-
-    if (!userError && u) {
-      user = u;
-      const { data } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-      profile = data;
-    }
-  } catch (e) {
-    // If anything fails, treat as unauthenticated — avoid throwing from layout
-  }
-
   return (
     <html lang="en">
-      <body className={`font-sans antialiased`}>
-        <header className="fixed top-0 left-0 right-0 z-50 border-b bg-white/80 dark:bg-slate-900/80 backdrop-blur-md shadow-sm border-blue-100 dark:border-blue-900/50">
-          <DashboardNav user={user} profile={profile} />
+      <body className={`font-sans antialiased flex flex-col min-h-screen`}>
+        <header className="fixed top-0 left-0 right-0 z-50">
+          <Navbar />
         </header>
 
-        <main className="pt-16">{children}</main>
+        <main className="pt-16 flex-1">{children}</main>
 
-        <footer className="border-t py-12 bg-gradient-to-r from-blue-50/50 via-indigo-50/50 to-purple-50/50 dark:from-blue-950/20 dark:via-indigo-950/20 dark:to-purple-950/20 border-blue-100 dark:border-blue-900/50">
-          <div className="container px-8 mx-auto text-center text-muted-foreground">
-            <p className="text-sm font-light">
-              &copy; 2025 RevCom. All rights reserved.
-            </p>
-          </div>
-        </footer>
+        <Footer />
 
+        <Toaster />
         <Analytics />
       </body>
     </html>
