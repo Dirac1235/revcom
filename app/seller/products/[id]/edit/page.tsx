@@ -150,61 +150,63 @@ export default function EditProductPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-indigo-50/30 to-purple-50/30 dark:from-blue-950/10 dark:via-indigo-950/10 dark:to-purple-950/10">
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+    <div className="min-h-screen bg-background">
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="mb-12">
+          <h1 className="text-4xl font-serif font-bold text-foreground mb-3">
             Edit Product
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-lg">
             Update your product information
           </p>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Product Details</CardTitle>
-            <CardDescription>
+        <Card className="border-border shadow-none rounded-lg">
+          <CardHeader className="pb-6 pt-8 px-8">
+            <CardTitle className="text-2xl font-serif font-bold text-foreground">Product Details</CardTitle>
+            <CardDescription className="text-base text-muted-foreground">
               Make changes to your product listing
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <CardContent className="px-8 pb-8">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
               {/* Title */}
-              <div>
-                <Label htmlFor="title">Product Title *</Label>
+              <div className="space-y-2">
+                <Label htmlFor="title" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Product Title *</Label>
                 <Input
                   id="title"
                   {...register("title")}
                   placeholder="e.g., MacBook Pro M4 16-inch"
+                  className="border-border focus-visible:ring-0 focus-visible:border-foreground h-12"
                 />
                 {errors.title && (
-                  <p className="text-sm text-red-600 mt-1">{errors.title.message}</p>
+                  <p className="text-sm text-destructive mt-1">{errors.title.message}</p>
                 )}
               </div>
 
               {/* Description */}
-              <div>
-                <Label htmlFor="description">Description *</Label>
+              <div className="space-y-2">
+                <Label htmlFor="description" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Description *</Label>
                 <Textarea
                   id="description"
                   {...register("description")}
                   placeholder="Describe your product in detail..."
                   rows={5}
+                  className="border-border focus-visible:ring-0 focus-visible:border-foreground resize-none"
                 />
                 {errors.description && (
-                  <p className="text-sm text-red-600 mt-1">{errors.description.message}</p>
+                  <p className="text-sm text-destructive mt-1">{errors.description.message}</p>
                 )}
               </div>
 
               {/* Category */}
-              <div>
-                <Label htmlFor="category">Category *</Label>
+              <div className="space-y-2">
+                <Label htmlFor="category" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Category *</Label>
                 <Select
                   value={category}
                   onValueChange={(value) => setValue("category", value as any)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="border-border focus:ring-0 focus:border-foreground h-12">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -216,46 +218,48 @@ export default function EditProductPage() {
                   </SelectContent>
                 </Select>
                 {errors.category && (
-                  <p className="text-sm text-red-600 mt-1">{errors.category.message}</p>
+                  <p className="text-sm text-destructive mt-1">{errors.category.message}</p>
                 )}
               </div>
 
               {/* Price, Inventory, and Status */}
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="price">Price (ETB) *</Label>
+              <div className="grid grid-cols-3 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="price" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Price (ETB) *</Label>
                   <Input
                     id="price"
                     type="number"
                     step="0.01"
                     {...register("price", { valueAsNumber: true })}
                     placeholder="0.00"
+                    className="border-border focus-visible:ring-0 focus-visible:border-foreground h-12"
                   />
                   {errors.price && (
-                    <p className="text-sm text-red-600 mt-1">{errors.price.message}</p>
+                    <p className="text-sm text-destructive mt-1">{errors.price.message}</p>
                   )}
                 </div>
-                <div>
-                  <Label htmlFor="inventory_quantity">Inventory</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="inventory_quantity" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Inventory</Label>
                   <Input
                     id="inventory_quantity"
                     type="number"
                     {...register("inventory_quantity", { valueAsNumber: true })}
                     placeholder="0"
+                    className="border-border focus-visible:ring-0 focus-visible:border-foreground h-12"
                   />
                   {errors.inventory_quantity && (
-                    <p className="text-sm text-red-600 mt-1">
+                    <p className="text-sm text-destructive mt-1">
                       {errors.inventory_quantity.message}
                     </p>
                   )}
                 </div>
-                <div>
-                  <Label htmlFor="status">Status *</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="status" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Status *</Label>
                   <Select
                     value={status}
                     onValueChange={(value) => setValue("status", value as any)}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="border-border focus:ring-0 focus:border-foreground h-12">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -265,21 +269,22 @@ export default function EditProductPage() {
                     </SelectContent>
                   </Select>
                   {errors.status && (
-                    <p className="text-sm text-red-600 mt-1">{errors.status.message}</p>
+                    <p className="text-sm text-destructive mt-1">{errors.status.message}</p>
                   )}
                 </div>
               </div>
 
               {/* Image URL */}
-              <div>
-                <Label htmlFor="image_url">Image URL (optional)</Label>
+              <div className="space-y-2">
+                <Label htmlFor="image_url" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Image URL (optional)</Label>
                 <Input
                   id="image_url"
                   {...register("image_url")}
                   placeholder="https://example.com/image.jpg"
+                  className="border-border focus-visible:ring-0 focus-visible:border-foreground h-12"
                 />
                 {errors.image_url && (
-                  <p className="text-sm text-red-600 mt-1">{errors.image_url.message}</p>
+                  <p className="text-sm text-destructive mt-1">{errors.image_url.message}</p>
                 )}
                 <p className="text-xs text-muted-foreground mt-1">
                   Provide a direct link to your product image
@@ -287,16 +292,16 @@ export default function EditProductPage() {
               </div>
 
               {/* Actions */}
-              <div className="flex gap-4 pt-4">
+              <div className="flex gap-4 pt-4 border-t border-border">
                 <Button
                   type="submit"
                   disabled={submitting}
-                  className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+                  className="bg-foreground text-background hover:bg-foreground/90 shadow-none h-12 px-8"
                 >
                   {submitting ? "Saving..." : "Save Changes"}
                 </Button>
                 <Link href={ROUTES.SELLER_PRODUCTS}>
-                  <Button type="button" variant="outline">
+                  <Button type="button" variant="outline" className="border-border hover:bg-secondary hover:text-secondary-foreground h-12 px-8">
                     Cancel
                   </Button>
                 </Link>

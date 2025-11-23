@@ -101,7 +101,7 @@ export default function SellerExplorePage() {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-indigo-50/30 to-purple-50/30 dark:from-blue-950/10 dark:via-indigo-950/10 dark:to-purple-950/10">
+      <div className="min-h-screen bg-background">
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
             <div className="h-10 w-64 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-2" />
@@ -116,16 +116,17 @@ export default function SellerExplorePage() {
   if (!user || !isSeller) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-indigo-50/30 to-purple-50/30 dark:from-blue-950/10 dark:via-indigo-950/10 dark:to-purple-950/10">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">
-            Browse Buyer Requests
-          </h1>
-          <p className="text-muted-foreground">
-            Find what buyers are looking for and send them your best offers
-          </p>
+    <div className="min-h-screen bg-background">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="flex justify-between items-center mb-12">
+          <div>
+            <h1 className="text-4xl font-serif font-bold text-foreground mb-3">
+              Explore Requests
+            </h1>
+            <p className="text-muted-foreground text-lg">
+              Browse and respond to buyer requests
+            </p>
+          </div>
         </div>
 
         {/* Stats Cards */}

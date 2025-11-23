@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useProducts } from '@/lib/hooks/useProducts';
 import { ProductCard } from '@/components/features/ProductCard';
@@ -19,7 +19,7 @@ import {
 import { CATEGORIES } from '@/lib/constants/categories';
 import { Package, Filter, Grid, List } from 'lucide-react';
 
-export default function ProductsPage() {
+function ProductsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   
@@ -50,20 +50,20 @@ export default function ProductsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-indigo-50/30 to-purple-50/30 dark:from-blue-950/10 dark:via-indigo-950/10 dark:to-purple-950/10">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-background">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+        <div className="mb-12">
+          <h1 className="text-4xl font-serif font-bold text-foreground mb-3">
             Browse Products
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-lg">
             Discover products from verified sellers across Ethiopia
           </p>
         </div>
 
         {/* Filters */}
-        <div className="mb-6 flex flex-col md:flex-row gap-4">
+        <div className="mb-8 flex flex-col md:flex-row gap-4">
           <div className="flex-1">
             <SearchBar
               placeholder="Search products..."
@@ -73,8 +73,8 @@ export default function ProductsPage() {
           </div>
           
           <Select value={category || 'all'} onValueChange={handleCategoryChange}>
-            <SelectTrigger className="w-full md:w-[200px]">
-              <Filter className="w-4 h-4 mr-2" />
+            <SelectTrigger className="w-full md:w-[200px] border-border focus:ring-0 focus:border-foreground h-10">
+              <Filter className="w-4 h-4 mr-2 opacity-50" />
               <SelectValue placeholder="All Categories" />
             </SelectTrigger>
             <SelectContent>
@@ -92,6 +92,7 @@ export default function ProductsPage() {
               variant={viewMode === 'grid' ? 'default' : 'outline'}
               size="icon"
               onClick={() => setViewMode('grid')}
+              className={viewMode === 'grid' ? 'shadow-none' : 'border-border'}
             >
               <Grid className="w-4 h-4" />
             </Button>
@@ -99,6 +100,7 @@ export default function ProductsPage() {
               variant={viewMode === 'list' ? 'default' : 'outline'}
               size="icon"
               onClick={() => setViewMode('list')}
+              className={viewMode === 'list' ? 'shadow-none' : 'border-border'}
             >
               <List className="w-4 h-4" />
             </Button>
@@ -107,24 +109,24 @@ export default function ProductsPage() {
 
         {/* Active Filters */}
         {(category || search) && (
-          <div className="mb-6 flex flex-wrap gap-2 items-center">
-            <span className="text-sm text-muted-foreground">Active filters:</span>
+          <div className="mb-8 flex flex-wrap gap-2 items-center">
+            <span className="text-sm text-muted-foreground mr-2">Active filters:</span>
             {category && (
               <Badge
                 variant="secondary"
-                className="cursor-pointer"
+                className="cursor-pointer hover:bg-destructive hover:text-destructive-foreground transition-colors px-3 py-1"
                 onClick={() => handleCategoryChange('all')}
               >
-                {category} ✕
+                {category} <span className="ml-2 opacity-50">✕</span>
               </Badge>
             )}
             {search && (
               <Badge
                 variant="secondary"
-                className="cursor-pointer"
+                className="cursor-pointer hover:bg-destructive hover:text-destructive-foreground transition-colors px-3 py-1"
                 onClick={() => handleSearch('')}
               >
-                "{search}" ✕
+                "{search}" <span className="ml-2 opacity-50">✕</span>
               </Badge>
             )}
           </div>
@@ -132,7 +134,7 @@ export default function ProductsPage() {
 
         {/* Results Count */}
         {!loading && (
-          <div className="mb-4 text-sm text-muted-foreground">
+          <div className="mb-6 text-sm font-medium text-muted-foreground uppercase tracking-wider">
             {products.length} {products.length === 1 ? 'product' : 'products'} found
           </div>
         )}
@@ -141,11 +143,11 @@ export default function ProductsPage() {
         {loading ? (
           <LoadingState count={8} type="card" />
         ) : error ? (
-          <div className="text-center py-12 text-red-600">
+          <div className="text-center py-12 text-destructive">
             Error loading products. Please try again.
           </div>
         ) : products.length > 0 ? (
-          <div className={viewMode === 'grid' ? 'grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6' : 'space-y-4'}>
+          <div className={viewMode === 'grid' ? 'grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8' : 'space-y-6'}>
             {products.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
@@ -169,5 +171,13 @@ export default function ProductsPage() {
         )}
       </main>
     </div>
+  );
+}
+
+export default function ProductsPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><LoadingState count={1} type="card" /></div>}>
+      <ProductsContent />
+    </Suspense>
   );
 }

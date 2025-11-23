@@ -9,19 +9,19 @@ interface LoadingStateProps {
 export function LoadingState({ count = 3, type = 'card' }: LoadingStateProps) {
   if (type === 'card') {
     return (
-      <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
         {Array.from({ length: count }).map((_, i) => (
-          <Card key={i} className="overflow-hidden">
-            <Skeleton className="aspect-square w-full" />
-            <CardHeader className="pb-3">
-              <Skeleton className="h-6 w-3/4 mb-2" />
-              <Skeleton className="h-4 w-1/2" />
+          <Card key={i} className="overflow-hidden border-border shadow-none rounded-lg">
+            <Skeleton className="aspect-square w-full bg-secondary/30" />
+            <CardHeader className="pb-3 pt-4 px-4">
+              <Skeleton className="h-5 w-3/4 mb-2 bg-secondary/30" />
+              <Skeleton className="h-3 w-1/3 bg-secondary/30" />
             </CardHeader>
-            <CardContent className="pt-0">
-              <Skeleton className="h-8 w-1/3 mb-3" />
-              <Skeleton className="h-4 w-full mb-2" />
-              <Skeleton className="h-4 w-2/3 mb-4" />
-              <Skeleton className="h-10 w-full" />
+            <CardContent className="pt-0 px-4 pb-4">
+              <Skeleton className="h-7 w-1/3 mb-3 bg-secondary/30" />
+              <Skeleton className="h-3 w-full mb-2 bg-secondary/30" />
+              <Skeleton className="h-3 w-2/3 mb-4 bg-secondary/30" />
+              <Skeleton className="h-9 w-full bg-secondary/30" />
             </CardContent>
           </Card>
         ))}

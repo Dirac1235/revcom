@@ -20,28 +20,29 @@ export function EmptyState({
   onAction,
 }: EmptyStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-      <div className="bg-blue-100 dark:bg-blue-900/30 w-24 h-24 rounded-full flex items-center justify-center mb-6 animate-pulse">
-        <Icon className="w-12 h-12 text-blue-500 dark:text-blue-400" />
+    <div className="flex flex-col items-center justify-center py-16 px-4 text-center border border-dashed border-border rounded-lg bg-card/50">
+      <div className="bg-secondary w-16 h-16 rounded-full flex items-center justify-center mb-4">
+        <Icon className="w-8 h-8 text-muted-foreground" />
       </div>
-      <h3 className="text-2xl font-semibold text-blue-600 dark:text-blue-400 mb-3">
+      <h3 className="text-lg font-medium text-foreground mb-2">
         {title}
       </h3>
-      <p className="text-muted-foreground max-w-md mb-6">
+      <p className="text-sm text-muted-foreground max-w-sm mb-6 leading-relaxed">
         {description}
       </p>
       {(actionLabel && (actionHref || onAction)) && (
         <>
           {actionHref ? (
             <Link href={actionHref}>
-              <Button className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600">
+              <Button variant="outline" className="border-foreground/20 hover:bg-foreground hover:text-background">
                 {actionLabel}
               </Button>
             </Link>
           ) : (
             <Button
               onClick={onAction}
-              className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+              variant="outline"
+              className="border-foreground/20 hover:bg-foreground hover:text-background"
             >
               {actionLabel}
             </Button>

@@ -22,40 +22,39 @@ export function RequestCard({ request, userId, showActions = true }: RequestCard
   };
 
   return (
-    <Card className="group hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border-blue-100 dark:border-blue-900/50 bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm overflow-hidden">
-      <CardHeader className="pb-3">
-        <div className="flex justify-between items-start gap-2">
-          <CardTitle className="text-lg text-blue-600 dark:text-blue-400 line-clamp-2 flex-1">
+    <Card className="group hover:border-foreground/20 transition-colors duration-300 border-border bg-card overflow-hidden rounded-lg">
+      <CardHeader className="pb-3 pt-6 px-6">
+        <div className="flex justify-between items-start gap-3">
+          <CardTitle className="text-base font-medium text-foreground line-clamp-2 flex-1 leading-snug">
             {request.title}
           </CardTitle>
-          <div className="flex flex-col gap-1 items-end">
+          <div className="flex flex-col gap-1 items-end shrink-0">
             {isOwner && (
-              <Badge className="bg-blue-600 text-white text-xs">Yours</Badge>
+              <Badge variant="outline" className="border-foreground text-foreground text-[10px] uppercase tracking-wider">Yours</Badge>
             )}
-            <Badge variant="secondary" className={`${statusColors[request.status]} text-xs capitalize`}>
+            <Badge variant="secondary" className="text-[10px] uppercase tracking-wider font-medium">
               {request.status}
             </Badge>
           </div>
         </div>
-        <CardDescription className="text-sm flex items-center gap-2">
+        <CardDescription className="text-xs uppercase tracking-wider font-medium text-muted-foreground pt-1 flex items-center gap-2">
           <span>{request.category}</span>
-          <span className="text-xs text-muted-foreground flex items-center gap-1">
-            <Calendar className="w-3 h-3" />
+          <span className="w-1 h-1 rounded-full bg-border" />
+          <span className="flex items-center gap-1">
             {new Date(request.created_at).toLocaleDateString()}
           </span>
         </CardDescription>
       </CardHeader>
 
-      <CardContent className="pt-0">
+      <CardContent className="pt-0 px-6 pb-6">
         {request.description && (
-          <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
+          <p className="text-sm text-muted-foreground line-clamp-3 mb-6 leading-relaxed">
             {request.description}
           </p>
         )}
 
-        <div className="flex items-center gap-2 mb-4">
-          <DollarSign className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-          <p className="text-xl font-bold text-blue-600 dark:text-blue-400">
+        <div className="flex items-center gap-2 mb-6">
+          <p className="text-lg font-serif font-bold text-foreground">
             {request.budget_min && request.budget_max
               ? `$${request.budget_min.toLocaleString()} - $${request.budget_max.toLocaleString()}`
               : request.budget_min
@@ -69,7 +68,7 @@ export function RequestCard({ request, userId, showActions = true }: RequestCard
         {showActions && (
           <div className="flex gap-2">
             <Link href={ROUTES.LISTING_DETAIL(request.id)} className="flex-1">
-              <Button className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 shadow-md shadow-blue-500/30 transition-all group-hover:shadow-lg">
+              <Button variant="outline" className="w-full hover:bg-foreground hover:text-background transition-colors">
                 View Details
               </Button>
             </Link>

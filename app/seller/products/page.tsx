@@ -74,140 +74,134 @@ export default function SellerProductsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-indigo-50/30 to-purple-50/30 dark:from-blue-950/10 dark:via-indigo-950/10 dark:to-purple-950/10">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div className="min-h-screen bg-background">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="flex justify-between items-center mb-12">
           <div>
-            <h1 className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+            <h1 className="text-4xl font-serif font-bold text-foreground mb-3">
               My Products
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground text-lg">
               Manage your product listings
             </p>
           </div>
           <Link href={ROUTES.SELLER_PRODUCT_CREATE}>
-            <Button className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600">
+            <Button className="bg-foreground text-background hover:bg-foreground/90 shadow-none">
               <Plus className="w-4 h-4 mr-2" />
-              Add New Product
+              Add Product
             </Button>
           </Link>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <Card>
-            <CardHeader className="pb-3">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+          <Card className="border-border shadow-none rounded-lg">
+            <CardHeader className="pb-3 pt-6 px-6">
               <CardDescription>Total Products</CardDescription>
-              <CardTitle className="text-3xl">{products.length}</CardTitle>
+              <CardTitle className="text-3xl font-serif">{products.length}</CardTitle>
             </CardHeader>
           </Card>
-          <Card>
-            <CardHeader className="pb-3">
+          <Card className="border-border shadow-none rounded-lg">
+            <CardHeader className="pb-3 pt-6 px-6">
               <CardDescription>Active</CardDescription>
-              <CardTitle className="text-3xl text-green-600">
+              <CardTitle className="text-3xl font-serif">
                 {products.filter(p => p.status === 'active').length}
               </CardTitle>
             </CardHeader>
           </Card>
-          <Card>
-            <CardHeader className="pb-3">
+          <Card className="border-border shadow-none rounded-lg">
+            <CardHeader className="pb-3 pt-6 px-6">
               <CardDescription>Sold</CardDescription>
-              <CardTitle className="text-3xl text-blue-600">
+              <CardTitle className="text-3xl font-serif">
                 {products.filter(p => p.status === 'sold').length}
               </CardTitle>
             </CardHeader>
           </Card>
-          <Card>
-            <CardHeader className="pb-3">
+          <Card className="border-border shadow-none rounded-lg">
+            <CardHeader className="pb-3 pt-6 px-6">
               <CardDescription>Total Views</CardDescription>
-              <CardTitle className="text-3xl">
+              <CardTitle className="text-3xl font-serif">
                 {products.reduce((sum, p) => sum + (p.views || 0), 0)}
               </CardTitle>
             </CardHeader>
           </Card>
         </div>
 
-        {/* Products List */}
-        {products.length > 0 ? (
-          <div className="space-y-4">
-            {products.map((product) => (
-              <Card key={product.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex gap-4 flex-1">
-                      {/* Product Image */}
-                      <div className="w-24 h-24 rounded-lg overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 flex-shrink-0">
+        <div className="grid gap-6">
+          {products && products.length > 0 ? (
+            products.map((product: any) => (
+              <Card
+                key={product.id}
+                className="border-border shadow-none rounded-lg hover:bg-secondary/20 transition-colors"
+              >
+                <CardContent className="p-6">
+                  <div className="flex gap-6">
+                    {product.image_url && (
+                      <div className="w-24 h-24 rounded-lg overflow-hidden bg-secondary/20 flex-shrink-0 border border-border">
                         <img
-                          src={product.images?.[0] || product.image_url || '/placeholder-product.png'}
+                          src={product.image_url}
                           alt={product.title}
                           className="w-full h-full object-cover"
                         />
                       </div>
-                      
-                      {/* Product Info */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2 mb-2">
-                          <CardTitle className="text-xl line-clamp-1">{product.title}</CardTitle>
-                          <Badge className={statusColors[product.status]} variant="secondary">
-                            {product.status}
-                          </Badge>
+                    )}
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <h3 className="text-xl font-medium text-foreground mb-1">
+                            {product.title}
+                          </h3>
+                          <p className="text-muted-foreground text-sm">
+                            {product.category}
+                          </p>
                         </div>
-                        <CardDescription className="line-clamp-2 mb-2">
-                          {product.description}
-                        </CardDescription>
-                        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                          <span className="font-semibold text-blue-600 dark:text-blue-400">
-                            ${product.price.toLocaleString()}
-                          </span>
-                          <span>Category: {product.category}</span>
-                          {product.inventory_quantity !== undefined && (
-                            <span>Stock: {product.inventory_quantity}</span>
-                          )}
-                          {product.views !== undefined && (
-                            <span className="flex items-center gap-1">
-                              <Eye className="w-3 h-3" />
-                              {product.views} views
-                            </span>
-                          )}
+                        <span className="px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wider border border-border bg-secondary text-secondary-foreground">
+                          {product.status}
+                        </span>
+                      </div>
+                      <p className="text-muted-foreground mb-4 line-clamp-2">
+                        {product.description}
+                      </p>
+                      <div className="flex justify-between items-center">
+                        <p className="text-lg font-bold text-foreground">
+                          ${product.price}
+                        </p>
+                        <div className="flex gap-3">
+                          <Link href={`/seller/products/${product.id}/edit`}>
+                            <Button variant="outline" size="sm" className="border-border hover:bg-secondary hover:text-secondary-foreground">
+                              <Edit className="w-4 h-4 mr-2" />
+                              Edit
+                            </Button>
+                          </Link>
+                          <Link href={`/products/${product.id}`}>
+                            <Button variant="outline" size="sm" className="border-border hover:bg-secondary hover:text-secondary-foreground">
+                              View
+                            </Button>
+                          </Link>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="border-border hover:bg-secondary hover:text-secondary-foreground"
+                            onClick={() => handleDelete(product.id)}
+                          >
+                            <Trash2 className="w-4 h-4 text-red-600" />
+                          </Button>
                         </div>
                       </div>
                     </div>
-
-                    {/* Actions */}
-                    <div className="flex gap-2 flex-shrink-0">
-                      <Link href={ROUTES.PRODUCT_DETAIL(product.id)}>
-                        <Button variant="outline" size="sm">
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                      </Link>
-                      <Link href={ROUTES.SELLER_PRODUCT_EDIT(product.id)}>
-                        <Button variant="outline" size="sm">
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                      </Link>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDelete(product.id)}
-                      >
-                        <Trash2 className="w-4 h-4 text-red-600" />
-                      </Button>
-                    </div>
                   </div>
-                </CardHeader>
+                </CardContent>
               </Card>
-            ))}
-          </div>
-        ) : (
-          <EmptyState
-            icon={Package}
-            title="No products yet"
-            description="Start selling by adding your first product listing"
-            actionLabel="Add Product"
-            actionHref={ROUTES.SELLER_PRODUCT_CREATE}
-          />
-        )}
+            ))
+          ) : (
+            <EmptyState
+              icon={Package}
+              title="No products yet"
+              description="Start selling by adding your first product listing"
+              actionLabel="Add Product"
+              actionHref={ROUTES.SELLER_PRODUCT_CREATE}
+            />
+          )}
+        </div>
       </main>
     </div>
   );

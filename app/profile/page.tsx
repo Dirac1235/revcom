@@ -33,81 +33,86 @@ export default async function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="mb-12">
+          <h1 className="text-4xl font-serif font-bold text-foreground mb-3">
             Profile Settings
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-lg">
             Manage your profile information and preferences
           </p>
         </div>
 
         <div className="grid gap-8 max-w-2xl">
-          <Card>
-            <CardHeader>
-              <CardTitle>Profile Information</CardTitle>
+          <Card className="border-border shadow-none rounded-lg">
+            <CardHeader className="pb-4 pt-6 px-6">
+              <CardTitle className="text-xl font-medium">Profile Information</CardTitle>
               <CardDescription>Update your personal details</CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="grid gap-4">
+            <CardContent className="px-6 pb-6">
+              <div className="grid gap-6">
                 <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Email</Label>
                   <Input
                     id="email"
                     type="email"
                     value={profile?.email || ""}
                     disabled
+                    className="bg-secondary/20 border-transparent"
                   />
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="first-name">First Name</Label>
-                  <Input
-                    id="first-name"
-                    placeholder="Your first name"
-                    defaultValue={profile?.first_name || ""}
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="first-name" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">First Name</Label>
+                    <Input
+                      id="first-name"
+                      placeholder="Your first name"
+                      defaultValue={profile?.first_name || ""}
+                      className="border-border focus-visible:ring-0 focus-visible:border-foreground"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="last-name" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Last Name</Label>
+                    <Input
+                      id="last-name"
+                      placeholder="Your last name"
+                      defaultValue={profile?.last_name || ""}
+                      className="border-border focus-visible:ring-0 focus-visible:border-foreground"
+                    />
+                  </div>
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="last-name">Last Name</Label>
-                  <Input
-                    id="last-name"
-                    placeholder="Your last name"
-                    defaultValue={profile?.last_name || ""}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="bio">Bio</Label>
+                  <Label htmlFor="bio" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Bio</Label>
                   <Textarea
                     id="bio"
                     placeholder="Tell us about yourself"
                     defaultValue={profile?.bio || ""}
-                    className="min-h-24"
+                    className="min-h-32 border-border focus-visible:ring-0 focus-visible:border-foreground resize-none"
                   />
                 </div>
-                <Button>Save Changes</Button>
+                <Button className="w-full sm:w-auto bg-foreground text-background hover:bg-foreground/90 shadow-none">Save Changes</Button>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Star className="w-5 h-5" />
+          <Card className="border-border shadow-none rounded-lg">
+            <CardHeader className="pb-4 pt-6 px-6">
+              <CardTitle className="flex items-center gap-2 text-xl font-medium">
+                <Star className="w-5 h-5 text-foreground" />
                 Rating & Reviews
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
+            <CardContent className="px-6 pb-6">
+              <div className="grid grid-cols-2 gap-8">
                 <div>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">
                     Overall Rating
                   </p>
-                  <p className="text-3xl font-bold">{profile?.rating || 0}</p>
+                  <p className="text-4xl font-serif font-bold text-foreground">{profile?.rating || 0}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Total Reviews</p>
-                  <p className="text-3xl font-bold">
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">Total Reviews</p>
+                  <p className="text-4xl font-serif font-bold text-foreground">
                     {profile?.total_reviews || 0}
                   </p>
                 </div>

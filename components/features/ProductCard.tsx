@@ -15,60 +15,60 @@ export function ProductCard({ product, showSeller = false }: ProductCardProps) {
   const imageUrl = product.images?.[0] || product.image_url || '/placeholder-product.png';
   
   return (
-    <Card className="group hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border-blue-100 dark:border-blue-900/50 bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm overflow-hidden">
+    <Card className="group hover:border-foreground/20 transition-colors duration-300 border-border bg-card overflow-hidden rounded-lg">
       {/* Product Image */}
-      <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20">
+      <div className="relative aspect-square overflow-hidden bg-secondary/20">
         <img
           src={imageUrl}
           alt={product.title}
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
         {product.status !== 'active' && (
-          <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-            <Badge variant="secondary" className="text-white bg-gray-800">
+          <div className="absolute inset-0 bg-background/60 flex items-center justify-center">
+            <Badge variant="secondary" className="bg-foreground text-background">
               {product.status === 'sold' ? 'Sold Out' : 'Inactive'}
             </Badge>
           </div>
         )}
         {product.views !== undefined && (
-          <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1">
-            <Eye className="w-3 h-3 text-white" />
-            <span className="text-xs text-white">{product.views}</span>
+          <div className="absolute top-3 right-3 bg-background/80 backdrop-blur-sm rounded-full px-2.5 py-1 flex items-center gap-1.5 border border-border">
+            <Eye className="w-3 h-3 text-foreground" />
+            <span className="text-xs font-medium">{product.views}</span>
           </div>
         )}
       </div>
 
-      <CardHeader className="pb-3">
-        <div className="flex justify-between items-start gap-2">
-          <CardTitle className="text-lg text-blue-600 dark:text-blue-400 line-clamp-2 flex-1">
+      <CardHeader className="pb-3 pt-4 px-4">
+        <div className="flex justify-between items-start gap-3">
+          <CardTitle className="text-base font-medium text-foreground line-clamp-2 flex-1 leading-snug">
             {product.title}
           </CardTitle>
           {product.inventory_quantity !== undefined && product.inventory_quantity > 0 && (
-            <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300 text-xs flex items-center gap-1">
+            <Badge variant="outline" className="text-xs flex items-center gap-1 font-normal shrink-0">
               <Package className="w-3 h-3" />
               {product.inventory_quantity}
             </Badge>
           )}
         </div>
-        <CardDescription className="text-sm">
+        <CardDescription className="text-xs uppercase tracking-wider font-medium text-muted-foreground pt-1">
           {product.category}
         </CardDescription>
       </CardHeader>
 
-      <CardContent className="pt-0">
-        <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-3">
+      <CardContent className="pt-0 px-4 pb-4">
+        <p className="text-lg font-serif font-bold text-foreground mb-3">
           ${product.price.toLocaleString()}
         </p>
         
         {product.description && (
-          <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+          <p className="text-sm text-muted-foreground line-clamp-2 mb-4 leading-relaxed">
             {product.description}
           </p>
         )}
 
         <div className="flex gap-2">
           <Link href={ROUTES.PRODUCT_DETAIL(product.id)} className="flex-1">
-            <Button className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 shadow-md shadow-blue-500/30 transition-all group-hover:shadow-lg">
+            <Button variant="outline" className="w-full hover:bg-foreground hover:text-background transition-colors">
               View Details
             </Button>
           </Link>

@@ -57,13 +57,13 @@ export function Navbar() {
   // Unauthenticated navbar
   if (!user) {
     return (
-      <nav className="border-b bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-blue-100 dark:border-blue-900/50 shadow-sm">
+      <nav className="border-b bg-background border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link
               href={ROUTES.HOME}
-              className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent"
+              className="text-2xl font-serif font-bold text-foreground tracking-tight"
             >
               RevCom
             </Link>
@@ -114,13 +114,13 @@ export function Navbar() {
 
   // Authenticated navbar
   return (
-    <nav className="border-b bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-blue-100 dark:border-blue-900/50 shadow-sm">
+    <nav className="border-b bg-background border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link
             href={ROUTES.HOME}
-            className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent"
+            className="text-2xl font-serif font-bold text-foreground tracking-tight"
           >
             RevCom
           </Link>

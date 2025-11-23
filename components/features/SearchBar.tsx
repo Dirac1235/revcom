@@ -41,12 +41,13 @@ export function SearchBar({
           placeholder={placeholder}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="pl-10 pr-3 py-2 bg-card border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="pl-10 pr-3 h-10 bg-transparent border-border rounded-md focus-visible:ring-0 focus-visible:border-foreground"
         />
       </div>
       <Button
         type="submit"
-        className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 shadow-md shadow-blue-500/30"
+        variant="default"
+        className="shadow-none"
       >
         <Search className="w-4 h-4 sm:hidden" />
         <span className="hidden sm:inline">Search</span>

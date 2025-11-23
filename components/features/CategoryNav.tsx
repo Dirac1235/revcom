@@ -21,10 +21,10 @@ export function CategoryNav() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="gap-2">
+        <Button variant="outline" className="gap-2 border-border hover:bg-accent hover:text-accent-foreground">
           <Grid className="w-4 h-4" />
-          <span className="hidden md:inline">Categories</span>
-          <ChevronDown className="w-4 h-4" />
+          <span className="hidden md:inline font-medium">Categories</span>
+          <ChevronDown className="w-4 h-4 opacity-50" />
         </Button>
       </DropdownMenuTrigger>
 

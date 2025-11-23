@@ -59,32 +59,32 @@ export default async function ListingDetailPage({
     : "Anonymous";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-indigo-50/30 to-purple-50/30 dark:from-blue-950/10 dark:via-indigo-950/10 dark:to-purple-950/10">
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-2 pt-5">
+    <div className="min-h-screen bg-background">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Back Button */}
         <Link
           href="/listings"
-          className="inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:underline mb-6 transition-colors"
+          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 transition-colors"
         >
           <ChevronLeft className="w-4 h-4" />
           Back to Requests
         </Link>
 
         {/* Main Card */}
-        <Card className="mb-6 border-blue-100 dark:border-blue-900/50 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm shadow-xl">
-          <CardHeader className="pb-4">
+        <Card className="mb-6 border-border shadow-none rounded-lg">
+          <CardHeader className="pb-4 pt-8 px-8">
             <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
               <div className="flex-1">
-                <div className="flex items-center gap-3 mb-3">
-                  <Tag className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                  <span className="px-3 py-1 rounded-full text-sm font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
+                <div className="flex items-center gap-3 mb-4">
+                  <Tag className="w-5 h-5 text-muted-foreground" />
+                  <span className="px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wider border border-border bg-secondary text-secondary-foreground">
                     {listing.category}
                   </span>
                 </div>
-                <CardTitle className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+                <CardTitle className="text-4xl font-serif font-bold text-foreground mb-3">
                   {listing.title}
                 </CardTitle>
-                <CardDescription className="text-base mt-2">
+                <CardDescription className="text-base mt-2 text-muted-foreground">
                   Posted{" "}
                   {new Date(listing.created_at).toLocaleDateString("en-US", {
                     year: "numeric",
@@ -93,16 +93,16 @@ export default async function ListingDetailPage({
                   })}
                 </CardDescription>
               </div>
-              <span className="px-4 py-2 rounded-full text-sm font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 capitalize">
+              <span className="px-4 py-2 rounded-full text-xs font-medium uppercase tracking-wider border border-border bg-secondary text-secondary-foreground">
                 {listing.status}
               </span>
             </div>
           </CardHeader>
 
-          <CardContent className="space-y-8">
+          <CardContent className="space-y-8 px-8 pb-8">
             {/* Description */}
-            <div className="bg-blue-50/50 dark:bg-blue-950/20 rounded-lg p-6 border border-blue-100 dark:border-blue-900/50">
-              <h3 className="font-semibold text-lg mb-3 text-blue-600 dark:text-blue-400">
+            <div className="bg-secondary/20 rounded-lg p-6 border border-border">
+              <h3 className="font-serif font-bold text-lg mb-3 text-foreground">
                 Description
               </h3>
               <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">
@@ -112,17 +112,17 @@ export default async function ListingDetailPage({
 
             {/* Budget and Quantity Cards */}
             <div className="grid md:grid-cols-2 gap-6">
-              <Card className="border-blue-100 dark:border-blue-900/50 bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-blue-950/20 dark:to-indigo-950/20">
+              <Card className="border-border shadow-none rounded-lg bg-card">
                 <CardContent className="p-6">
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
-                      <DollarSign className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    <div className="p-2 rounded-lg bg-secondary">
+                      <DollarSign className="w-5 h-5 text-foreground" />
                     </div>
-                    <p className="text-sm font-medium text-muted-foreground">
+                    <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
                       Budget Range
                     </p>
                   </div>
-                  <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                  <p className="text-3xl font-serif font-bold text-foreground">
                     {listing.budget_min && listing.budget_max
                       ? `$${listing.budget_min} - $${listing.budget_max}`
                       : "Not specified"}
@@ -130,17 +130,17 @@ export default async function ListingDetailPage({
                 </CardContent>
               </Card>
 
-              <Card className="border-indigo-100 dark:border-indigo-900/50 bg-gradient-to-br from-indigo-50/50 to-purple-50/50 dark:from-indigo-950/20 dark:to-purple-950/20">
+              <Card className="border-border shadow-none rounded-lg bg-card">
                 <CardContent className="p-6">
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900/30">
-                      <Package className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                    <div className="p-2 rounded-lg bg-secondary">
+                      <Package className="w-5 h-5 text-foreground" />
                     </div>
-                    <p className="text-sm font-medium text-muted-foreground">
+                    <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
                       Quantity Needed
                     </p>
                   </div>
-                  <p className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">
+                  <p className="text-3xl font-serif font-bold text-foreground">
                     {listing.quantity || 1}
                   </p>
                 </CardContent>
@@ -148,13 +148,13 @@ export default async function ListingDetailPage({
             </div>
 
             {/* Buyer Information */}
-            <Card className="border-purple-100 dark:border-purple-900/50 bg-gradient-to-br from-purple-50/50 to-cyan-50/50 dark:from-purple-950/20 dark:to-cyan-950/20">
+            <Card className="border-border shadow-none rounded-lg bg-card">
               <CardHeader>
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30">
-                    <User className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                  <div className="p-2 rounded-lg bg-secondary">
+                    <User className="w-5 h-5 text-foreground" />
                   </div>
-                  <CardTitle className="text-xl text-purple-600 dark:text-purple-400">
+                  <CardTitle className="text-xl font-serif font-bold text-foreground">
                     Buyer Information
                   </CardTitle>
                 </div>
@@ -172,16 +172,16 @@ export default async function ListingDetailPage({
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
                     Name
                   </p>
-                  <p className="text-lg font-semibold text-foreground">
+                  <p className="text-lg font-medium text-foreground">
                     {buyerName}
                   </p>
                 </div>
                 {listing.profiles?.email && (
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground mb-1">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
                       Contact Email
                     </p>
                     <p className="text-base text-foreground">
@@ -193,11 +193,11 @@ export default async function ListingDetailPage({
             </Card>
 
             {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-blue-100 dark:border-blue-900/50">
+            <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-border">
               <Link href="/listings" className="flex-1">
                 <Button
                   variant="outline"
-                  className="w-full border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+                  className="w-full border-border hover:bg-secondary hover:text-secondary-foreground"
                 >
                   <ChevronLeft className="w-4 h-4 mr-2" />
                   Back to Requests
@@ -209,7 +209,7 @@ export default async function ListingDetailPage({
                     href={`/messages?request_id=${listing.id}&to=${listing.buyer_id}`}
                     className="flex-1"
                   >
-                    <Button className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 shadow-md shadow-blue-500/30">
+                    <Button className="w-full bg-foreground text-background hover:bg-foreground/90 shadow-none">
                       <MessageSquare className="w-4 h-4 mr-2" />
                       Message Buyer
                     </Button>
@@ -221,7 +221,7 @@ export default async function ListingDetailPage({
                   >
                     <Button
                       variant="outline"
-                      className="w-full border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+                      className="w-full border-border hover:bg-secondary hover:text-secondary-foreground"
                     >
                       Edit Request
                     </Button>
@@ -229,7 +229,7 @@ export default async function ListingDetailPage({
                 )
               ) : (
                 <Link href="/auth/sign-up" className="flex-1">
-                  <Button className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 shadow-md shadow-blue-500/30">
+                  <Button className="w-full bg-foreground text-background hover:bg-foreground/90 shadow-none">
                     Sign Up to Message Buyer
                   </Button>
                 </Link>
