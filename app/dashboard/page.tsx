@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { getProfileById } from "@/lib/data/profiles";
+import { useAuth } from "@/components/providers/AuthProvider";
 import { getBuyerRequests, getOpenRequests } from "@/lib/data/requests";
 import { getBuyerOrders, getSellerOrders } from "@/lib/data/orders";
 import {
@@ -13,17 +13,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { RoleSwitcher, DashboardHeader } from "@/components/dashboard/RoleSwitcher";
 import { Loader2, Plus, ArrowRight, FileText, ShoppingBag, TrendingUp, Clock, CheckCircle, XCircle, Send, Search, User, Store, Bell } from "lucide-react";
 import { getSellerOffers } from "@/lib/data/offers";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [profile, setProfile] = useState<any>(null);
-  const [user, setUser] = useState<any>(null);
+  const { user, profile, loading: authLoading } = useAuth();
   const [activeRole, setActiveRole] = useState<'buyer' | 'seller'>('buyer');
-  const [loading, setLoading] = useState(true);
-  const [mounted, setMounted] = useState(false);
+  const [dataLoading, setDataLoading] = useState(true);
 
   const [buyerData, setBuyerData] = useState<{
     listings: any[];
@@ -48,49 +45,30 @@ export default function DashboardPage() {
   });
 
   useEffect(() => {
-    const initAuth = async () => {
-      const { createClient } = await import("@/lib/supabase/client");
-      const supabase = createClient();
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-      
-      if (!currentUser) {
-        router.push('/auth/login');
-        return;
-      }
-
-      setUser(currentUser);
-
-      try {
-        const profileData = await getProfileById(currentUser.id);
-        setProfile(profileData);
-      } catch (error) {
-        console.error("Error fetching profile:", error);
-      }
-      setLoading(false);
-    };
-
-    setMounted(true);
-    initAuth();
-  }, []);
+    if (!authLoading && !user) {
+      router.push('/auth/login');
+    }
+  }, [authLoading, user, router]);
 
   useEffect(() => {
-    if (mounted && profile) {
+    if (profile) {
       if (profile.user_type === 'seller') {
         setActiveRole('seller');
       } else if (profile.user_type === 'both') {
         setActiveRole('buyer');
       }
     }
-  }, [mounted, profile]);
+  }, [profile]);
 
   useEffect(() => {
-    if (mounted && user && profile) {
+    if (user && profile) {
       fetchDashboardData();
     }
-  }, [mounted, user, profile, activeRole]);
+  }, [user, profile, activeRole]);
 
   const fetchDashboardData = async () => {
     if (!user || !profile) return;
+    setDataLoading(true);
 
     try {
       if (activeRole === 'buyer') {
@@ -144,10 +122,12 @@ export default function DashboardPage() {
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
+    } finally {
+      setDataLoading(false);
     }
   };
 
-  if (!mounted || loading) {
+  if (authLoading || dataLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
@@ -229,7 +209,7 @@ export default function DashboardPage() {
         {activeRole === 'buyer' && isBuyer && (
           <BuyerDashboard 
             data={buyerData} 
-            loading={loading} 
+            loading={dataLoading} 
             userId={user?.id}
           />
         )}
@@ -237,7 +217,7 @@ export default function DashboardPage() {
         {activeRole === 'seller' && isSeller && (
           <SellerDashboard 
             data={sellerData} 
-            loading={loading}
+            loading={dataLoading}
             userId={user?.id}
           />
         )}

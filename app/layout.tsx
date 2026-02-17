@@ -24,6 +24,9 @@ export const metadata: Metadata = {
   },
 };
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -54,7 +57,7 @@ export default async function RootLayout({
           <AuthProvider initialUser={user} initialProfile={profile}>
             <Navbar />
 
-            <main className="flex-1">{children}</main>
+            <main className="flex-1 pt-8">{children}</main>
 
             <Footer />
 

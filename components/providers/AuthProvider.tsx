@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { User } from '@supabase/supabase-js';
 import type { Profile } from '@/lib/types';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 
 interface AuthContextType {
@@ -30,20 +30,44 @@ export function AuthProvider({
 }) {
   const [user, setUser] = useState<User | null>(initialUser);
   const [profile, setProfile] = useState<Profile | null>(initialProfile);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(!initialUser);
   const router = useRouter();
   const supabase = createClient();
 
+  // Initial auth check - only run once on mount
   useEffect(() => {
-    setUser(initialUser);
-    setProfile(initialProfile);
-  }, [initialUser, initialProfile]);
+    // If we already have initial data, skip the initial check
+    if (initialUser) {
+      setLoading(false);
+      return;
+    }
 
+    const checkAuth = async () => {
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      
+      setUser(currentUser);
+      
+      if (currentUser) {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', currentUser.id)
+          .single();
+        setProfile(profileData);
+      } else {
+        setProfile(null);
+      }
+      setLoading(false);
+    };
+
+    checkAuth();
+  }, [supabase, initialUser]);
+
+  // Listen to auth state changes
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       const authUser = session?.user ?? null;
       setUser(authUser);
-      setLoading(false);
 
       if (authUser) {
         const { data: profileData } = await supabase
