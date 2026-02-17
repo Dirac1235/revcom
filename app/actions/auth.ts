@@ -90,7 +90,20 @@ export async function signup(formData: FormData) {
     return { error: error.message };
   }
 
-  // Explicitly resend in case the initial dispatch fails silently in some environments
+  if (data.user) {
+    const { error: profileError } = await supabase.from("profiles").insert({
+      id: data.user.id,
+      email: email,
+      first_name: firstName,
+      last_name: lastName,
+      user_type: userType,
+    });
+
+    if (profileError) {
+      console.error("Error creating profile:", profileError);
+    }
+  }
+
   const { error: resendError } = await supabase.auth.resend({
     type: "signup",
     email,
