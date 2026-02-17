@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createClient } from '@/lib/supabase/client';
-import { useAuth } from '@/lib/hooks/useAuth';
+import { useAuth } from '@/components/providers/AuthProvider';
 import { productSchema, type ProductFormData } from '@/lib/validations/schemas';
 import { CATEGORIES } from '@/lib/constants/categories';
 import { ROUTES } from '@/lib/constants/routes';

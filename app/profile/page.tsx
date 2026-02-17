@@ -1,5 +1,8 @@
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,25 +14,54 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Star, Loader2, CheckCircle2 } from "lucide-react";
 import DashboardNav from "@/components/dashboard-nav";
-import { Star } from "lucide-react";
+import { useAuth } from "@/components/providers/AuthProvider";
 
-export default async function ProfilePage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
+export default function ProfilePage() {
+  const router = useRouter();
+  const supabase = createClient();
+  const { user, profile: authProfile, refreshProfile } = useAuth();
+  
+  const [firstName, setFirstName] = useState(authProfile?.first_name || "");
+  const [lastName, setLastName] = useState(authProfile?.last_name || "");
+  const [bio, setBio] = useState(authProfile?.bio || "");
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState("");
 
-  if (userError || !user) {
-    redirect("/auth/login");
+  const handleSave = async () => {
+    if (!user) return;
+    
+    setSaving(true);
+    setError("");
+    setSaved(false);
+
+    const { error: updateError } = await supabase
+      .from("profiles")
+      .update({
+        first_name: firstName,
+        last_name: lastName,
+        bio: bio,
+      })
+      .eq("id", user.id);
+
+    if (updateError) {
+      setError(updateError.message);
+      setSaving(false);
+      return;
+    }
+
+    await refreshProfile();
+    setSaved(true);
+    setSaving(false);
+    
+    setTimeout(() => setSaved(false), 3000);
+  };
+
+  if (!user) {
+    return null;
   }
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
 
   return (
     <div className="min-h-screen bg-background">
@@ -56,7 +88,7 @@ export default async function ProfilePage() {
                   <Input
                     id="email"
                     type="email"
-                    value={profile?.email || ""}
+                    value={authProfile?.email || user.email || ""}
                     disabled
                     className="bg-secondary/20 border-transparent"
                   />
@@ -67,7 +99,8 @@ export default async function ProfilePage() {
                     <Input
                       id="first-name"
                       placeholder="Your first name"
-                      defaultValue={profile?.first_name || ""}
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
                       className="border-border focus-visible:ring-0 focus-visible:border-foreground"
                     />
                   </div>
@@ -76,7 +109,8 @@ export default async function ProfilePage() {
                     <Input
                       id="last-name"
                       placeholder="Your last name"
-                      defaultValue={profile?.last_name || ""}
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
                       className="border-border focus-visible:ring-0 focus-visible:border-foreground"
                     />
                   </div>
@@ -86,11 +120,35 @@ export default async function ProfilePage() {
                   <Textarea
                     id="bio"
                     placeholder="Tell us about yourself"
-                    defaultValue={profile?.bio || ""}
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
                     className="min-h-32 border-border focus-visible:ring-0 focus-visible:border-foreground resize-none"
                   />
                 </div>
-                <Button className="w-full sm:w-auto bg-foreground text-background hover:bg-foreground/90 shadow-none">Save Changes</Button>
+                
+                {error && (
+                  <p className="text-sm text-red-500">{error}</p>
+                )}
+                
+                <Button 
+                  onClick={handleSave} 
+                  disabled={saving}
+                  className="w-full sm:w-auto bg-foreground text-background hover:bg-foreground/90 shadow-none"
+                >
+                  {saving ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : saved ? (
+                    <>
+                      <CheckCircle2 className="w-4 h-4 mr-2" />
+                      Saved!
+                    </>
+                  ) : (
+                    "Save Changes"
+                  )}
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -108,14 +166,26 @@ export default async function ProfilePage() {
                   <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">
                     Overall Rating
                   </p>
-                  <p className="text-4xl font-serif font-bold text-foreground">{profile?.rating || 0}</p>
+                  <p className="text-4xl font-serif font-bold text-foreground">{authProfile?.rating || 0}</p>
                 </div>
                 <div>
                   <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">Total Reviews</p>
                   <p className="text-4xl font-serif font-bold text-foreground">
-                    {profile?.total_reviews || 0}
+                    {authProfile?.total_reviews || 0}
                   </p>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border shadow-none rounded-lg">
+            <CardHeader className="pb-4 pt-6 px-6">
+              <CardTitle className="text-xl font-medium">Account Type</CardTitle>
+              <CardDescription>Your current account type on RevCom</CardDescription>
+            </CardHeader>
+            <CardContent className="px-6 pb-6">
+              <div className="inline-flex items-center gap-2 bg-secondary/30 px-4 py-2 rounded-lg">
+                <span className="text-lg font-medium capitalize">{authProfile?.user_type || "User"}</span>
               </div>
             </CardContent>
           </Card>

@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { User } from '@supabase/supabase-js';
 import type { Profile } from '@/lib/types';
 import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
 
 interface AuthContextType {
   user: User | null;
@@ -13,6 +14,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isBuyer: boolean;
   isSeller: boolean;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -30,11 +32,35 @@ export function AuthProvider({
   const [profile, setProfile] = useState<Profile | null>(initialProfile);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const supabase = createClient();
 
   useEffect(() => {
     setUser(initialUser);
     setProfile(initialProfile);
   }, [initialUser, initialProfile]);
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const authUser = session?.user ?? null;
+      setUser(authUser);
+      setLoading(false);
+
+      if (authUser) {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', authUser.id)
+          .single();
+        setProfile(profileData);
+      } else {
+        setProfile(null);
+      }
+    });
+
+    return () => {
+      subscription?.unsubscribe();
+    };
+  }, [supabase]);
 
   const signOut = async () => {
     try {
@@ -51,6 +77,17 @@ export function AuthProvider({
     }
   };
 
+  const refreshProfile = async () => {
+    if (user) {
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      setProfile(profileData);
+    }
+  };
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -60,6 +97,7 @@ export function AuthProvider({
       isAuthenticated: !!user,
       isBuyer: profile?.user_type === 'buyer' || profile?.user_type === 'both',
       isSeller: profile?.user_type === 'seller' || profile?.user_type === 'both',
+      refreshProfile,
     }}>
       {children}
     </AuthContext.Provider>

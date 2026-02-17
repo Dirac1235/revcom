@@ -2,20 +2,14 @@
 
 import type React from "react";
 
-
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/components/providers/AuthProvider";
+import { Loader2, ArrowLeft } from "lucide-react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -23,6 +17,26 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { user, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading && user) {
+      router.push("/");
+      router.refresh();
+    }
+  }, [user, loading, router]);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen w-full items-center justify-center bg-secondary/20">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (user) {
+    return null;
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +48,6 @@ export default function LoginPage() {
     formData.append("password", password);
 
     try {
-      // Dynamically import the action to avoid build issues if it's not fully ready
       const { login } = await import("@/app/actions/auth");
       const result = await login(formData);
       
@@ -42,7 +55,6 @@ export default function LoginPage() {
         setError(result.error);
         setIsLoading(false);
       }
-      // If success, the action redirects, so we don't need to do anything here
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
       setIsLoading(false);
@@ -50,37 +62,49 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10 bg-background relative overflow-hidden">
-      {/* Animated gradient orbs */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-400/20 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-400/20 rounded-full blur-3xl animate-pulse delay-1000" />
+    <div className="min-h-screen bg-secondary/20 flex flex-col">
+      {/* Header */}
+      <header className="border-b bg-background/80 backdrop-blur-sm sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2 text-foreground hover:opacity-80 transition-opacity">
+            <ArrowLeft className="w-4 h-4" />
+            <span className="text-sm font-medium">Back to Home</span>
+          </Link>
+          <Link href="/" className="text-xl font-serif font-bold text-foreground">
+            RevCom
+          </Link>
+          <div className="w-16" />
+        </div>
+      </header>
 
-      <div className="w-full max-w-sm relative z-10">
-        <Card className="border-blue-100 dark:border-blue-900/50 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm shadow-xl">
-          <CardHeader>
-            <CardTitle className="text-2xl text-blue-600 dark:text-blue-400">
-              Login to RevCom
-            </CardTitle>
-            <CardDescription>
-              Enter your email and password to access your account
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleLogin}>
-              <div className="flex flex-col gap-6">
-                <div className="grid gap-2">
+      {/* Content */}
+      <main className="flex-1 flex items-center justify-center p-6 md:p-10">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl md:text-4xl font-serif font-bold text-foreground mb-3">
+              Welcome back
+            </h1>
+            <p className="text-muted-foreground">
+              Sign in to continue to your account
+            </p>
+          </div>
+
+          <div className="bg-background border border-border rounded-lg p-8 shadow-lg">
+            <form onSubmit={handleLogin} className="space-y-6">
+              <div className="space-y-4">
+                <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <Input
                     id="email"
                     type="email"
-                    placeholder="m@example.com"
+                    placeholder="you@example.com"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="border-blue-200 dark:border-blue-800 focus:border-blue-500 dark:focus:border-blue-400"
+                    className="h-11"
                   />
                 </div>
-                <div className="grid gap-2">
+                <div className="space-y-2">
                   <Label htmlFor="password">Password</Label>
                   <Input
                     id="password"
@@ -88,31 +112,49 @@ export default function LoginPage() {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="border-blue-200 dark:border-blue-800 focus:border-blue-500 dark:focus:border-blue-400"
+                    className="h-11"
                   />
                 </div>
-                {error && <p className="text-sm text-red-500">{error}</p>}
-                <Button
-                  type="submit"
-                  className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 shadow-md shadow-blue-500/30"
-                  disabled={isLoading}
-                >
-                  {isLoading ? "Logging in..." : "Login"}
-                </Button>
               </div>
-              <div className="mt-4 text-center text-sm">
-                Don&apos;t have an account?{" "}
-                <Link
-                  href="/auth/sign-up"
-                  className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
-                >
-                  Sign up
-                </Link>
-              </div>
+
+              {error && (
+                <div className="p-3 rounded-md bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800">
+                  <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+                </div>
+              )}
+
+              <Button
+                type="submit"
+                className="w-full h-11 bg-foreground text-background hover:bg-foreground/90"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Signing in...
+                  </>
+                ) : (
+                  "Sign In"
+                )}
+              </Button>
             </form>
-          </CardContent>
-        </Card>
-      </div>
+
+            <div className="mt-6 text-center text-sm">
+              <span className="text-muted-foreground">Don&apos;t have an account? </span>
+              <Link
+                href="/auth/sign-up"
+                className="text-foreground hover:underline font-medium"
+              >
+                Create one
+              </Link>
+            </div>
+          </div>
+
+          <p className="mt-6 text-center text-sm text-muted-foreground">
+            By signing in, you agree to our Terms of Service and Privacy Policy
+          </p>
+        </div>
+      </main>
     </div>
   );
 }

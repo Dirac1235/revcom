@@ -10,18 +10,36 @@ import { RequestCard } from "@/components/features/RequestCard";
 import { EmptyState } from "@/components/features/EmptyState";
 import { LoadingState } from "@/components/features/LoadingState";
 import { SearchBar } from "@/components/features/SearchBar";
-import { useAuth } from "@/lib/hooks/useAuth";
+import { useAuth } from "@/components/providers/AuthProvider";
 import { useProducts } from "@/lib/hooks/useProducts";
 import { useRequests } from "@/lib/hooks/useRequests";
 import { ROUTES } from "@/lib/constants/routes";
-import { Sparkles, Package, FileText, ArrowRight, TrendingUp, Users, ShoppingBag } from "lucide-react";
+import { Package, FileText, ArrowRight, TrendingUp, Users, ShoppingBag } from "lucide-react";
 
 export default function HomePage() {
   const router = useRouter();
   const { user, profile } = useAuth();
+  const supabase = createClient();
   
   const { products, loading: productsLoading } = useProducts({ limit: 8 });
   const { requests, loading: requestsLoading } = useRequests({ limit: 8 });
+  const [stats, setStats] = useState({ users: 0, products: 0, requests: 0 });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      const [usersRes, productsRes, requestsRes] = await Promise.all([
+        supabase.from('profiles').select('id', { count: 'exact', head: true }),
+        supabase.from('listings').select('id', { count: 'exact', head: true }).eq('status', 'active'),
+        supabase.from('requests').select('id', { count: 'exact', head: true }).eq('status', 'open'),
+      ]);
+      setStats({
+        users: usersRes.count || 0,
+        products: productsRes.count || 0,
+        requests: requestsRes.count || 0,
+      });
+    };
+    fetchStats();
+  }, []);
 
   const handleSearch = (query: string) => {
     router.push(`/products?q=${encodeURIComponent(query)}`);
@@ -33,9 +51,6 @@ export default function HomePage() {
       <section className="relative overflow-hidden bg-secondary/20 pt-32 pb-20 md:pt-40 md:pb-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-4xl mx-auto">
-            <div className="inline-flex items-center gap-2 bg-background border border-border rounded-full px-4 py-1.5 mb-8">
-              <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Ethiopia's Premier B2B Marketplace</span>
-            </div>
             
             <h1 className="text-5xl md:text-7xl font-serif font-bold mb-8 leading-tight text-foreground tracking-tight">
               Discover elegant & <br />
@@ -99,7 +114,7 @@ export default function HomePage() {
                 <Users className="w-6 h-6 text-foreground" />
               </div>
               <div>
-                <p className="text-3xl font-serif font-bold text-foreground">1,000+</p>
+                <p className="text-3xl font-serif font-bold text-foreground">{stats.users}</p>
                 <p className="text-sm text-muted-foreground uppercase tracking-wide mt-1">Active Users</p>
               </div>
             </div>
@@ -110,7 +125,7 @@ export default function HomePage() {
                 <ShoppingBag className="w-6 h-6 text-foreground" />
               </div>
               <div>
-                <p className="text-3xl font-serif font-bold text-foreground">{products.length}</p>
+                <p className="text-3xl font-serif font-bold text-foreground">{stats.products}</p>
                 <p className="text-sm text-muted-foreground uppercase tracking-wide mt-1">Products Listed</p>
               </div>
             </div>
@@ -121,7 +136,7 @@ export default function HomePage() {
                 <TrendingUp className="w-6 h-6 text-foreground" />
               </div>
               <div>
-                <p className="text-3xl font-serif font-bold text-foreground">{requests.length}</p>
+                <p className="text-3xl font-serif font-bold text-foreground">{stats.requests}</p>
                 <p className="text-sm text-muted-foreground uppercase tracking-wide mt-1">Active Requests</p>
               </div>
             </div>

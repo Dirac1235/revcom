@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/hooks/useAuth";
+import { useAuth } from "@/components/providers/AuthProvider";
 import { useRequests } from "@/lib/hooks/useRequests";
 import { RequestCard } from "@/components/features/RequestCard";
 import { EmptyState } from "@/components/features/EmptyState";
