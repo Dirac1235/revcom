@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { createClient } from "@/lib/supabase/client";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -26,35 +26,23 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const supabase = createClient();
     setIsLoading(true);
     setError(null);
 
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      if (error) throw error;
+    const formData = new FormData();
+    formData.append("email", email);
+    formData.append("password", password);
 
-      // Wait for auth state to be fully updated
-      if (data?.session) {
-        // Verify user is available
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (user) {
-          // Wait a moment for the auth state change event to propagate
-          // This ensures DashboardNav picks up the state change
-          await new Promise((resolve) => setTimeout(resolve, 150));
-          // Navigate - the DashboardNav will update via onAuthStateChange
-          router.push("/");
-        } else {
-          throw new Error("Failed to get user after login");
-        }
-      } else {
-        throw new Error("No session created");
+    try {
+      // Dynamically import the action to avoid build issues if it's not fully ready
+      const { login } = await import("@/app/actions/auth");
+      const result = await login(formData);
+      
+      if (result?.error) {
+        setError(result.error);
+        setIsLoading(false);
       }
+      // If success, the action redirects, so we don't need to do anything here
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
       setIsLoading(false);

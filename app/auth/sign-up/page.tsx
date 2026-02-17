@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { createClient } from "@/lib/supabase/client";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -25,7 +25,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function SignUpPage() {
-  const [email, setEmail] = useState("");
+   const [name, setName] = useState({first_name: "", last_name:""});
+   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
   const [userType, setUserType] = useState("both");
@@ -35,7 +36,6 @@ export default function SignUpPage() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    const supabase = createClient();
     setIsLoading(true);
     setError(null);
 
@@ -45,22 +45,24 @@ export default function SignUpPage() {
       return;
     }
 
+    const formData = new FormData();
+    formData.append("email", email);
+    formData.append("password", password);
+    formData.append("first_name",name.first_name);   
+    formData.append("last_name",name.last_name); 
+    formData.append("userType", userType);
+
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-          data: {
-            user_type: userType,
-          },
-        },
-      });
-      if (error) throw error;
-      router.push("/auth/sign-up-success");
+      const { signup } = await import("@/app/actions/auth");
+      const result = await signup(formData);
+      
+      if (result?.error) {
+        setError(result.error);
+        setIsLoading(false);
+      }
+      // If success, the action redirects
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
-    } finally {
       setIsLoading(false);
     }
   };
@@ -83,7 +85,34 @@ export default function SignUpPage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSignUp}>
+                
+
               <div className="flex flex-col gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="name">first_name</Label>
+                  <Input
+                    id="first_name"
+                    type="first_name"
+                    placeholder="First Name"
+                    required
+                    value={name.first_name}
+                    onChange={(e) => setName((prev) => { return {first_name:e.target.value, last_name:prev.last_name} })}
+                    className="border-blue-200 dark:border-blue-800 focus:border-blue-500 dark:focus:border-blue-400"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="name">last_name</Label>
+                  <Input
+                    id="last_name"
+                    type="last_name"
+                    placeholder="Last Name"
+                    required
+                    value={name.last_name}
+                    onChange={(e) => setName((prev) => { return {first_name:prev.first_name, last_name:e.target.value} })}
+                    className="border-blue-200 dark:border-blue-800 focus:border-blue-500 dark:focus:border-blue-400"
+                  />
+                </div>
+                
                 <div className="grid gap-2">
                   <Label htmlFor="email">Email</Label>
                   <Input
