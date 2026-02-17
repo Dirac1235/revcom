@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import type { Request } from '@/lib/types';
 
@@ -14,39 +14,41 @@ export function useRequests(options: UseRequestsOptions = {}) {
   const [requests, setRequests] = useState<Request[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const mountedRef = useRef(false);
 
-  const supabase = createClient();
+  const { buyerId, status, category, search, limit } = options;
 
   const fetchRequests = useCallback(async () => {
+    const supabase = createClient();
     try {
       setLoading(true);
       setError(null);
 
       let query = supabase.from('requests').select('*');
 
-      if (options.buyerId) {
-        query = query.eq('buyer_id', options.buyerId);
+      if (buyerId) {
+        query = query.eq('buyer_id', buyerId);
       }
 
-      if (options.status) {
-        query = query.eq('status', options.status);
+      if (status) {
+        query = query.eq('status', status);
       } else {
         // Default to open requests only
         query = query.eq('status', 'open');
       }
 
-      if (options.category) {
-        query = query.eq('category', options.category);
+      if (category) {
+        query = query.eq('category', category);
       }
 
-      if (options.search) {
-        query = query.or(`title.ilike.%${options.search}%,description.ilike.%${options.search}%`);
+      if (search) {
+        query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
       }
 
       query = query.order('created_at', { ascending: false });
 
-      if (options.limit) {
-        query = query.limit(options.limit);
+      if (limit) {
+        query = query.limit(limit);
       }
 
       const { data, error: fetchError } = await query;
@@ -59,10 +61,12 @@ export function useRequests(options: UseRequestsOptions = {}) {
     } finally {
       setLoading(false);
     }
-  }, [options.buyerId, options.status, options.category, options.search, options.limit]);
+  }, [buyerId, status, category, search, limit]);
 
   useEffect(() => {
+    // Always fetch on mount
     fetchRequests();
+    mountedRef.current = true;
   }, [fetchRequests]);
 
   return {
@@ -78,8 +82,6 @@ export function useRequest(id: string | null) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const supabase = createClient();
-
   useEffect(() => {
     if (!id) {
       setRequest(null);
@@ -90,6 +92,7 @@ export function useRequest(id: string | null) {
     let mounted = true;
 
     const fetchRequest = async () => {
+      const supabase = createClient();
       try {
         setLoading(true);
         setError(null);

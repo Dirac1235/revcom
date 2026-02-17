@@ -78,7 +78,7 @@ export default function HomePage() {
                     </Button>
                   </Link>
                   <Link href={ROUTES.PRODUCTS}>
-                    <Button size="lg" variant="outline" className="rounded-full px-8 border-foreground/20 hover:bg-foreground hover:text-background">
+                    <Button size="lg" variant="outline" className="rounded-full px-8 border-foreground/20 bg-background hover:bg-foreground hover:text-background">
                       Browse Products
                     </Button>
                   </Link>
@@ -86,13 +86,13 @@ export default function HomePage() {
               ) : (
                 <>
                   <Link href={ROUTES.PRODUCTS}>
-                    <Button size="lg" className="bg-foreground text-background hover:bg-foreground/90 rounded-full px-8">
+                    <Button size="lg" className="bg-primary text-background hover:bg-foreground/90 rounded-full px-8">
                       <Package className="w-4 h-4 mr-2" />
                       Browse Products
                     </Button>
                   </Link>
                   <Link href={ROUTES.BUYER_REQUEST_CREATE}>
-                    <Button size="lg" variant="outline" className="rounded-full px-8 border-foreground/20 hover:bg-foreground hover:text-background">
+                    <Button size="lg" variant="outline" className="rounded-full px-8  border-foreground/20 hover:bg-foreground hover:text-background">
                       <FileText className="w-4 h-4 mr-2" />
                       Post Request
                     </Button>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback, Suspense } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import {
   getSupabaseBrowser,
   getUserWithProfile,
@@ -20,8 +20,6 @@ function MessagesContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const supabase = useMemo(() => getSupabaseBrowser(), []);
-
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [conversations, setConversations] = useState<any[]>([]);
@@ -35,6 +33,7 @@ function MessagesContent() {
 
   const fetchConversations = useCallback(
     async (userId: string) => {
+      const supabase = getSupabaseBrowser();
       setLoading(true);
       try {
         const convs = await getUserConversations(supabase, userId);
@@ -51,12 +50,13 @@ function MessagesContent() {
         setLoading(false);
       }
     },
-    [supabase]
+    []
   );
 
   useEffect(() => {
     let active = true;
     (async () => {
+      const supabase = getSupabaseBrowser();
       const { user: u, profile: p } = await getUserWithProfile(supabase);
       if (!u) {
         router.push("/auth/login");
@@ -70,7 +70,7 @@ function MessagesContent() {
     return () => {
       active = false;
     };
-  }, [supabase, router, fetchConversations]);
+  }, [router, fetchConversations]);
 
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import type { Product } from '@/lib/types';
 
@@ -14,39 +14,41 @@ export function useProducts(options: UseProductsOptions = {}) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const mountedRef = useRef(false);
 
-  const supabase = createClient();
+  const { sellerId, category, status, search, limit } = options;
 
   const fetchProducts = useCallback(async () => {
+    const supabase = createClient();
     try {
       setLoading(true);
       setError(null);
 
       let query = supabase.from('listings').select('*');
 
-      if (options.sellerId) {
-        query = query.eq('seller_id', options.sellerId);
+      if (sellerId) {
+        query = query.eq('seller_id', sellerId);
       }
 
-      if (options.category) {
-        query = query.eq('category', options.category);
+      if (category) {
+        query = query.eq('category', category);
       }
 
-      if (options.status) {
-        query = query.eq('status', options.status);
+      if (status) {
+        query = query.eq('status', status);
       } else {
         // Default to active products only
         query = query.eq('status', 'active');
       }
 
-      if (options.search) {
-        query = query.or(`title.ilike.%${options.search}%,description.ilike.%${options.search}%`);
+      if (search) {
+        query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
       }
 
       query = query.order('created_at', { ascending: false });
 
-      if (options.limit) {
-        query = query.limit(options.limit);
+      if (limit) {
+        query = query.limit(limit);
       }
 
       const { data, error: fetchError } = await query;
@@ -59,10 +61,12 @@ export function useProducts(options: UseProductsOptions = {}) {
     } finally {
       setLoading(false);
     }
-  }, [options.sellerId, options.category, options.status, options.search, options.limit]);
+  }, [sellerId, category, status, search, limit]);
 
   useEffect(() => {
+    // Always fetch on mount
     fetchProducts();
+    mountedRef.current = true;
   }, [fetchProducts]);
 
   return {
@@ -78,8 +82,6 @@ export function useProduct(id: string | null) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const supabase = createClient();
-
   useEffect(() => {
     if (!id) {
       setProduct(null);
@@ -90,6 +92,7 @@ export function useProduct(id: string | null) {
     let mounted = true;
 
     const fetchProduct = async () => {
+      const supabase = createClient();
       try {
         setLoading(true);
         setError(null);
