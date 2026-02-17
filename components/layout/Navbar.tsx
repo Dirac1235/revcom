@@ -2,25 +2,19 @@
 
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { SearchBar } from '@/components/features/SearchBar';
-import { CategoryNav } from '@/components/features/CategoryNav';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { ROUTES } from '@/lib/constants/routes';
 import {
-  Home,
   ShoppingBag,
   Package,
   MessageSquare,
@@ -34,21 +28,44 @@ import {
   Loader2,
   LayoutGrid,
   Search,
+  ChevronDown,
 } from 'lucide-react';
+
+const NAV_LINKS = [
+  { label: 'Home', href: ROUTES.HOME, exact: true },
+  { label: 'Products', href: ROUTES.PRODUCTS, exact: false },
+  { label: 'Requests', href: ROUTES.LISTINGS, exact: false },
+];
 
 export function Navbar() {
   const { user, profile, signOut, isBuyer, isSeller, loading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 10);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    const onScroll = () => setScrolled(window.scrollY > 10);
+    window.addEventListener('scroll', onScroll);
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  useEffect(() => {
+    if (searchOpen) searchInputRef.current?.focus();
+  }, [searchOpen]);
+
+  useEffect(() => {
+    document.body.style.overflow = mobileMenuOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [mobileMenuOpen]);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
 
   const handleSignOut = async () => {
     setMobileMenuOpen(false);
@@ -57,386 +74,399 @@ export function Navbar() {
     router.refresh();
   };
 
-  const getInitials = () => {
-    if (profile?.first_name && profile?.last_name) {
-      return `${profile.first_name[0]}${profile.last_name[0]}`.toUpperCase();
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/products?q=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchOpen(false);
+      setSearchQuery('');
     }
-    if (profile?.email) {
-      return profile.email[0].toUpperCase();
-    }
-    return 'U';
   };
 
-  // Nav links (Home, Products, Requests)
-  const NavLinks = () => (
-    <>
-      <Link href={ROUTES.HOME} onClick={() => setMobileMenuOpen(false)}>
-        <Button variant="ghost" size="sm" className="gap-2 justify-start w-full md:w-auto md:gap-0 md:justify-center md:px-4 font-medium">
-          <Home className="w-4 h-4 md:hidden" />
-          <span>Home</span>
-        </Button>
-      </Link>
-      <Link href={ROUTES.PRODUCTS} onClick={() => setMobileMenuOpen(false)}>
-        <Button variant="ghost" size="sm" className="gap-2 justify-start w-full md:w-auto md:gap-0 md:justify-center md:px-4 font-medium">
-          <ShoppingBag className="w-4 h-4 md:hidden" />
-          <span>Products</span>
-        </Button>
-      </Link>
-      <Link href={ROUTES.LISTINGS} onClick={() => setMobileMenuOpen(false)}>
-        <Button variant="ghost" size="sm" className="gap-2 justify-start w-full md:w-auto md:gap-0 md:justify-center md:px-4 font-medium">
-          <LayoutGrid className="w-4 h-4 md:hidden" />
-          <span>Requests</span>
-        </Button>
-      </Link>
-    </>
-  );
+  const isActive = (href: string, exact: boolean) =>
+    exact ? pathname === href : pathname === href || pathname.startsWith(href + '/');
+
+  const getInitials = () => {
+    if (profile?.first_name && profile?.last_name)
+      return `${profile.first_name[0]}${profile.last_name[0]}`.toUpperCase();
+    return profile?.email?.[0]?.toUpperCase() ?? 'U';
+  };
+
+  const dropdownClass =
+    'w-56 rounded-xl border-border/50 bg-card/95 [backdrop-filter:blur(20px)_saturate(150%)] shadow-xl p-0 overflow-hidden';
 
   return (
-    <nav 
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled 
-          ? 'bg-background/80 backdrop-blur-xl border-b border-border/50 shadow-lg shadow-black/5' 
-          : 'bg-background/60 backdrop-blur-md border-b border-transparent'
-      }`}
-    >
-      <div className="max-w-4/6 mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 gap-4">
-          {/* 1. Logo + Desktop Main Navigation */}
-          <div className="flex items-center gap-8">
+    <>
+      <nav
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500  ${
+          scrolled
+            ? 'bg-background/85 [backdrop-filter:blur(20px)_saturate(150%)] border-b border-border/50 shadow-sm'
+            : 'bg-background/50 [backdrop-filter:blur(12px)] border-b border-transparent'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-[auto_1fr_auto] items-center h-16 gap-6 md:grid-cols-[1fr_auto_1fr]">
+
+            {/* LEFT — Logo */}
             <Link
               href={ROUTES.HOME}
-              className="text-2xl font-serif font-bold text-foreground tracking-tight shrink-0"
+              className="text-lg font-serif font-bold text-foreground tracking-tight whitespace-nowrap"
             >
               RevCom
             </Link>
 
-            {/* Desktop primary links (Home, Products) */}
+            {/* CENTER — Nav links */}
             <div className="hidden md:flex items-center gap-6">
-              <NavLinks />
+              {NAV_LINKS.map(({ label, href, exact }) => {
+                const active = isActive(href, exact);
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    className={`relative py-0.5 text-sm font-medium transition-colors duration-200 group ${
+                      active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    {label}
+                    {/* underline */}
+                    <span
+                      className={`absolute -bottom-0.5 left-0 h-px bg-foreground transition-all duration-300 ${
+                        active ? 'w-full' : 'w-0 group-hover:w-full'
+                      }`}
+                    />
+                  </Link>
+                );
+              })}
             </div>
-          </div>
 
-          {/* 2. Desktop Search & Categories (lg+) */}
-          <div className="hidden lg:flex items-center gap-2 flex-1 max-w-2xl mx-8">
-            <CategoryNav />
-            <SearchBar placeholder="Search products, requests..." className="flex-1" />
-          </div>
+            {/* RIGHT — Actions */}
+            <div className="flex items-center justify-end gap-1">
 
-          {/* 3. Desktop Actions (auth, icons, create) */}
-          <div className="hidden md:flex items-center gap-3 shrink-0">
-            {/* Theme Toggle */}
-            <ThemeToggle />
-            
-            {loading ? (
-              <Button variant="ghost" size="sm" disabled>
-                <Loader2 className="w-4 h-4 animate-spin" />
-              </Button>
-            ) : !user ? (
-              <div className="flex items-center gap-3">
-                <Link href={ROUTES.LOGIN}>
-                  <Button variant="ghost" size="sm">Sign In</Button>
-                </Link>
-                <Link href={ROUTES.SIGNUP}>
-                  <Button
-                    size="sm"
-                    className="bg-foreground text-background hover:bg-foreground/90"
-                  >
-                    Get Started
-                  </Button>
-                </Link>
-              </div>
-            ) : (
-              <>
-                {/* Messages */}
-                <Link href={ROUTES.MESSAGES}>
-                  <Button variant="ghost" size="sm" className="relative">
-                    <MessageSquare className="w-4 h-4" />
-                  </Button>
-                </Link>
-
-                {/* Notifications */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="relative">
-                      <Bell className="w-4 h-4" />
+              {/* Search */}
+              <div className="hidden md:flex items-center justify-end">
+                {searchOpen ? (
+                  <form onSubmit={handleSearch} className="flex items-center gap-1">
+                    <input
+                      ref={searchInputRef}
+                      type="text"
+                      placeholder="Search..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-44 h-8 px-3 text-sm rounded-lg border border-border/60 bg-background/70 [backdrop-filter:blur(8px)] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all placeholder:text-muted-foreground/50"
+                    />
+                    <Button type="submit" variant="ghost" size="sm" className="h-8 w-8 p-0 shrink-0">
+                      <Search className="h-3.5 w-3.5" />
                     </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent 
-                    align="end" 
-                    className="w-80 bg-background/95 backdrop-blur-xl border-border/50"
-                    sideOffset={8}
-                  >
-                    <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <div className="p-4 text-sm text-muted-foreground text-center">
-                      <p>No new notifications</p>
-                    </div>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
-                {/* User Profile */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="gap-2 pl-2">
-                      <Avatar className="w-7 h-7">
-                        <AvatarImage src={profile?.avatar_url || undefined} />
-                        <AvatarFallback className="text-xs">{getInitials()}</AvatarFallback>
-                      </Avatar>
-                      <span className="hidden xl:inline text-sm">
-                        {profile?.first_name || 'Account'}
-                      </span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0 shrink-0"
+                      onClick={() => { setSearchOpen(false); setSearchQuery(''); }}
+                    >
+                      <X className="h-3.5 w-3.5" />
                     </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent 
-                    align="end" 
-                    className="w-56 bg-background/95 backdrop-blur-xl border-border/50 max-h-[80vh] overflow-y-auto"
-                    sideOffset={8}
-                  >
-                    <DropdownMenuLabel>
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium">
-                          {profile?.first_name} {profile?.last_name}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {profile?.email}
-                        </span>
-                      </div>
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link href={ROUTES.DASHBOARD}>
-                        <LayoutGrid className="w-4 h-4 mr-2" />
-                        Dashboard
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href={ROUTES.PROFILE}>
-                        <User className="w-4 h-4 mr-2" />
-                        Profile
-                      </Link>
-                    </DropdownMenuItem>
-
-                    {/* Buyer Tools Section */}
-                    {isBuyer && (
-                      <>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuLabel>Buyer Tools</DropdownMenuLabel>
-                        <DropdownMenuItem asChild>
-                          <Link href={ROUTES.BUYER_REQUESTS}>
-                            <FileText className="w-4 h-4 mr-2" />
-                            My Requests
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href={ROUTES.BUYER_REQUEST_CREATE}>
-                            <Plus className="w-4 h-4 mr-2" />
-                            Post Request
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href={ROUTES.BUYER_ORDERS}>
-                            <ShoppingBag className="w-4 h-4 mr-2" />
-                            My Orders
-                          </Link>
-                        </DropdownMenuItem>
-                      </>
-                    )}
-
-                    {/* Seller Tools Section */}
-                    {isSeller && (
-                      <>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuLabel>Seller Tools</DropdownMenuLabel>
-                        <DropdownMenuItem asChild>
-                          <Link href={ROUTES.SELLER_PRODUCTS}>
-                            <Package className="w-4 h-4 mr-2" />
-                            My Products
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href={ROUTES.SELLER_PRODUCT_CREATE}>
-                            <Plus className="w-4 h-4 mr-2" />
-                            Add Product
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href={ROUTES.SELLER_EXPLORE}>
-                            <FileText className="w-4 h-4 mr-2" />
-                            Browse Requests
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href={ROUTES.SELLER_ORDERS}>
-                            <ShoppingBag className="w-4 h-4 mr-2" />
-                            Incoming Orders
-                          </Link>
-                        </DropdownMenuItem>
-                      </>
-                    )}
-
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleSignOut} className="text-red-500 focus:text-red-500">
-                      <LogOut className="w-4 h-4 mr-2" />
-                      Logout
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </>
-            )}
-          </div>
-
-          {/* Mobile Menu Toggle */}
-          <div className="flex items-center gap-2 md:hidden">
-            <ThemeToggle />
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </Button>
-          </div>
-        </div>
-
-        {/* Mobile Search (always visible below header) */}
-        <div className="lg:hidden pb-3 pt-1">
-          <SearchBar placeholder="Search..." />
-        </div>
-      </div>
-
-      {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <div className="md:hidden border-t border-border/50 bg-background/95 backdrop-blur-xl max-h-[calc(100vh-4rem)] overflow-y-auto">
-          <div className="px-4 py-3 space-y-3">
-            <NavLinks />
-
-            {loading ? (
-              <div className="py-2 flex justify-center">
-                <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
-              </div>
-            ) : !user ? (
-              <div className="pt-4 flex flex-col gap-3">
-                <Link href={ROUTES.LOGIN} onClick={() => setMobileMenuOpen(false)}>
-                  <Button variant="ghost" className="w-full justify-start">
-                    Sign In
-                  </Button>
-                </Link>
-                <Link href={ROUTES.SIGNUP} onClick={() => setMobileMenuOpen(false)}>
-                  <Button className="w-full bg-foreground text-background hover:bg-foreground/90">
-                    Get Started
-                  </Button>
-                </Link>
-              </div>
-            ) : (
-              <>
-                <div className="pt-2 border-t border-border/50 mt-2">
-                  <div className="px-2 pb-1 text-xs font-semibold text-muted-foreground uppercase">
-                    Quick Links
-                  </div>
-                  <Link href={ROUTES.DASHBOARD} onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="ghost" className="w-full justify-start">
-                      <LayoutGrid className="w-4 h-4 mr-2" />
-                      Dashboard
-                    </Button>
-                  </Link>
-                  <Link href={ROUTES.PROFILE} onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="ghost" className="w-full justify-start">
-                      <User className="w-4 h-4 mr-2" />
-                      Profile
-                    </Button>
-                  </Link>
-                </div>
-
-                <Link href={ROUTES.MESSAGES} onClick={() => setMobileMenuOpen(false)}>
-                  <Button variant="ghost" className="w-full justify-start">
-                    <MessageSquare className="w-4 h-4 mr-2" />
-                    Messages
-                  </Button>
-                </Link>
-
-                {isBuyer && (
-                  <div className="pt-2">
-                    <div className="px-2 pb-1 text-xs font-semibold text-muted-foreground uppercase">
-                      Buyer Tools
-                    </div>
-                    <Link href={ROUTES.BUYER_REQUESTS} onClick={() => setMobileMenuOpen(false)}>
-                      <Button variant="ghost" className="w-full justify-start">
-                        <FileText className="w-4 h-4 mr-2" />
-                        My Requests
-                      </Button>
-                    </Link>
-                    <Link href={ROUTES.BUYER_REQUEST_CREATE} onClick={() => setMobileMenuOpen(false)}>
-                      <Button variant="ghost" className="w-full justify-start">
-                        <Plus className="w-4 h-4 mr-2" />
-                        Post Request
-                      </Button>
-                    </Link>
-                    <Link href={ROUTES.BUYER_ORDERS} onClick={() => setMobileMenuOpen(false)}>
-                      <Button variant="ghost" className="w-full justify-start">
-                        <ShoppingBag className="w-4 h-4 mr-2" />
-                        My Orders
-                      </Button>
-                    </Link>
-                  </div>
-                )}
-
-                {isSeller && (
-                  <div className="pt-2">
-                    <div className="px-2 pb-1 text-xs font-semibold text-muted-foreground uppercase">
-                      Seller Tools
-                    </div>
-                    <Link href={ROUTES.SELLER_PRODUCTS} onClick={() => setMobileMenuOpen(false)}>
-                      <Button variant="ghost" className="w-full justify-start">
-                        <Package className="w-4 h-4 mr-2" />
-                        My Products
-                      </Button>
-                    </Link>
-                    <Link href={ROUTES.SELLER_PRODUCT_CREATE} onClick={() => setMobileMenuOpen(false)}>
-                      <Button variant="ghost" className="w-full justify-start">
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Product
-                      </Button>
-                    </Link>
-                    <Link href={ROUTES.SELLER_EXPLORE} onClick={() => setMobileMenuOpen(false)}>
-                      <Button variant="ghost" className="w-full justify-start">
-                        <Search className="w-4 h-4 mr-2" />
-                        Browse Requests
-                      </Button>
-                    </Link>
-                    <Link href={ROUTES.SELLER_ORDERS} onClick={() => setMobileMenuOpen(false)}>
-                      <Button variant="ghost" className="w-full justify-start">
-                        <ShoppingBag className="w-4 h-4 mr-2" />
-                        Incoming Orders
-                      </Button>
-                    </Link>
-                  </div>
-                )}
-
-                <div className="pt-2 border-t border-border/50 mt-2">
-                  <div className="px-2 py-2 flex items-center gap-3">
-                    <Avatar className="w-8 h-8">
-                      <AvatarImage src={profile?.avatar_url || undefined} />
-                      <AvatarFallback>{getInitials()}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex flex-col">
-                      <span className="text-sm font-medium">{profile?.first_name}</span>
-                      <span className="text-xs text-muted-foreground truncate max-w-50">{profile?.email}</span>
-                    </div>
-                  </div>
+                  </form>
+                ) : (
                   <Button
                     variant="ghost"
-                    className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20"
-                    onClick={handleSignOut}
+                    size="sm"
+                    className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                    onClick={() => setSearchOpen(true)}
                   >
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Logout
+                    <Search className="h-3.5 w-3.5" />
                   </Button>
+                )}
+              </div>
+
+              <div className="hidden md:block">
+                <ThemeToggle />
+              </div>
+
+              {/* Auth */}
+              <div className="hidden md:flex items-center">
+                {loading ? (
+                  <div className="h-8 w-8 flex items-center justify-center">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+                  </div>
+                ) : !user ? (
+                  <div className="flex items-center gap-2 pl-1">
+                    <Link href={ROUTES.LOGIN}>
+                      <Button variant="ghost" size="sm" className="h-8 text-sm">Sign In</Button>
+                    </Link>
+                    <Link href={ROUTES.SIGNUP}>
+                      <Button size="sm" className="h-8 text-sm bg-foreground text-background hover:bg-foreground/90 rounded-lg px-4">
+                        Get Started
+                      </Button>
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-0.5 pl-1">
+                    <Link href={ROUTES.MESSAGES}>
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground">
+                        <MessageSquare className="h-3.5 w-3.5" />
+                      </Button>
+                    </Link>
+
+                    {/* Notifications */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground">
+                          <Bell className="h-3.5 w-3.5" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" sideOffset={12} className="w-72 rounded-xl border-border/50 bg-card/95 [backdrop-filter:blur(20px)_saturate(150%)] shadow-xl p-0 overflow-hidden">
+                        <div className="px-4 py-3 border-b border-border/50">
+                          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Notifications</p>
+                        </div>
+                        <div className="py-10 text-center">
+                          <Bell className="h-5 w-5 text-muted-foreground/30 mx-auto mb-2" />
+                          <p className="text-sm text-muted-foreground">No new notifications</p>
+                        </div>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+
+                    {/* User menu */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 gap-1.5 pl-1.5 pr-2 rounded-lg">
+                          <Avatar className="h-6 w-6">
+                            <AvatarImage src={profile?.avatar_url || undefined} />
+                            <AvatarFallback className="text-[10px] font-semibold">{getInitials()}</AvatarFallback>
+                          </Avatar>
+                          <span className="hidden xl:inline text-sm font-medium">
+                            {profile?.first_name || 'Account'}
+                          </span>
+                          <ChevronDown className="hidden xl:block h-3 w-3 opacity-40" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent
+                        align="end"
+                        sideOffset={12}
+                        className={dropdownClass}
+                        style={{ maxHeight: 'calc(100vh - 80px)', overflowY: 'auto' }}
+                      >
+                        <div className="px-4 py-3 border-b border-border/50 flex items-center gap-3">
+                          <Avatar className="h-8 w-8 shrink-0">
+                            <AvatarImage src={profile?.avatar_url || undefined} />
+                            <AvatarFallback className="text-xs font-semibold">{getInitials()}</AvatarFallback>
+                          </Avatar>
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold truncate">{profile?.first_name} {profile?.last_name}</p>
+                            <p className="text-[11px] text-muted-foreground truncate">{profile?.email}</p>
+                          </div>
+                        </div>
+
+                        <div className="p-1.5">
+                          <MenuLink href={ROUTES.DASHBOARD} icon={<LayoutGrid className="h-3.5 w-3.5" />}>Dashboard</MenuLink>
+                          <MenuLink href={ROUTES.PROFILE} icon={<User className="h-3.5 w-3.5" />}>Profile</MenuLink>
+                        </div>
+
+                        {isBuyer && (
+                          <>
+                            <div className="h-px bg-border/50" />
+                            <div className="p-1.5">
+                              <p className="px-2 pt-1 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/50">Buyer</p>
+                              <MenuLink href={ROUTES.BUYER_REQUESTS} icon={<FileText className="h-3.5 w-3.5" />}>My Requests</MenuLink>
+                              <MenuLink href={ROUTES.BUYER_REQUEST_CREATE} icon={<Plus className="h-3.5 w-3.5" />}>Post Request</MenuLink>
+                              <MenuLink href={ROUTES.BUYER_ORDERS} icon={<ShoppingBag className="h-3.5 w-3.5" />}>My Orders</MenuLink>
+                            </div>
+                          </>
+                        )}
+
+                        {isSeller && (
+                          <>
+                            <div className="h-px bg-border/50" />
+                            <div className="p-1.5">
+                              <p className="px-2 pt-1 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/50">Seller</p>
+                              <MenuLink href={ROUTES.SELLER_PRODUCTS} icon={<Package className="h-3.5 w-3.5" />}>My Products</MenuLink>
+                              <MenuLink href={ROUTES.SELLER_PRODUCT_CREATE} icon={<Plus className="h-3.5 w-3.5" />}>Add Product</MenuLink>
+                              <MenuLink href={ROUTES.SELLER_EXPLORE} icon={<FileText className="h-3.5 w-3.5" />}>Browse Requests</MenuLink>
+                              <MenuLink href={ROUTES.SELLER_ORDERS} icon={<ShoppingBag className="h-3.5 w-3.5" />}>Incoming Orders</MenuLink>
+                            </div>
+                          </>
+                        )}
+
+                        <div className="h-px bg-border/50" />
+                        <div className="p-1.5">
+                          <DropdownMenuItem
+                            onClick={handleSignOut}
+                            className="rounded-lg gap-2 text-sm text-red-500 focus:text-red-500 focus:bg-red-500/10 cursor-pointer"
+                          >
+                            <LogOut className="h-3.5 w-3.5" />
+                            Sign Out
+                          </DropdownMenuItem>
+                        </div>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                )}
+              </div>
+
+              {/* Mobile controls */}
+              <div className="flex items-center gap-1 md:hidden">
+                <ThemeToggle />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                >
+                  {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Mobile drawer */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-40 md:hidden">
+          <div
+            className="absolute inset-0 bg-background/60 [backdrop-filter:blur(4px)]"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+          <div className="absolute top-16 left-0 right-0 bottom-0 bg-background/95 [backdrop-filter:blur(20px)_saturate(150%)] border-t border-border/40 overflow-y-auto">
+            <div className="px-4 pt-4 pb-8 space-y-0.5">
+
+              {/* Mobile search */}
+              <form onSubmit={handleSearch} className="flex items-center gap-2 px-3 h-10 mb-4 rounded-lg border border-border/50 bg-muted/30">
+                <Search className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <input
+                  type="text"
+                  placeholder="Search products..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="flex-1 bg-transparent border-none focus:outline-none text-sm placeholder:text-muted-foreground/50"
+                />
+              </form>
+
+              {/* Main links */}
+              {NAV_LINKS.map(({ label, href, exact }) => {
+                const active = isActive(href, exact);
+                return (
+                  <MobileNavItem key={href} href={href} active={active} onClick={() => setMobileMenuOpen(false)}>
+                    {label}
+                  </MobileNavItem>
+                );
+              })}
+
+              {loading ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
                 </div>
-              </>
-            )}
+              ) : !user ? (
+                <div className="pt-5 flex flex-col gap-2">
+                  <Link href={ROUTES.LOGIN} onClick={() => setMobileMenuOpen(false)}>
+                    <Button variant="outline" className="w-full rounded-lg border-border/60">Sign In</Button>
+                  </Link>
+                  <Link href={ROUTES.SIGNUP} onClick={() => setMobileMenuOpen(false)}>
+                    <Button className="w-full rounded-lg bg-foreground text-background hover:bg-foreground/90">Get Started</Button>
+                  </Link>
+                </div>
+              ) : (
+                <>
+                  <MobileSection label="Account">
+                    <MobileNavItem href={ROUTES.DASHBOARD} onClick={() => setMobileMenuOpen(false)}>Dashboard</MobileNavItem>
+                    <MobileNavItem href={ROUTES.PROFILE} onClick={() => setMobileMenuOpen(false)}>Profile</MobileNavItem>
+                    <MobileNavItem href={ROUTES.MESSAGES} onClick={() => setMobileMenuOpen(false)}>Messages</MobileNavItem>
+                  </MobileSection>
+
+                  {isBuyer && (
+                    <MobileSection label="Buyer">
+                      <MobileNavItem href={ROUTES.BUYER_REQUESTS} onClick={() => setMobileMenuOpen(false)}>My Requests</MobileNavItem>
+                      <MobileNavItem href={ROUTES.BUYER_REQUEST_CREATE} onClick={() => setMobileMenuOpen(false)}>Post Request</MobileNavItem>
+                      <MobileNavItem href={ROUTES.BUYER_ORDERS} onClick={() => setMobileMenuOpen(false)}>My Orders</MobileNavItem>
+                    </MobileSection>
+                  )}
+
+                  {isSeller && (
+                    <MobileSection label="Seller">
+                      <MobileNavItem href={ROUTES.SELLER_PRODUCTS} onClick={() => setMobileMenuOpen(false)}>My Products</MobileNavItem>
+                      <MobileNavItem href={ROUTES.SELLER_PRODUCT_CREATE} onClick={() => setMobileMenuOpen(false)}>Add Product</MobileNavItem>
+                      <MobileNavItem href={ROUTES.SELLER_EXPLORE} onClick={() => setMobileMenuOpen(false)}>Browse Requests</MobileNavItem>
+                      <MobileNavItem href={ROUTES.SELLER_ORDERS} onClick={() => setMobileMenuOpen(false)}>Incoming Orders</MobileNavItem>
+                    </MobileSection>
+                  )}
+
+                  {/* User footer */}
+                  <div className="pt-4 mt-2 border-t border-border/40 space-y-1">
+                    <div className="flex items-center gap-3 px-3 py-3 rounded-lg bg-muted/30">
+                      <Avatar className="h-8 w-8 shrink-0">
+                        <AvatarImage src={profile?.avatar_url || undefined} />
+                        <AvatarFallback className="text-xs font-semibold">{getInitials()}</AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-foreground truncate">{profile?.first_name} {profile?.last_name}</p>
+                        <p className="text-xs text-muted-foreground truncate">{profile?.email}</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleSignOut}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-red-500 hover:bg-red-500/10 transition-colors"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Sign Out
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}
-    </nav>
+    </>
+  );
+}
+
+// ── Helpers ───────────────────────────────────────────────
+
+function MenuLink({ href, icon, children }: { href: string; icon: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <DropdownMenuItem asChild className="rounded-lg gap-2 text-sm cursor-pointer">
+      <Link href={href}>
+        <span className="text-muted-foreground">{icon}</span>
+        {children}
+      </Link>
+    </DropdownMenuItem>
+  );
+}
+
+function MobileNavItem({
+  href,
+  onClick,
+  active,
+  children,
+}: {
+  href: string;
+  onClick: () => void;
+  active?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+        active
+          ? 'text-foreground'
+          : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
+      }`}
+    >
+      {children}
+      {active && <span className="h-1.5 w-1.5 rounded-full bg-foreground shrink-0" />}
+    </Link>
+  );
+}
+
+function MobileSection({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="pt-4">
+      <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40">
+        {label}
+      </p>
+      {children}
+    </div>
   );
 }
