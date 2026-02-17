@@ -140,19 +140,19 @@ function ConversationSkeleton() {
   return (
     <div className="flex items-center gap-4 px-5 py-4">
       <div className="w-12 h-12 rounded-full bg-foreground/5 shrink-0 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-foreground/5 to-transparent animate-shimmer" />
+        <div className="absolute inset-0 bg-linear-to-r from-transparent via-foreground/5 to-transparent animate-shimmer" />
       </div>
       <div className="flex-1 space-y-2.5">
         <div className="flex justify-between items-center">
           <div className="h-3.5 w-32 rounded-md bg-foreground/5 relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-foreground/5 to-transparent animate-shimmer" />
+            <div className="absolute inset-0 bg-linear-to-r from-transparent via-foreground/5 to-transparent animate-shimmer" />
           </div>
           <div className="h-3 w-12 rounded-md bg-foreground/5 relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-foreground/5 to-transparent animate-shimmer" />
+            <div className="absolute inset-0 bg-linear-to-r from-transparent via-foreground/5 to-transparent animate-shimmer" />
           </div>
         </div>
         <div className="h-3 w-48 rounded-md bg-foreground/5 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-foreground/5 to-transparent animate-shimmer" />
+          <div className="absolute inset-0 bg-linear-to-r from-transparent via-foreground/5 to-transparent animate-shimmer" />
         </div>
       </div>
     </div>
@@ -186,21 +186,21 @@ function ConversationRow({
       className={`
         w-full text-left flex items-center gap-4 px-5 py-4 
         transition-all duration-200 ease-out group
-        relative focus:outline-none focus-visible:ring-2 focus-visible:ring-foreground/20
+        relative focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30
         ${isSelected
-          ? "bg-foreground text-background"
-          : "hover:bg-foreground/[0.03] text-foreground"
+          ? "bg-primary/10 text-foreground border-l-2 border-l-primary"
+          : "hover:bg-foreground/3 text-foreground border-l-2 border-l-transparent"
         }
       `}
     >
-      {/* Active indicator bar */}
+      {/* Active indicator bar - uses primary green */}
       <span 
         className={`
-          absolute left-0 top-1/2 -translate-y-1/2 w-1 rounded-r-full
+          absolute left-0 top-1/2 -translate-y-1/2 w-0.75 rounded-r-full
           transition-all duration-300
           ${isSelected 
-            ? "h-10 bg-background/50" 
-            : "h-0 group-hover:h-6 bg-foreground/20"
+            ? "h-8 bg-primary" 
+            : "h-0 group-hover:h-5 bg-primary/40"
           }
         `} 
       />
@@ -211,7 +211,7 @@ function ConversationRow({
           className={`
             w-12 h-12 transition-transform duration-200
             ${isSelected ? "scale-105" : "group-hover:scale-105"}
-            ${isSelected ? "border-2 border-background/30" : "border-2 border-transparent"}
+            ${isSelected ? "border-2 border-primary/30 ring-2 ring-primary/10" : "border-2 border-transparent"}
           `}
         >
           {other?.avatar_url ? (
@@ -225,8 +225,8 @@ function ConversationRow({
               className={`
                 text-sm font-semibold tracking-tight
                 ${isSelected 
-                  ? "bg-background/20 text-background" 
-                  : "bg-gradient-to-br from-foreground/10 to-foreground/5 text-foreground"
+                  ? "bg-primary/20 text-primary" 
+                  : "bg-linear-to-br from-foreground/10 to-foreground/5 text-foreground"
                 }
               `}
             >
@@ -237,7 +237,7 @@ function ConversationRow({
         
         {/* Unread badge */}
         {hasUnread && (
-          <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1.5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg shadow-red-500/30 border-2 border-card animate-in zoom-in duration-200">
+          <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1.5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg shadow-red-500/30 border-2 border-card animate-in zoom-in duration-200">
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
@@ -258,7 +258,7 @@ function ConversationRow({
             <span 
               className={`
                 text-[11px] shrink-0 tabular-nums transition-colors duration-200
-                ${isSelected ? "text-background/50" : "text-foreground/35"}
+                ${isSelected ? "text-primary/60" : "text-foreground/35"}
               `}
             >
               {formatTimestamp(lastMessage.created_at)}
@@ -271,7 +271,7 @@ function ConversationRow({
             ${hasUnread && !isSelected
               ? "text-foreground font-medium"
               : isSelected
-              ? "text-background/60"
+              ? "text-foreground/70"
               : "text-foreground/45"
             }
           `}
@@ -291,11 +291,11 @@ function ConversationRow({
 function EmptyConversations() {
   return (
     <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
-      <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-foreground/5 to-foreground/[0.02] border border-foreground/8 flex items-center justify-center mb-5 shadow-sm">
+      <div className="w-20 h-20 rounded-3xl bg-linear-to-br from-foreground/5 to-foreground/2 border border-foreground/8 flex items-center justify-center mb-5 shadow-sm">
         <MessageSquare className="w-8 h-8 text-foreground/20" strokeWidth={1.5} />
       </div>
       <h3 className="text-base font-semibold text-foreground/80 mb-1.5">No conversations yet</h3>
-      <p className="text-sm text-foreground/40 max-w-[220px] leading-relaxed">
+      <p className="text-sm text-foreground/40 max-w-55 leading-relaxed">
         Start chatting with sellers or buyers from product listings and requests
       </p>
     </div>
@@ -312,7 +312,7 @@ function ErrorState({ message, onRetry }: { message: string; onRetry: () => void
         <AlertCircle className="w-6 h-6 text-red-500/60" />
       </div>
       <h3 className="text-sm font-medium text-foreground/70 mb-2">Something went wrong</h3>
-      <p className="text-xs text-foreground/40 mb-6 leading-relaxed max-w-[240px]">{message}</p>
+      <p className="text-xs text-foreground/40 mb-6 leading-relaxed max-w-60">{message}</p>
       <Button
         onClick={onRetry}
         variant="outline"
@@ -333,13 +333,13 @@ function SelectChatPlaceholder() {
   return (
     <div className="h-full flex items-center justify-center">
       <div className="text-center px-8">
-        <div className="w-24 h-24 rounded-[2rem] bg-gradient-to-br from-foreground/5 to-foreground/[0.02] border border-foreground/8 flex items-center justify-center mx-auto mb-6 shadow-sm">
+        <div className="w-24 h-24 rounded-4xl bg-linear-to-br from-foreground/5 to-foreground/2 border border-foreground/8 flex items-center justify-center mx-auto mb-6 shadow-sm">
           <MessageSquare className="w-10 h-10 text-foreground/15" strokeWidth={1.5} />
         </div>
         <h3 className="text-lg font-semibold text-foreground/80 mb-2 tracking-tight">
           Your Messages
         </h3>
-        <p className="text-sm text-foreground/40 max-w-[240px] leading-relaxed">
+        <p className="text-sm text-foreground/40 max-w-60 leading-relaxed">
           Select a conversation from the list to view messages and continue chatting
         </p>
       </div>
@@ -454,8 +454,8 @@ function MessagesContent() {
   if (!user && !loading && !error) return null;
 
   return (
-    <div className="min-h-screen bg-background">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+    <div className="min-h-screen bg-background py-4">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-8">
 
         {/* ── Page header ── */}
         <div className="flex items-center justify-between mb-6 lg:mb-8">
@@ -464,7 +464,7 @@ function MessagesContent() {
               <h1 className="text-xl font-bold tracking-tight text-foreground">Messages</h1>
             </div>
             <div className="hidden lg:flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-foreground/10 to-foreground/5 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-linear-to-br from-foreground/10 to-foreground/5 flex items-center justify-center">
                 <MessageSquare className="w-5 h-5 text-foreground/70" />
               </div>
               <div>
@@ -482,7 +482,7 @@ function MessagesContent() {
             <Link href="/messages/new">
               <Button 
                 size="sm" 
-                className="gap-2 bg-foreground text-background hover:bg-foreground/90 shadow-lg shadow-foreground/10"
+                className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/10"
               >
                 <PenSquare className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">New chat</span>
@@ -505,7 +505,7 @@ function MessagesContent() {
             <div className="flex flex-col rounded-2xl border border-foreground/10 bg-card/80 backdrop-blur-xl overflow-hidden h-[calc(100vh-8rem)] lg:h-[calc(100vh-11rem)] shadow-xl shadow-foreground/5">
 
               {/* Panel header */}
-              <div className="px-5 pt-5 pb-4 border-b border-foreground/5 bg-gradient-to-b from-foreground/[0.02] to-transparent">
+              <div className="px-5 pt-5 pb-4 border-b border-foreground/5 bg-linear-to-b from-foreground/2 to-transparent">
                 {/* Search */}
                 <div className="relative group">
                   <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/30 group-focus-within:text-foreground/50 transition-colors pointer-events-none" />
@@ -535,7 +535,7 @@ function MessagesContent() {
 
                 {/* Filter tabs */}
                 <div className="flex items-center gap-1 mt-3">
-                  <button className="px-3 py-1.5 text-xs font-medium rounded-lg bg-foreground text-background transition-colors">
+                  <button className="px-3 py-1.5 text-xs font-medium rounded-lg bg-primary text-primary-foreground transition-colors">
                     All
                   </button>
                   <button className="px-3 py-1.5 text-xs font-medium rounded-lg text-foreground/60 hover:bg-foreground/5 hover:text-foreground transition-colors">
@@ -557,7 +557,7 @@ function MessagesContent() {
                 ) : error ? (
                   <ErrorState message={error} onRetry={handleRetry} />
                 ) : filteredConversations.length > 0 ? (
-                  <div className="divide-y divide-foreground/[0.06]">
+                  <div className="divide-y divide-foreground/6">
                     {filteredConversations.map((conv) => (
                       <ConversationRow
                         key={conv.id}
@@ -586,7 +586,7 @@ function MessagesContent() {
               {selectedConversationId ? (
                 <>
                   {/* Mobile back header */}
-                  <div className="lg:hidden flex items-center gap-3 px-4 py-3 border-b border-foreground/5 bg-gradient-to-b from-foreground/[0.02] to-transparent">
+                  <div className="lg:hidden flex items-center gap-3 px-4 py-3 border-b border-foreground/5 bg-linear-to-b from-foreground/2 to-transparent">
                     <button
                       onClick={() => setSelectedConversationId(null)}
                       className="flex items-center gap-1.5 text-sm font-medium text-foreground/60 hover:text-foreground transition-colors px-2 py-1.5 -ml-2 rounded-lg hover:bg-foreground/5"
