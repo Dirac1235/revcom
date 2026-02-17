@@ -73,7 +73,7 @@ function ProductsContent() {
           </div>
           
           <Select value={category || 'all'} onValueChange={handleCategoryChange}>
-            <SelectTrigger className="w-full md:w-[200px] border-border focus:ring-0 focus:border-foreground h-10">
+            <SelectTrigger className="w-full md:w-50 border-border focus:ring-0 focus:border-foreground h-10">
               <Filter className="w-4 h-4 mr-2 opacity-50" />
               <SelectValue placeholder="All Categories" />
             </SelectTrigger>
