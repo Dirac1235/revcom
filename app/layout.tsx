@@ -15,16 +15,19 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "RevCom - Ethiopia's Premier B2B Marketplace",
-  description: "Connect buyers and sellers across Ethiopia. Post your needs, discover products, and get instant quotes from verified sellers.",
-  keywords: "B2B marketplace, Ethiopia, buyers, sellers, products, requests, quotes",
+  description:
+    "Connect buyers and sellers across Ethiopia. Post your needs, discover products, and get instant quotes from verified sellers.",
+  keywords:
+    "B2B marketplace, Ethiopia, buyers, sellers, products, requests, quotes",
   openGraph: {
     title: "RevCom - Ethiopia's Premier B2B Marketplace",
-    description: "Connect buyers and sellers across Ethiopia. Post your needs, discover products, and get instant quotes from verified sellers.",
+    description:
+      "Connect buyers and sellers across Ethiopia. Post your needs, discover products, and get instant quotes from verified sellers.",
     type: "website",
   },
 };
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function RootLayout({
@@ -33,21 +36,24 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   let profile = null;
   if (user) {
     const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
       .single();
     profile = data;
   }
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`font-sans antialiased flex flex-col min-h-screen`}>
+      {/* h-screen + overflow-hidden: body is exactly the viewport, nothing escapes */}
+      <body className="font-sans antialiased h-screen overflow-hidden flex flex-col">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -57,9 +63,11 @@ export default async function RootLayout({
           <AuthProvider initialUser={user} initialProfile={profile}>
             <Navbar />
 
-            <main className="flex-1 pt-12">{children}</main>
-
-            <Footer />
+            {/* This wrapper takes all remaining height and is the only thing that scrolls */}
+            <div className="flex flex-col flex-1 overflow-y-auto pt-16">
+              <main className="flex-1">{children}</main>
+              <Footer />
+            </div>
 
             <Toaster />
             <Analytics />
