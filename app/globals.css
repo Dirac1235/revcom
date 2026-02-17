@@ -1,116 +1,110 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
-@import '../styles/design-tokens.css';
 
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Base Colors */
-  --background: var(--background-light);
-  --foreground: var(--foreground-light);
+  /* --- Light Mode: Serene Green Base for Trust and Growth --- */
+  --background: #F9FAF8;          /* Soft mint-tinted off-white – calming, easy on eyes */
+  --foreground: #1A1F1B;         /* Deep neutral gray – high readability */
 
-  /* Component Colors */
-  --card: var(--background-light);
-  --card-foreground: var(--foreground-light);
-  --popover: var(--background-light);
-  --popover-foreground: var(--foreground-light);
+  --card: #FFFFFF;
+  --card-foreground: #1A1F1B;
 
-  /* Brand Colors */
-  --primary: var(--foreground-light);
-  --primary-foreground: var(--background-light);
-  --secondary: var(--color-neutral-100);
-  --secondary-foreground: var(--foreground-light);
+  --popover: #FFFFFF;
+  --popover-foreground: #1A1F1B;
 
-  /* UI Colors */
-  --muted: var(--color-neutral-100);
-  --muted-foreground: var(--foreground-muted-light);
-  --accent: var(--color-neutral-100);
-  --accent-foreground: var(--foreground-light);
+  --primary: #6A8D73;            /* Verdant sage green – trust-building accent (buttons, links) */
+  --primary-foreground: #d5e1da; /* Edited: Dark forest green for better contrast on primary */
 
-  /* Feedback Colors */
-  --destructive: #EF4444;
+  --secondary: #F0F5F1;          /* Pale mint – subtle backgrounds, secondary elements */
+  --secondary-foreground: #3D4E41;
+
+  --muted: #E6ECE8;              /* Light gray-green – inputs, muted states */
+  --muted-foreground: #5E6F63;
+
+  --accent: #C2D6C8;             /* Soft celery – hovers, highlights to enhance green pop */
+  --accent-foreground: #2A362E;
+
+  --destructive: #A13E3E;        /* Muted deep red – alerts, errors */
   --destructive-foreground: #FFFFFF;
 
-  /* Borders & Inputs */
-  --border: var(--border-light);
-  --input: var(--border-light);
-  --ring: var(--foreground-light);
+  --border: #D4DED7;
+  --input: #D4DED7;
+  
+  --ring: #4F7258;               /* Deeper green for focus rings */
 
-  /* Charts (Neutral/Elegant) */
-  --chart-1: var(--color-accent-600);
-  --chart-2: var(--color-neutral-600);
-  --chart-3: var(--color-accent-400);
-  --chart-4: var(--color-neutral-400);
-  --chart-5: var(--color-accent-800);
+  /* Charts – harmonious green tones */
+  --chart-1: #6A8D73;            /* Verdant sage */
+  --chart-2: #3D4E41;            /* Deep forest */
+  --chart-3: #8FAE96;            /* Light olive */
+  --chart-4: #C2D6C8;            /* Celery */
+  --chart-5: #1A1F1B;            /* Deep foreground */
 
-  /* Radius */
-  --radius: 0.25rem;
-  /* 4px - Minimal */
+  --radius: 0.5rem;              /* Modern, approachable rounding */
 
-  /* Sidebar */
-  --sidebar: var(--background-subtle-light);
-  --sidebar-foreground: var(--foreground-light);
-  --sidebar-primary: var(--foreground-light);
-  --sidebar-primary-foreground: var(--background-light);
-  --sidebar-accent: var(--color-neutral-200);
-  --sidebar-accent-foreground: var(--foreground-light);
-  --sidebar-border: var(--border-light);
-  --sidebar-ring: var(--foreground-light);
+  /* Sidebar – cohesive with main palette */
+  --sidebar: #F5F8F6;
+  --sidebar-foreground: #1A1F1B;
+  --sidebar-primary: #6A8D73;
+  --sidebar-primary-foreground: #0A120D;
+  --sidebar-accent: #C2D6C8;
+  --sidebar-accent-foreground: #2A362E;
+  --sidebar-border: #D4DED7;
+  --sidebar-ring: #4F7258;
 }
 
 .dark {
-  /* Base Colors */
-  --background: var(--background-dark);
-  --foreground: var(--foreground-dark);
+  /* --- Dark Mode: Elegant Depth with Green Harmony --- */
+  --background: #101410;         /* Deep neutral charcoal – modern, low-glare */
+  --foreground: #EDF3EE;         /* Soft pale green – comfortable reading */
 
-  /* Component Colors */
-  --card: var(--background-dark);
-  --card-foreground: var(--foreground-dark);
-  --popover: var(--background-dark);
-  --popover-foreground: var(--foreground-dark);
+  --card: #1A1F1B;
+  --card-foreground: #EDF3EE;
 
-  /* Brand Colors */
-  --primary: var(--foreground-dark);
-  --primary-foreground: var(--background-dark);
-  --secondary: var(--color-neutral-800);
-  --secondary-foreground: var(--foreground-dark);
+  --popover: #1A1F1B;
+  --popover-foreground: #EDF3EE;
 
-  /* UI Colors */
-  --muted: var(--color-neutral-900);
-  --muted-foreground: var(--foreground-muted-dark);
-  --accent: var(--color-neutral-800);
-  --accent-foreground: var(--foreground-dark);
+  --primary: #8FAE96;            /* Lighter verdant green – stands out on dark */
+  --primary-foreground: #010804; /* Edited: Soft off-white for refined contrast */
 
-  /* Feedback Colors */
-  --destructive: #7F1D1D;
+  --secondary: #242B25;
+  --secondary-foreground: #EDF3EE;
+
+  --muted: #242B25;
+  --muted-foreground: #A0B4A5;
+
+  --accent: #303A32;
+  --accent-foreground: #EDF3EE;
+
+  --destructive: #B84B4B;
   --destructive-foreground: #FFFFFF;
 
-  /* Borders & Inputs */
-  --border: var(--border-dark);
-  --input: var(--border-dark);
-  --ring: var(--foreground-dark);
+  --border: #303A32;
+  --input: #303A32;
+  
+  --ring: #6A8D73;
 
-  /* Charts */
-  --chart-1: var(--color-accent-600);
-  --chart-2: var(--color-neutral-400);
-  --chart-3: var(--color-accent-400);
-  --chart-4: var(--color-neutral-600);
-  --chart-5: var(--color-accent-800);
+  --chart-1: #8FAE96;
+  --chart-2: #C2D6C8;
+  --chart-3: #6A8D73;
+  --chart-4: #5E6F63;
+  --chart-5: #EDF3EE;
 
-  /* Sidebar */
-  --sidebar: var(--background-subtle-dark);
-  --sidebar-foreground: var(--foreground-dark);
-  --sidebar-primary: var(--foreground-dark);
-  --sidebar-primary-foreground: var(--background-dark);
-  --sidebar-accent: var(--color-neutral-800);
-  --sidebar-accent-foreground: var(--foreground-dark);
-  --sidebar-border: var(--border-dark);
-  --sidebar-ring: var(--foreground-dark);
+  --sidebar: #101410;
+  --sidebar-foreground: #EDF3EE;
+  --sidebar-primary: #8FAE96;
+  --sidebar-primary-foreground: #F2F8F4;
+  --sidebar-accent: #303A32;
+  --sidebar-accent-foreground: #EDF3EE;
+  --sidebar-border: #303A32;
+  --sidebar-ring: #6A8D73;
 }
 
 @theme inline {
-  --font-sans: 'Geist', 'Geist Fallback';
-  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --font-serif: 'Playfair Display', serif;
+  --font-sans: 'Inter', sans-serif;
+  
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -135,9 +129,9 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
-  --radius-sm: calc(var(--radius) - 2px);
-  --radius-md: var(--radius);
-  --radius-lg: calc(var(--radius) + 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
@@ -153,10 +147,20 @@
   * {
     @apply border-border outline-ring/50;
   }
-
   body {
     @apply bg-background text-foreground;
-    /* Remove gradient backgrounds, use solid colors */
-    background: var(--background);
+    /* Gentle green-tinted gradient for soothing depth */
+    background: linear-gradient(
+      to bottom,
+      #F9FAF8 0%,
+      #F0F5F1 100%
+    );
+  }
+  .dark body {
+    background: linear-gradient(
+      to bottom,
+      #101410 0%,
+      #1A1F1B 100%
+    );
   }
 }
