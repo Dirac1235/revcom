@@ -287,8 +287,23 @@ export function ConversationView({
   }, [supabase, conversationId, user?.id]);
 
   /* ── Auto-scroll ── */
+  // Only scroll within the chat container when user sends a new message
+  const prevMessagesLength = useRef(messages.length);
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messages.length > prevMessagesLength.current) {
+      const container = containerRef.current;
+      if (container && messagesEndRef.current) {
+        const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
+        if (isNearBottom) {
+          // Scroll the container instead of using scrollIntoView to avoid scrolling the page
+          container.scrollTo({
+            top: container.scrollHeight,
+            behavior: "smooth"
+          });
+        }
+      }
+    }
+    prevMessagesLength.current = messages.length;
   }, [messages]);
 
   /* ── Auto-resize textarea ── */
