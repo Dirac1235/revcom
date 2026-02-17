@@ -4,7 +4,8 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { createBrowserClient } from "@supabase/ssr"
+import { createRequest } from "@/lib/data/requests"
+import { getProfileById } from "@/lib/data/profiles"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -28,10 +29,6 @@ const categories = [
 
 export default function CreateListingPage() {
   const router = useRouter()
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  )
 
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
@@ -47,6 +44,8 @@ export default function CreateListingPage() {
 
   useEffect(() => {
     const fetchUser = async () => {
+      const { createClient } = await import("@/lib/supabase/client")
+      const supabase = createClient()
       const {
         data: { user },
       } = await supabase.auth.getUser()
@@ -56,12 +55,16 @@ export default function CreateListingPage() {
       }
       setUser(user)
 
-      const { data: profileData } = await supabase.from("profiles").select("*").eq("id", user.id).single()
-      setProfile(profileData)
+      try {
+        const profileData = await getProfileById(user.id)
+        setProfile(profileData)
+      } catch (error) {
+        console.error("Error fetching profile:", error)
+      }
     }
 
     fetchUser()
-  }, [supabase, router])
+  }, [router])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -73,7 +76,7 @@ export default function CreateListingPage() {
     setLoading(true)
 
     try {
-      const { error } = await supabase.from("requests").insert({
+      await createRequest({
         buyer_id: user.id,
         title: formData.title,
         category: formData.category,
@@ -82,8 +85,6 @@ export default function CreateListingPage() {
         budget_max: Number.parseFloat(formData.budget_max),
         status: "open",
       })
-
-      if (error) throw error
 
       router.push("/buyer/listings")
       router.refresh()

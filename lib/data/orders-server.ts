@@ -1,7 +1,9 @@
-import { createClient } from "@/lib/supabase/client";
+"use server";
+
+import { createClient } from "@/lib/supabase/server";
 
 export async function getBuyerOrders(buyerId: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("orders")
     .select("*")
@@ -13,7 +15,7 @@ export async function getBuyerOrders(buyerId: string) {
 }
 
 export async function getSellerOrders(sellerId: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("orders")
     .select("*")
@@ -25,7 +27,7 @@ export async function getSellerOrders(sellerId: string) {
 }
 
 export async function getOrderById(id: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("orders")
     .select("*")
@@ -37,7 +39,7 @@ export async function getOrderById(id: string) {
 }
 
 export async function updateOrderStatus(id: string, newStatus: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error } = await supabase
     .from("orders")
     .update({ status: newStatus })
@@ -57,7 +59,7 @@ export async function createOrder(payload: {
   delivery_location?: string;
   status?: string;
 }) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error } = await supabase
     .from("orders")
     .insert(payload);

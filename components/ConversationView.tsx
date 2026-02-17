@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import {
   getSupabaseBrowser,
   getConversationFull,
-  sendMessage,
+  sendMessageLegacy,
 } from "@/lib/data/conversations";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -68,7 +68,7 @@ export function ConversationView({
       e.preventDefault();
       if (!messageText.trim()) return;
       try {
-        await sendMessage(supabase, conversationId, user.id, messageText);
+        await sendMessageLegacy(supabase, conversationId, user.id, messageText);
         setMessageText("");
         fetchConversation(user.id);
       } catch (error) {

@@ -6,6 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import DashboardNav from "@/components/dashboard-nav"
 import { ArrowLeft } from "lucide-react"
+import { getProfileById } from "@/lib/data/profiles-server"
+import { getOrderById } from "@/lib/data/orders-server"
 
 const statusColors: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-800",
@@ -27,13 +29,9 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
     redirect("/auth/login")
   }
 
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
-
-  const { data: order } = await supabase.from("orders").select("*").eq("id", id).single()
-
-  const { data: seller } = order
-    ? await supabase.from("profiles").select("*").eq("id", order.seller_id).single()
-    : { data: null }
+  const profile = await getProfileById(user.id)
+  const order = await getOrderById(id)
+  const seller = order ? await getProfileById(order.seller_id) : null
 
   if (!order) {
     redirect("/buyer/orders")

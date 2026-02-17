@@ -1,4 +1,6 @@
-import { createClient } from "@/lib/supabase/client";
+"use server";
+
+import { createClient } from "@/lib/supabase/server";
 
 export async function getListings(filters?: {
   sellerId?: string;
@@ -7,7 +9,7 @@ export async function getListings(filters?: {
   search?: string;
   limit?: number;
 }) {
-  const supabase = createClient();
+  const supabase = await createClient();
   let query = supabase.from("listings").select("*");
 
   if (filters?.sellerId) {
@@ -39,7 +41,7 @@ export async function getListings(filters?: {
 }
 
 export async function getListingById(id: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("listings")
     .select("*")
@@ -61,7 +63,7 @@ export async function createListing(payload: {
   image_url?: string;
   images?: string[];
 }) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error } = await supabase
     .from("listings")
     .insert(payload);
@@ -78,9 +80,8 @@ export async function updateListing(id: string, updates: Partial<{
   status: string;
   image_url: string;
   images: string[];
-  views: number;
 }>) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error } = await supabase
     .from("listings")
     .update(updates)
@@ -90,7 +91,7 @@ export async function updateListing(id: string, updates: Partial<{
 }
 
 export async function deleteListing(id: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error } = await supabase
     .from("listings")
     .delete()
@@ -98,23 +99,3 @@ export async function deleteListing(id: string) {
   
   if (error) throw error;
 }
-
-export async function getListingsCount(filters?: { status?: string }) {
-  const supabase = createClient();
-  let query = supabase.from("listings").select("id", { count: "exact", head: true });
-  
-  if (filters?.status) {
-    query = query.eq("status", filters.status);
-  }
-  
-  const { count, error } = await query;
-  
-  if (error) throw error;
-  return count || 0;
-}
-
-// In this app, buyer listings are stored in 'requests'
-export {
-  getBuyerRequests as getBuyerListings,
-  updateRequest as updateBuyerListing,
-} from "./requests";

@@ -1,8 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { createBrowserClient } from "@supabase/ssr"
 import { useRouter, useSearchParams } from 'next/navigation'
+import { createOrder } from "@/lib/data/orders"
+import { getRequestById } from "@/lib/data/requests"
+import { getProfileById } from "@/lib/data/profiles"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -14,10 +16,6 @@ import DashboardNav from "@/components/dashboard-nav"
 export default function CheckoutPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
 
   const requestId = searchParams.get("request_id")
   const sellerId = searchParams.get("seller_id")
@@ -39,6 +37,8 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     const fetchData = async () => {
+      const { createClient } = await import("@/lib/supabase/client")
+      const supabase = createClient()
       const {
         data: { user },
       } = await supabase.auth.getUser()
@@ -48,39 +48,35 @@ export default function CheckoutPage() {
       }
       setUser(user)
 
-      const { data: profileData } = await supabase.from("profiles").select("*").eq("id", user.id).single()
-      setProfile(profileData)
+      try {
+        const profileData = await getProfileById(user.id)
+        setProfile(profileData)
 
-      if (requestId) {
-        const { data: reqData } = await supabase
-          .from("requests")
-          .select("*")
-          .eq("id", requestId)
-          .single()
-        setRequest(reqData)
-        if (reqData) {
-          setFormData((prev) => ({
-            ...prev,
-            title: reqData.title,
-            description: reqData.description,
-          }))
+        if (requestId) {
+          const reqData = await getRequestById(requestId)
+          setRequest(reqData)
+          if (reqData) {
+            setFormData((prev) => ({
+              ...prev,
+              title: reqData.title,
+              description: reqData.description,
+            }))
+          }
         }
-      }
 
-      if (sellerId) {
-        const { data: sellerData } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", sellerId)
-          .single()
-        setSeller(sellerData)
+        if (sellerId) {
+          const sellerData = await getProfileById(sellerId)
+          setSeller(sellerData)
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error)
       }
 
       setLoading(false)
     }
 
     fetchData()
-  }, [supabase, router, requestId, sellerId])
+  }, [router, requestId, sellerId])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -92,25 +88,19 @@ export default function CheckoutPage() {
     setSubmitting(true)
 
     try {
-      const { data: order, error } = await supabase
-        .from("orders")
-        .insert({
-          buyer_id: user.id,
-          seller_id: sellerId,
-          request_id: requestId,
-          title: formData.title,
-          description: formData.description,
-          quantity: parseInt(formData.quantity),
-          agreed_price: parseFloat(formData.agreed_price),
-          delivery_location: formData.delivery_location,
-          status: "pending",
-        })
-        .select()
-        .single()
+      await createOrder({
+        buyer_id: user.id,
+        seller_id: sellerId || "",
+        request_id: requestId || undefined,
+        title: formData.title,
+        description: formData.description,
+        quantity: parseInt(formData.quantity),
+        agreed_price: parseFloat(formData.agreed_price),
+        delivery_location: formData.delivery_location,
+        status: "pending",
+      })
 
-      if (error) throw error
-
-      router.push(`/buyer/orders/${order.id}`)
+      router.push(`/buyer/orders`)
       router.refresh()
     } catch (error) {
       console.error("[v0] Error creating order:", error)

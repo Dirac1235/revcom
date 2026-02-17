@@ -1,7 +1,4 @@
 import { createClient } from "@/lib/supabase/server";
-import { getProfileById } from "@/lib/data/profiles";
-import { getRequestById } from "@/lib/data/requests";
-import { getConversationsByRequestId } from "@/lib/data/conversations";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -15,6 +12,9 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { MessageSquare } from "lucide-react";
 import DashboardNav from "@/components/dashboard-nav";
+import { getProfileById } from "@/lib/data/profiles-server";
+import { getRequestById } from "@/lib/data/requests-server";
+import { getConversationsByRequestId } from "@/lib/data/conversations-server";
 
 export default async function RequestDetailPage({
   params,
@@ -32,9 +32,9 @@ export default async function RequestDetailPage({
     redirect("/auth/login");
   }
 
-  const profile = await getProfileById(supabase, user.id);
-  const request = await getRequestById(supabase, id);
-  const conversations = await getConversationsByRequestId(supabase, id);
+  const profile = await getProfileById(user.id);
+  const request = await getRequestById(id);
+  const conversations = await getConversationsByRequestId(id);
 
   if (!request) {
     redirect("/buyer/requests");

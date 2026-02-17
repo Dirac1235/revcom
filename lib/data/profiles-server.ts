@@ -1,7 +1,9 @@
-import { createClient } from "@/lib/supabase/client";
+"use server";
+
+import { createClient } from "@/lib/supabase/server";
 
 export async function getProfileById(userId: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("profiles")
     .select("*")
@@ -18,7 +20,7 @@ export async function updateProfile(userId: string, updates: {
   bio?: string;
   avatar_url?: string;
 }) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error } = await supabase
     .from("profiles")
     .update(updates)
@@ -27,20 +29,16 @@ export async function updateProfile(userId: string, updates: {
   if (error) throw error;
 }
 
-export async function getProfileByEmail(email: string) {
-  const supabase = createClient();
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("email", email)
-    .single();
+export async function getCurrentUser() {
+  const supabase = await createClient();
+  const { data: { user }, error } = await supabase.auth.getUser();
   
   if (error) throw error;
-  return data;
+  return user;
 }
 
 export async function getCurrentUserProfile() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   
   if (!user) return null;

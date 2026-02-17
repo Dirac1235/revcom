@@ -4,9 +4,9 @@ import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useProduct } from "@/lib/hooks/useProducts";
+import { updateListing } from "@/lib/data/listings";
 import { productSchema, type ProductFormData } from "@/lib/validations/schemas";
 import { CATEGORIES } from "@/lib/constants/categories";
 import { ROUTES } from "@/lib/constants/routes";
@@ -85,22 +85,15 @@ export default function EditProductPage() {
 
     setSubmitting(true);
     try {
-      const supabase = createClient();
-      const { error } = await supabase
-        .from("listings")
-        .update({
-          title: data.title,
-          description: data.description,
-          category: data.category,
-          price: data.price,
-          inventory_quantity: data.inventory_quantity,
-          image_url: data.image_url,
-          status: data.status,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", productId);
-
-      if (error) throw error;
+      await updateListing(productId, {
+        title: data.title,
+        description: data.description,
+        category: data.category,
+        price: data.price,
+        inventory_quantity: data.inventory_quantity,
+        image_url: data.image_url || undefined,
+        status: data.status,
+      });
 
       toast({
         title: "Success!",

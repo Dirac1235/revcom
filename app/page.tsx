@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -13,13 +12,14 @@ import { SearchBar } from "@/components/features/SearchBar";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useProducts } from "@/lib/hooks/useProducts";
 import { useRequests } from "@/lib/hooks/useRequests";
+import { getListingsCount } from "@/lib/data/listings";
+import { getRequestsCount } from "@/lib/data/requests";
 import { ROUTES } from "@/lib/constants/routes";
 import { Package, FileText, ArrowRight, TrendingUp, Users, ShoppingBag } from "lucide-react";
 
 export default function HomePage() {
   const router = useRouter();
   const { user, profile } = useAuth();
-  const supabase = createClient();
   
   const { products, loading: productsLoading } = useProducts({ limit: 8 });
   const { requests, loading: requestsLoading } = useRequests({ limit: 8 });
@@ -27,15 +27,14 @@ export default function HomePage() {
 
   useEffect(() => {
     const fetchStats = async () => {
-      const [usersRes, productsRes, requestsRes] = await Promise.all([
-        supabase.from('profiles').select('id', { count: 'exact', head: true }),
-        supabase.from('listings').select('id', { count: 'exact', head: true }).eq('status', 'active'),
-        supabase.from('requests').select('id', { count: 'exact', head: true }).eq('status', 'open'),
+      const [productsCount, requestsCount] = await Promise.all([
+        getListingsCount({ status: 'active' }),
+        getRequestsCount({ status: 'open' }),
       ]);
       setStats({
-        users: usersRes.count || 0,
-        products: productsRes.count || 0,
-        requests: requestsRes.count || 0,
+        users: 0, // Will be populated from profiles count separately if needed
+        products: productsCount,
+        requests: requestsCount,
       });
     };
     fetchStats();

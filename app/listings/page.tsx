@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState, Suspense } from "react";
-import { createClient } from "@/lib/supabase/client";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -21,6 +20,7 @@ import { Search, Filter } from "lucide-react";
 import { RequestCard } from "@/components/features/RequestCard";
 import { LoadingState } from "@/components/features/LoadingState";
 import { EmptyState } from "@/components/features/EmptyState";
+import { getOpenRequests } from "@/lib/data/requests";
 
 import { Request } from "@/lib/types";
 
@@ -57,41 +57,36 @@ function ListingsContent() {
 
   useEffect(() => {
     let mounted = true;
-    const supabase = createClient();
 
     async function load() {
       setLoading(true);
       try {
         // fetch current user (if any)
+        const { createClient } = await import("@/lib/supabase/client");
+        const supabase = createClient();
         const userRes = await supabase.auth.getUser();
         const uid = userRes?.data?.user?.id ?? null;
         if (!mounted) return;
         setUserId(uid);
 
         // fetch buyer requests with filters
-        let builder = supabase
-          .from("requests")
-          .select("*")
-          .eq("status", "open");
-
-        // Apply search filter
+        const listingsData = await getOpenRequests();
+        
+        // Apply client-side filtering for search and category
+        let filtered = listingsData;
         if (query && query.trim() !== "") {
-          const q = query.trim();
-          builder = builder.or(`title.ilike.%${q}%,description.ilike.%${q}%`);
+          const q = query.trim().toLowerCase();
+          filtered = filtered.filter((l: any) => 
+            l.title?.toLowerCase().includes(q) || 
+            l.description?.toLowerCase().includes(q)
+          );
         }
-
-        // Apply category filter
         if (category && category.trim() !== "" && category !== "all") {
-          builder = builder.eq("category", category);
+          filtered = filtered.filter((l: any) => l.category === category);
         }
 
-        const { data: listingsData, error } = await builder
-          .order("created_at", { ascending: false })
-          .limit(100);
-
-        if (error) throw error;
         if (!mounted) return;
-        setListings(listingsData as Request[] ?? []);
+        setListings(filtered as Request[] ?? []);
       } catch (e) {
         console.error("Error loading listings:", e);
         setListings([]);

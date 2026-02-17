@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { updateProfile } from "@/lib/data/profiles";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -20,7 +20,6 @@ import { useAuth } from "@/components/providers/AuthProvider";
 
 export default function ProfilePage() {
   const router = useRouter();
-  const supabase = createClient();
   const { user, profile: authProfile, refreshProfile } = useAuth();
   
   const [firstName, setFirstName] = useState(authProfile?.first_name || "");
@@ -37,26 +36,21 @@ export default function ProfilePage() {
     setError("");
     setSaved(false);
 
-    const { error: updateError } = await supabase
-      .from("profiles")
-      .update({
+    try {
+      await updateProfile(user.id, {
         first_name: firstName,
         last_name: lastName,
         bio: bio,
-      })
-      .eq("id", user.id);
+      });
 
-    if (updateError) {
+      await refreshProfile();
+      setSaved(true);
+    } catch (updateError: any) {
       setError(updateError.message);
+    } finally {
       setSaving(false);
-      return;
+      setTimeout(() => setSaved(false), 3000);
     }
-
-    await refreshProfile();
-    setSaved(true);
-    setSaving(false);
-    
-    setTimeout(() => setSaved(false), 3000);
   };
 
   if (!user) {

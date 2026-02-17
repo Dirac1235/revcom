@@ -1,8 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { createBrowserClient } from "@supabase/ssr"
 import { useRouter, useParams } from "next/navigation"
+import { getOrderById, updateOrderStatus } from "@/lib/data/orders"
+import { getProfileById } from "@/lib/data/profiles"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -24,11 +25,6 @@ export default function SellerOrderDetailPage() {
   const params = useParams()
   const orderId = params.id as string
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  )
-
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
   const [order, setOrder] = useState<any>(null)
@@ -39,6 +35,8 @@ export default function SellerOrderDetailPage() {
 
   useEffect(() => {
     const fetchData = async () => {
+      const { createClient } = await import("@/lib/supabase/client")
+      const supabase = createClient()
       const {
         data: { user },
       } = await supabase.auth.getUser()
@@ -48,19 +46,23 @@ export default function SellerOrderDetailPage() {
       }
       setUser(user)
 
-      const { data: profileData } = await supabase.from("profiles").select("*").eq("id", user.id).single()
-      setProfile(profileData)
+      try {
+        const profileData = await getProfileById(user.id)
+        setProfile(profileData)
+      } catch (error) {
+        console.error("Error fetching profile:", error)
+      }
 
       fetchOrder()
     }
 
     fetchData()
-  }, [supabase, router])
+  }, [router])
 
   const fetchOrder = async () => {
     setLoading(true)
     try {
-      const { data: orderData } = await supabase.from("orders").select("*").eq("id", orderId).single()
+      const orderData = await getOrderById(orderId)
 
       if (!orderData) {
         router.push("/seller/orders")
@@ -70,9 +72,12 @@ export default function SellerOrderDetailPage() {
       setOrder(orderData)
       setNewStatus(orderData.status)
 
-      const { data: buyerData } = await supabase.from("profiles").select("*").eq("id", orderData.buyer_id).single()
-
-      setBuyer(buyerData)
+      try {
+        const buyerData = await getProfileById(orderData.buyer_id)
+        setBuyer(buyerData)
+      } catch (error) {
+        console.error("Error fetching buyer:", error)
+      }
     } catch (error) {
       console.error("[v0] Error fetching order:", error)
       router.push("/seller/orders")
@@ -86,10 +91,7 @@ export default function SellerOrderDetailPage() {
 
     setUpdating(true)
     try {
-      const { error } = await supabase.from("orders").update({ status: newStatus }).eq("id", orderId)
-
-      if (error) throw error
-
+      await updateOrderStatus(orderId, newStatus)
       setOrder({ ...order, status: newStatus })
     } catch (error) {
       console.error("[v0] Error updating order:", error)

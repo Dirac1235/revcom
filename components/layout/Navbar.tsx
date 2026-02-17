@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -26,7 +26,6 @@ import {
   MessageSquare,
   Bell,
   User,
-  Settings,
   LogOut,
   Menu,
   X,
@@ -41,6 +40,15 @@ export function Navbar() {
   const { user, profile, signOut, isBuyer, isSeller, loading } = useAuth();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 10);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleSignOut = async () => {
     setMobileMenuOpen(false);
@@ -59,7 +67,7 @@ export function Navbar() {
     return 'U';
   };
 
-  // Nav links (Home, Products, Explore, Listings)
+  // Nav links (Home, Products, Requests)
   const NavLinks = () => (
     <>
       <Link href={ROUTES.HOME} onClick={() => setMobileMenuOpen(false)}>
@@ -84,7 +92,13 @@ export function Navbar() {
   );
 
   return (
-    <nav className="border-b bg-background border-border sticky top-0 z-50">
+    <nav 
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrolled 
+          ? 'bg-background/80 backdrop-blur-xl border-b border-border/50 shadow-lg shadow-black/5' 
+          : 'bg-background/60 backdrop-blur-md border-b border-transparent'
+      }`}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-4">
           {/* 1. Logo + Desktop Main Navigation */}
@@ -133,15 +147,10 @@ export function Navbar() {
               </div>
             ) : (
               <>
-            
-
                 {/* Messages */}
                 <Link href={ROUTES.MESSAGES}>
                   <Button variant="ghost" size="sm" className="relative">
                     <MessageSquare className="w-4 h-4" />
-                    <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-[10px] bg-red-500">
-                      3
-                    </Badge>
                   </Button>
                 </Link>
 
@@ -150,22 +159,22 @@ export function Navbar() {
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm" className="relative">
                       <Bell className="w-4 h-4" />
-                      <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-[10px] bg-red-500">
-                        2
-                      </Badge>
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-80">
+                  <DropdownMenuContent 
+                    align="end" 
+                    className="w-80 bg-background/95 backdrop-blur-xl border-border/50"
+                    sideOffset={8}
+                  >
                     <DropdownMenuLabel>Notifications</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <div className="p-2 text-sm text-muted-foreground">
-                      <p className="mb-2">🔔 New offer on your request</p>
-                      <p>📦 Order status updated</p>
+                    <div className="p-4 text-sm text-muted-foreground text-center">
+                      <p>No new notifications</p>
                     </div>
                   </DropdownMenuContent>
                 </DropdownMenu>
 
-                {/* User Profile - now includes role-specific tools */}
+                {/* User Profile */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm" className="gap-2 pl-2">
@@ -178,7 +187,11 @@ export function Navbar() {
                       </span>
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuContent 
+                    align="end" 
+                    className="w-56 bg-background/95 backdrop-blur-xl border-border/50 max-h-[80vh] overflow-y-auto"
+                    sideOffset={8}
+                  >
                     <DropdownMenuLabel>
                       <div className="flex flex-col">
                         <span className="text-sm font-medium">
@@ -293,7 +306,7 @@ export function Navbar() {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t bg-background">
+        <div className="md:hidden border-t border-border/50 bg-background/95 backdrop-blur-xl max-h-[calc(100vh-4rem)] overflow-y-auto">
           <div className="px-4 py-3 space-y-3">
             <NavLinks />
 
@@ -316,7 +329,7 @@ export function Navbar() {
               </div>
             ) : (
               <>
-                <div className="pt-2 border-t mt-2">
+                <div className="pt-2 border-t border-border/50 mt-2">
                   <div className="px-2 pb-1 text-xs font-semibold text-muted-foreground uppercase">
                     Quick Links
                   </div>
@@ -399,7 +412,7 @@ export function Navbar() {
                   </div>
                 )}
 
-                <div className="pt-2 border-t mt-2">
+                <div className="pt-2 border-t border-border/50 mt-2">
                   <div className="px-2 py-2 flex items-center gap-3">
                     <Avatar className="w-8 h-8">
                       <AvatarImage src={profile?.avatar_url || undefined} />

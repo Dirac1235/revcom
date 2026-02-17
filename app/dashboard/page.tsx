@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { getProfileById } from "@/lib/data/profiles";
+import { getBuyerRequests, getOpenRequests } from "@/lib/data/requests";
+import { getBuyerOrders, getSellerOrders } from "@/lib/data/orders";
 import {
   Card,
   CardContent,
@@ -13,10 +15,10 @@ import {
 } from "@/components/ui/card";
 import { RoleSwitcher, DashboardHeader } from "@/components/dashboard/RoleSwitcher";
 import { Loader2, Plus, ArrowRight, FileText, ShoppingBag, TrendingUp, Clock, CheckCircle, XCircle, Send, Search, User, Store, Bell } from "lucide-react";
+import { getSellerOffers } from "@/lib/data/offers";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const supabase = createClient();
   const [profile, setProfile] = useState<any>(null);
   const [user, setUser] = useState<any>(null);
   const [activeRole, setActiveRole] = useState<'buyer' | 'seller'>('buyer');
@@ -47,6 +49,8 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const initAuth = async () => {
+      const { createClient } = await import("@/lib/supabase/client");
+      const supabase = createClient();
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       
       if (!currentUser) {
@@ -56,13 +60,12 @@ export default function DashboardPage() {
 
       setUser(currentUser);
 
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', currentUser.id)
-        .single();
-
-      setProfile(profileData);
+      try {
+        const profileData = await getProfileById(currentUser.id);
+        setProfile(profileData);
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+      }
       setLoading(false);
     };
 
@@ -91,19 +94,19 @@ export default function DashboardPage() {
 
     try {
       if (activeRole === 'buyer') {
-        const [listingsRes, ordersRes] = await Promise.all([
-          supabase.from('requests').select('*').eq('buyer_id', user.id).order('created_at', { ascending: false }).limit(5),
-          supabase.from('orders').select('*').eq('buyer_id', user.id).order('created_at', { ascending: false }).limit(5)
+        const [listings, orders] = await Promise.all([
+          getBuyerRequests(user.id),
+          getBuyerOrders(user.id)
         ]);
 
-        const listings = listingsRes.data || [];
-        const orders = ordersRes.data || [];
+        const recentListings = listings.slice(0, 5);
+        const recentOrders = orders.slice(0, 5);
         
         setBuyerData({
-          listings,
-          orders,
+          listings: recentListings,
+          orders: recentOrders,
           stats: {
-            total: listingsRes.count || 0,
+            total: listings.length,
             open: listings.filter((l: any) => l.status === 'open').length,
             negotiating: listings.filter((l: any) => l.status === 'negotiating').length,
             closed: listings.filter((l: any) => l.status === 'closed').length,
@@ -111,26 +114,25 @@ export default function DashboardPage() {
           }
         });
       } else {
-        const [requestsRes, ordersRes] = await Promise.all([
-          supabase.from('requests').select('*').eq('status', 'open').order('created_at', { ascending: false }).limit(6),
-          supabase.from('orders').select('*').eq('seller_id', user.id).order('created_at', { ascending: false }).limit(5)
+        const [requests, orders] = await Promise.all([
+          getOpenRequests(),
+          getSellerOrders(user.id)
         ]);
 
         let offers: any[] = [];
         try {
-          const offersRes = await supabase.from('offers').select('*').eq('seller_id', user.id).order('created_at', { ascending: false }).limit(5);
-          offers = offersRes.data || [];
+          offers = await getSellerOffers(user.id, 5);
         } catch (e) {
           console.log('Offers table not available');
         }
 
-        const orders = ordersRes.data || [];
-        const requests = requestsRes.data || [];
+        const recentRequests = requests.slice(0, 6);
+        const recentOrders = orders.slice(0, 5);
 
         setSellerData({
-          requests,
+          requests: recentRequests,
           offers,
-          orders,
+          orders: recentOrders,
           stats: {
             totalOffers: offers.length,
             pending: offers.filter((o: any) => o.status === 'pending').length,

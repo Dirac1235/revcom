@@ -4,7 +4,8 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { useRouter, useParams } from "next/navigation"
-import { createBrowserClient } from "@supabase/ssr"
+import { updateRequest, getRequestById } from "@/lib/data/requests"
+import { getProfileById } from "@/lib/data/profiles"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -30,11 +31,6 @@ export default function EditRequestPage() {
   const params = useParams()
   const requestId = params.id as string
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  )
-
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -50,6 +46,8 @@ export default function EditRequestPage() {
 
   useEffect(() => {
     const fetchData = async () => {
+      const { createClient } = await import("@/lib/supabase/client")
+      const supabase = createClient()
       const {
         data: { user },
       } = await supabase.auth.getUser()
@@ -61,27 +59,31 @@ export default function EditRequestPage() {
 
       setUser(user)
 
-      const { data: profileData } = await supabase.from("profiles").select("*").eq("id", user.id).single()
-      setProfile(profileData)
+      try {
+        const profileData = await getProfileById(user.id)
+        setProfile(profileData)
 
-      const { data: requestData } = await supabase.from("requests").select("*").eq("id", requestId).single()
+        const requestData = await getRequestById(requestId)
 
-      if (requestData) {
-        setFormData({
-          title: requestData.title,
-          category: requestData.category,
-          description: requestData.description,
-          budget_min: requestData.budget_min,
-          budget_max: requestData.budget_max,
-          quantity: "1",
-        })
+        if (requestData) {
+          setFormData({
+            title: requestData.title,
+            category: requestData.category,
+            description: requestData.description,
+            budget_min: String(requestData.budget_min),
+            budget_max: String(requestData.budget_max),
+            quantity: "1",
+          })
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error)
       }
 
       setLoading(false)
     }
 
     fetchData()
-  }, [requestId, supabase, router])
+  }, [requestId, router])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -93,18 +95,13 @@ export default function EditRequestPage() {
     setSaving(true)
 
     try {
-      const { error } = await supabase
-        .from("requests")
-        .update({
-          title: formData.title,
-          category: formData.category,
-          description: formData.description,
-          budget_min: Number.parseFloat(formData.budget_min),
-          budget_max: Number.parseFloat(formData.budget_max),
-        })
-        .eq("id", requestId)
-
-      if (error) throw error
+      await updateRequest(requestId, {
+        title: formData.title,
+        category: formData.category,
+        description: formData.description,
+        budget_min: Number.parseFloat(formData.budget_min),
+        budget_max: Number.parseFloat(formData.budget_max),
+      })
 
       router.push("/buyer/requests")
       router.refresh()

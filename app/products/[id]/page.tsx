@@ -10,7 +10,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ROUTES } from '@/lib/constants/routes';
-import { createClient } from '@/lib/supabase/client';
+import { updateListing } from '@/lib/data/listings';
+import { createConversation } from '@/lib/data/conversations';
 import { useToast } from '@/lib/hooks/use-toast';
 import {
   Package,
@@ -34,11 +35,7 @@ export default function ProductDetailPage() {
   useEffect(() => {
     if (product) {
       const incrementViews = async () => {
-        const supabase = createClient();
-        await supabase
-          .from('listings')
-          .update({ views: (product.views || 0) + 1 })
-          .eq('id', productId);
+        await updateListing(productId, { views: (product.views || 0) + 1 });
       };
       incrementViews();
     }
@@ -53,34 +50,8 @@ export default function ProductDetailPage() {
     if (!product) return;
 
     try {
-      const supabase = createClient();
-      
-      // Check if conversation already exists
-      const { data: existing } = await supabase
-        .from('conversations')
-        .select('id')
-        .eq('participant_1_id', user.id)
-        .eq('participant_2_id', product.seller_id)
-        .eq('listing_id', product.id)
-        .single();
-
-      if (existing) {
-        router.push(ROUTES.MESSAGE_CONVERSATION(existing.id));
-        return;
-      }
-
       // Create new conversation
-      const { data: newConversation, error } = await supabase
-        .from('conversations')
-        .insert({
-          participant_1_id: user.id,
-          participant_2_id: product.seller_id,
-          listing_id: product.id,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
+      const newConversation = await createConversation(user.id, product.seller_id);
 
       router.push(ROUTES.MESSAGE_CONVERSATION(newConversation.id));
     } catch (error) {

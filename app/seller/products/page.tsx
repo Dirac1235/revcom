@@ -3,9 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { useProducts } from '@/lib/hooks/useProducts';
+import { deleteListing } from '@/lib/data/listings';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -35,10 +35,7 @@ export default function SellerProductsPage() {
     if (!confirm('Are you sure you want to delete this product?')) return;
 
     try {
-      const supabase = createClient();
-      const { error } = await supabase.from('listings').delete().eq('id', id);
-      
-      if (error) throw error;
+      await deleteListing(id);
       
       toast({
         title: 'Success',

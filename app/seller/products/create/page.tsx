@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/components/providers/AuthProvider';
+import { createListing } from '@/lib/data/listings';
 import { productSchema, type ProductFormData } from '@/lib/validations/schemas';
 import { CATEGORIES } from '@/lib/constants/categories';
 import { ROUTES } from '@/lib/constants/routes';
@@ -58,38 +58,16 @@ export default function CreateProductPage() {
 
     setSubmitting(true);
     try {
-      const supabase = createClient();
-      
-      // Only insert fields that exist in the database
-      const insertData: any = {
+      await createListing({
         seller_id: user.id,
         title: data.title,
         description: data.description,
         category: data.category,
         price: data.price,
-      };
-
-      // Add optional fields only if they have values
-      if (data.image_url) {
-        insertData.image_url = data.image_url;
-      }
-
-      // Try to add inventory_quantity if the column exists
-      if (data.inventory_quantity !== undefined) {
-        insertData.inventory_quantity = data.inventory_quantity;
-      }
-
-      // Try to add status if the column exists
-      if (data.status) {
-        insertData.status = data.status;
-      }
-
-      const { error } = await supabase.from('listings').insert(insertData);
-
-      if (error) {
-        console.error('Database error:', error);
-        throw error;
-      }
+        image_url: data.image_url || undefined,
+        inventory_quantity: data.inventory_quantity,
+        status: data.status,
+      });
 
       toast({
         title: 'Success!',

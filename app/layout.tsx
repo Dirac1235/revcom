@@ -52,11 +52,9 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider initialUser={user} initialProfile={profile}>
-            <header className="fixed top-0 left-0 right-0 z-50">
-              <Navbar />
-            </header>
+            <Navbar />
 
-            <main className="pt-16 flex-1">{children}</main>
+            <main className="flex-1">{children}</main>
 
             <Footer />
 

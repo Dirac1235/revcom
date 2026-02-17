@@ -1,6 +1,4 @@
 import { createClient } from "@/lib/supabase/server";
-import { getProfileById } from "@/lib/data/profiles";
-import { getBuyerListings } from "@/lib/data/listings";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -13,6 +11,8 @@ import {
 } from "@/components/ui/card";
 import { Plus, Edit } from "lucide-react";
 import DashboardNav from "@/components/dashboard-nav";
+import { getProfileById } from "@/lib/data/profiles-server";
+import { getBuyerRequests } from "@/lib/data/requests-server";
 
 export default async function BuyerListingsPage() {
   const supabase = await createClient();
@@ -25,8 +25,8 @@ export default async function BuyerListingsPage() {
     redirect("/auth/login");
   }
 
-  const profile = await getProfileById(supabase, user.id);
-  const listings = await getBuyerListings(supabase, user.id);
+  const profile = await getProfileById(user.id);
+  const listings = await getBuyerRequests(user.id);
 
   return (
     <div className="min-h-screen bg-background">

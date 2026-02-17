@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
-import { getProfileById } from "@/lib/data/profiles";
-import { getBuyerOrders } from "@/lib/data/orders";
+import { getProfileById } from "@/lib/data/profiles-server";
+import { getBuyerOrders } from "@/lib/data/orders-server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -33,8 +33,8 @@ export default async function BuyerOrdersPage() {
     redirect("/auth/login");
   }
 
-  const profile = await getProfileById(supabase, user.id);
-  const orders = await getBuyerOrders(supabase, user.id);
+  const profile = await getProfileById(user.id);
+  const orders = await getBuyerOrders(user.id);
 
   return (
     <div className="min-h-screen bg-background">
