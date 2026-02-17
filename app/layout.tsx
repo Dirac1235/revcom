@@ -8,6 +8,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Toaster } from "@/components/ui/toaster";
 import { createClient } from "@/lib/supabase/server";
 import { AuthProvider } from "@/components/providers/AuthProvider";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
@@ -42,20 +43,27 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={`font-sans antialiased flex flex-col min-h-screen`}>
-        <AuthProvider initialUser={user} initialProfile={profile}>
-          <header className="fixed top-0 left-0 right-0 z-50">
-            <Navbar />
-          </header>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <AuthProvider initialUser={user} initialProfile={profile}>
+            <header className="fixed top-0 left-0 right-0 z-50">
+              <Navbar />
+            </header>
 
-          <main className="pt-16 flex-1">{children}</main>
+            <main className="pt-16 flex-1">{children}</main>
 
-          <Footer />
+            <Footer />
 
-          <Toaster />
-          <Analytics />
-        </AuthProvider>
+            <Toaster />
+            <Analytics />
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

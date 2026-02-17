@@ -17,6 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import { SearchBar } from '@/components/features/SearchBar';
 import { CategoryNav } from '@/components/features/CategoryNav';
 import { useAuth } from '@/components/providers/AuthProvider';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { ROUTES } from '@/lib/constants/routes';
 import {
   Home,
@@ -73,12 +74,6 @@ export function Navbar() {
           <span>Products</span>
         </Button>
       </Link>
-      <Link href={ROUTES.EXPLORE} onClick={() => setMobileMenuOpen(false)}>
-        <Button variant="ghost" size="sm" className="gap-2 justify-start w-full md:w-auto md:gap-0 md:justify-center md:px-4 font-medium">
-          <Search className="w-4 h-4 md:hidden" />
-          <span>Explore</span>
-        </Button>
-      </Link>
       <Link href={ROUTES.LISTINGS} onClick={() => setMobileMenuOpen(false)}>
         <Button variant="ghost" size="sm" className="gap-2 justify-start w-full md:w-auto md:gap-0 md:justify-center md:px-4 font-medium">
           <LayoutGrid className="w-4 h-4 md:hidden" />
@@ -115,6 +110,9 @@ export function Navbar() {
 
           {/* 3. Desktop Actions (auth, icons, create) */}
           <div className="hidden md:flex items-center gap-3 shrink-0">
+            {/* Theme Toggle */}
+            <ThemeToggle />
+            
             {loading ? (
               <Button variant="ghost" size="sm" disabled>
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -135,37 +133,7 @@ export function Navbar() {
               </div>
             ) : (
               <>
-                {/* Create (+) dropdown - only if buyer or seller */}
-                {(isBuyer || isSeller) && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="gap-2">
-                        <Plus className="w-5 h-5" />
-                        <span className="hidden xl:inline">Create</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Create New</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      {isBuyer && (
-                        <DropdownMenuItem asChild>
-                          <Link href={ROUTES.BUYER_REQUEST_CREATE}>
-                            <Plus className="w-4 h-4 mr-2" />
-                            Post Request
-                          </Link>
-                        </DropdownMenuItem>
-                      )}
-                      {isSeller && (
-                        <DropdownMenuItem asChild>
-                          <Link href={ROUTES.SELLER_PRODUCT_CREATE}>
-                            <Plus className="w-4 h-4 mr-2" />
-                            Add Product
-                          </Link>
-                        </DropdownMenuItem>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
+            
 
                 {/* Messages */}
                 <Link href={ROUTES.MESSAGES}>
@@ -306,6 +274,7 @@ export function Navbar() {
 
           {/* Mobile Menu Toggle */}
           <div className="flex items-center gap-2 md:hidden">
+            <ThemeToggle />
             <Button
               variant="ghost"
               size="sm"
