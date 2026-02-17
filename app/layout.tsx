@@ -57,7 +57,7 @@ export default async function RootLayout({
           <AuthProvider initialUser={user} initialProfile={profile}>
             <Navbar />
 
-            <main className="flex-1 pt-8">{children}</main>
+            <main className="flex-1 pt-12">{children}</main>
 
             <Footer />
 

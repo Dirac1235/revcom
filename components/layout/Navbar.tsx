@@ -420,7 +420,7 @@ export function Navbar() {
                     </Avatar>
                     <div className="flex flex-col">
                       <span className="text-sm font-medium">{profile?.first_name}</span>
-                      <span className="text-xs text-muted-foreground truncate max-w-[200px]">{profile?.email}</span>
+                      <span className="text-xs text-muted-foreground truncate max-w-50">{profile?.email}</span>
                     </div>
                   </div>
                   <Button

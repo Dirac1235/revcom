@@ -14,8 +14,8 @@
   --popover: #FFFFFF;
   --popover-foreground: #1A1F1B;
 
-  --primary: #6A8D73;            /* Verdant sage green – trust-building accent (buttons, links) */
-  --primary-foreground: #d5e1da; /* Edited: Dark forest green for better contrast on primary */
+  --primary: #52715a;            /* Verdant sage green – trust-building accent (buttons, links) */
+  --primary-foreground: #ffffff; /* Edited: Dark forest green for better contrast on primary */
 
   --secondary: #F0F5F1;          /* Pale mint – subtle backgrounds, secondary elements */
   --secondary-foreground: #3D4E41;
@@ -163,4 +163,18 @@
       #1A1F1B 100%
     );
   }
+}
+
+/* Custom animations */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 1.5s infinite;
 }

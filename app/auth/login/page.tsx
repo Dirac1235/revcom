@@ -50,7 +50,7 @@ export default function LoginPage() {
     try {
       const { login } = await import("@/app/actions/auth");
       const result = await login(formData);
-      
+
       if (result?.error) {
         setError(result.error);
         setIsLoading(false);
@@ -63,20 +63,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-secondary/20 flex flex-col">
-      {/* Header */}
-      <header className="border-b bg-background/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 text-foreground hover:opacity-80 transition-opacity">
-            <ArrowLeft className="w-4 h-4" />
-            <span className="text-sm font-medium">Back to Home</span>
-          </Link>
-          <Link href="/" className="text-xl font-serif font-bold text-foreground">
-            RevCom
-          </Link>
-          <div className="w-16" />
-        </div>
-      </header>
-
       {/* Content */}
       <main className="flex-1 flex items-center justify-center p-6 md:p-10">
         <div className="w-full max-w-md">
@@ -119,7 +105,9 @@ export default function LoginPage() {
 
               {error && (
                 <div className="p-3 rounded-md bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800">
-                  <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+                  <p className="text-sm text-red-600 dark:text-red-400">
+                    {error}
+                  </p>
                 </div>
               )}
 
@@ -140,7 +128,9 @@ export default function LoginPage() {
             </form>
 
             <div className="mt-6 text-center text-sm">
-              <span className="text-muted-foreground">Don&apos;t have an account? </span>
+              <span className="text-muted-foreground">
+                Don&apos;t have an account?{" "}
+              </span>
               <Link
                 href="/auth/sign-up"
                 className="text-foreground hover:underline font-medium"
