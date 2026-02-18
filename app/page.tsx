@@ -49,7 +49,7 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-secondary/20 pt-32 pb-20 md:pt-40 md:pb-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-4xl mx-auto">
+          <div className="text-center max-w-5xl mx-auto">
             
             <h1 className="text-5xl md:text-7xl font-serif font-bold mb-8 leading-tight text-foreground tracking-tight">
               Discover elegant & <br />
@@ -72,7 +72,7 @@ export default function HomePage() {
               {!user ? (
                 <>
                   <Link href={ROUTES.SIGNUP}>
-                    <Button size="lg" className="bg-foreground text-background hover:bg-foreground/90 rounded-full px-8">
+                    <Button size="lg" className="bg-primary text-background hover:bg-foreground/90 rounded-full px-8">
                       Get Started Free
                       <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
@@ -164,7 +164,7 @@ export default function HomePage() {
           {productsLoading ? (
             <LoadingState count={4} type="card" />
           ) : products.length > 0 ? (
-            <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-8">
               {products.slice(0, 4).map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
@@ -198,7 +198,7 @@ export default function HomePage() {
           {requestsLoading ? (
             <LoadingState count={4} type="card" />
           ) : requests.length > 0 ? (
-            <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-8">
               {requests.slice(0, 4).map((request) => (
                 <RequestCard key={request.id} request={request} userId={user?.id} />
               ))}
