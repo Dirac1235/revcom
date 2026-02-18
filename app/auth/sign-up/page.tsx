@@ -17,7 +17,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { Loader2, ArrowLeft } from "lucide-react";
-import { signInWithGoogle } from "@/app/actions/auth";
+import { signInWithGoogle } from "@/lib/actions/auth";
 
 export default function SignUpPage() {
   const [name, setName] = useState({ first_name: "", last_name: "" });
@@ -69,7 +69,7 @@ export default function SignUpPage() {
     formData.append("userType", userType);
 
     try {
-      const { signup } = await import("@/app/actions/auth");
+      const { signup } = await import("@/lib/actions/auth");
       const result = await signup(formData);
 
       if (result?.error) {

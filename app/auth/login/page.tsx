@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { Loader2 } from "lucide-react";
-import { signInWithGoogle } from "@/app/actions/auth";
+import { signInWithGoogle } from "@/lib/actions/auth";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -50,7 +50,7 @@ export default function LoginPage() {
     formData.append("password", password);
 
     try {
-      const { login } = await import("@/app/actions/auth");
+      const { login } = await import("@/lib/actions/auth");
       const result = await login(formData);
 
       if (result?.error) {
