@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import type { User } from '@supabase/supabase-js';
-import type { Profile } from '@/lib/types';
-import { useRouter, usePathname } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import React, { createContext, useContext, useState, useEffect } from "react";
+import type { User } from "@supabase/supabase-js";
+import type { Profile } from "@/lib/types";
+import { useRouter, usePathname } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 interface AuthContextType {
   user: User | null;
@@ -19,11 +19,11 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ 
-  children, 
-  initialUser, 
-  initialProfile 
-}: { 
+export function AuthProvider({
+  children,
+  initialUser,
+  initialProfile,
+}: {
   children: React.ReactNode;
   initialUser: User | null;
   initialProfile: Profile | null;
@@ -43,15 +43,17 @@ export function AuthProvider({
     }
 
     const checkAuth = async () => {
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-      
+      const {
+        data: { user: currentUser },
+      } = await supabase.auth.getUser();
+
       setUser(currentUser);
-      
+
       if (currentUser) {
         const { data: profileData } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', currentUser.id)
+          .from("profiles")
+          .select("*")
+          .eq("id", currentUser.id)
           .single();
         setProfile(profileData);
       } else {
@@ -65,15 +67,17 @@ export function AuthProvider({
 
   // Listen to auth state changes
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       const authUser = session?.user ?? null;
       setUser(authUser);
 
       if (authUser) {
         const { data: profileData } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', authUser.id)
+          .from("profiles")
+          .select("*")
+          .eq("id", authUser.id)
           .single();
         setProfile(profileData);
       } else {
@@ -89,13 +93,13 @@ export function AuthProvider({
   const signOut = async () => {
     try {
       setLoading(true);
-      const { signOut } = await import('@/app/actions/auth');
+      const { signOut } = await import("@/lib/actions/auth");
       await signOut();
       setUser(null);
       setProfile(null);
       router.refresh();
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error("Error signing out:", error);
     } finally {
       setLoading(false);
     }
@@ -104,25 +108,29 @@ export function AuthProvider({
   const refreshProfile = async () => {
     if (user) {
       const { data: profileData } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
         .single();
       setProfile(profileData);
     }
   };
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      profile,
-      loading,
-      signOut,
-      isAuthenticated: !!user,
-      isBuyer: profile?.user_type === 'buyer' || profile?.user_type === 'both',
-      isSeller: profile?.user_type === 'seller' || profile?.user_type === 'both',
-      refreshProfile,
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        profile,
+        loading,
+        signOut,
+        isAuthenticated: !!user,
+        isBuyer:
+          profile?.user_type === "buyer" || profile?.user_type === "both",
+        isSeller:
+          profile?.user_type === "seller" || profile?.user_type === "both",
+        refreshProfile,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -131,7 +139,7 @@ export function AuthProvider({
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }

@@ -127,3 +127,34 @@ export async function signOut() {
   revalidatePath("/", "layout");
   redirect(ROUTES.LOGIN);
 }
+
+export async function signInWithGoogle() {
+  const supabase = await createClient();
+  
+  const hostedUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "");
+  const base = hostedUrl || "http://localhost:3000";
+  
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${base}/api/auth/callback`,
+      queryParams: {
+        access_type: "offline",
+        prompt: "consent",
+      },
+    },
+  });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  if (data.url) {
+    redirect(data.url);
+  }
+}
+
+// Note: OAuth callback is now handled server-side in app/auth/callback/route.ts
+// This provides better security and avoids React Strict Mode double-execution issues

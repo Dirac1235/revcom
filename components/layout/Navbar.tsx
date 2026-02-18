@@ -195,7 +195,7 @@ export function Navbar() {
                       <Button variant="ghost" size="sm" className="h-8 text-sm">Sign In</Button>
                     </Link>
                     <Link href={ROUTES.SIGNUP}>
-                      <Button size="sm" className="h-8 text-sm bg-foreground text-background hover:bg-foreground/90 rounded-lg px-4">
+                      <Button size="sm" className="h-8 text-sm bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg px-4">
                         Get Started
                       </Button>
                     </Link>
