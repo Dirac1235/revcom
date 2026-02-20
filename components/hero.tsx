@@ -6,7 +6,7 @@ const Hero = () => {
   return (
     <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden">
       {/* Gradient Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/20 dark:via-indigo-950/20 dark:to-purple-950/20" />
+      <div className="absolute inset-0 bg-linear-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/20 dark:via-indigo-950/20 dark:to-purple-950/20" />
       {/* Animated gradient orbs */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-400/30 rounded-full blur-3xl animate-pulse" />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-400/30 rounded-full blur-3xl animate-pulse delay-1000" />
@@ -21,9 +21,9 @@ const Hero = () => {
             </h1>
 
             <p className="text-lg md:text-xl text-muted-foreground max-w-xl font-light leading-relaxed">
-              RevCom connects buyers and sellers directly. Buyers list their needs,
-              sellers discover opportunities, and close deals—all in one minimal
-              platform.
+              RevCom connects buyers and sellers directly. Buyers list their
+              needs, sellers discover opportunities, and close deals—all in one
+              minimal platform.
             </p>
           </div>
 

@@ -111,7 +111,7 @@ export default function LoginPage() {
     <div className="min-h-screen w-full lg:grid lg:grid-cols-2 overflow-hidden bg-background">
       {/* LEFT SIDE: Form Area */}
       <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-background z-20">
-        <div className="mx-auto grid w-full max-w-[400px] gap-6">
+        <div className="mx-auto grid w-full max-w-100 gap-6">
           
           <div className="grid gap-2 text-center mb-4">
             <div className="flex justify-center mb-4">
@@ -246,7 +246,7 @@ export default function LoginPage() {
         
         {/* Background Depth Layers */}
         <div className="absolute top-[-5%] left-[-5%] w-[40%] h-[40%] bg-white/10 rounded-full blur-[100px] animate-pulse" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-black/10 rounded-full blur-[120px] animate-pulse [animation-duration:8s]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-black/10 rounded-full blur-[120px] animate-pulse animation-duration-[8s]" />
 
         {/* Floating Icons Swarm */}
         <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
