@@ -56,14 +56,14 @@ const Features = () => {
             >
               <CardContent className="space-y-4 p-6">
                 <div
-                  className={`h-12 w-12 flex items-center justify-center rounded-lg bg-gradient-to-br ${
+                  className={`h-12 w-12 flex items-center justify-center rounded-lg bg-linear-to-br ${
                     index === 0
                       ? "from-blue-100 to-blue-200 dark:from-blue-900/30 dark:to-blue-800/30"
                       : index === 1
-                      ? "from-indigo-100 to-indigo-200 dark:from-indigo-900/30 dark:to-indigo-800/30"
-                      : index === 2
-                      ? "from-purple-100 to-purple-200 dark:from-purple-900/30 dark:to-purple-800/30"
-                      : "from-cyan-100 to-cyan-200 dark:from-cyan-900/30 dark:to-cyan-800/30"
+                        ? "from-indigo-100 to-indigo-200 dark:from-indigo-900/30 dark:to-indigo-800/30"
+                        : index === 2
+                          ? "from-purple-100 to-purple-200 dark:from-purple-900/30 dark:to-purple-800/30"
+                          : "from-cyan-100 to-cyan-200 dark:from-cyan-900/30 dark:to-cyan-800/30"
                   }`}
                 >
                   <feature.icon

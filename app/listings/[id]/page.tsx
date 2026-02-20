@@ -457,7 +457,7 @@ export default async function RequestDetailPage({
                 <div className="space-y-3">
                   {request.profiles?.location && (
                     <div className="flex items-start gap-2">
-                      <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                      <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
                       <div>
                         <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Location</p>
                         <p className="text-sm text-foreground font-medium">{request.profiles.location}</p>

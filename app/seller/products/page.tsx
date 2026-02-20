@@ -1,25 +1,31 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { useAuth } from '@/components/providers/AuthProvider';
-import { useProducts } from '@/lib/hooks/useProducts';
-import { deleteListing } from '@/lib/data/listings';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { EmptyState } from '@/components/features/EmptyState';
-import { LoadingState } from '@/components/features/LoadingState';
-import { ROUTES } from '@/lib/constants/routes';
-import { Package, Plus, Edit, Trash2, Eye } from 'lucide-react';
-import { useToast } from '@/lib/hooks/use-toast';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useAuth } from "@/components/providers/AuthProvider";
+import { useProducts } from "@/lib/hooks/useProducts";
+import { deleteListing } from "@/lib/data/listings";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/features/EmptyState";
+import { LoadingState } from "@/components/features/LoadingState";
+import { ROUTES } from "@/lib/constants/routes";
+import { Package, Plus, Edit, Trash2, Eye } from "lucide-react";
+import { useToast } from "@/lib/hooks/use-toast";
 
 export default function SellerProductsPage() {
   const router = useRouter();
   const { user, profile, loading: authLoading } = useAuth();
   const { toast } = useToast();
-  
+
   const { products, loading, refetch } = useProducts({
     sellerId: user?.id,
     status: undefined, // Show all statuses for seller
@@ -32,29 +38,29 @@ export default function SellerProductsPage() {
   }, [user, authLoading, router]);
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this product?')) return;
+    if (!confirm("Are you sure you want to delete this product?")) return;
 
     try {
       await deleteListing(id);
-      
+
       toast({
-        title: 'Success',
-        description: 'Product deleted successfully',
+        title: "Success",
+        description: "Product deleted successfully",
       });
-      
+
       refetch();
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'Failed to delete product',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to delete product",
+        variant: "destructive",
       });
     }
   };
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-indigo-50/30 to-purple-50/30 dark:from-blue-950/10 dark:via-indigo-950/10 dark:to-purple-950/10">
+      <div className="min-h-screen bg-linear-to-br from-blue-50/50 via-indigo-50/30 to-purple-50/30 dark:from-blue-950/10 dark:via-indigo-950/10 dark:to-purple-950/10">
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <LoadingState count={4} type="list" />
         </main>
@@ -65,9 +71,11 @@ export default function SellerProductsPage() {
   if (!user) return null;
 
   const statusColors = {
-    active: 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300',
-    inactive: 'bg-gray-100 text-gray-700 dark:bg-gray-900/50 dark:text-gray-300',
-    sold: 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300',
+    active:
+      "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300",
+    inactive:
+      "bg-gray-100 text-gray-700 dark:bg-gray-900/50 dark:text-gray-300",
+    sold: "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300",
   };
 
   return (
@@ -94,14 +102,16 @@ export default function SellerProductsPage() {
           <Card className="border-border shadow-none rounded-lg">
             <CardHeader className="pb-3 pt-6 px-6">
               <CardDescription>Total Products</CardDescription>
-              <CardTitle className="text-3xl font-serif">{products.length}</CardTitle>
+              <CardTitle className="text-3xl font-serif">
+                {products.length}
+              </CardTitle>
             </CardHeader>
           </Card>
           <Card className="border-border shadow-none rounded-lg">
             <CardHeader className="pb-3 pt-6 px-6">
               <CardDescription>Active</CardDescription>
               <CardTitle className="text-3xl font-serif">
-                {products.filter(p => p.status === 'active').length}
+                {products.filter((p) => p.status === "active").length}
               </CardTitle>
             </CardHeader>
           </Card>
@@ -109,7 +119,7 @@ export default function SellerProductsPage() {
             <CardHeader className="pb-3 pt-6 px-6">
               <CardDescription>Sold</CardDescription>
               <CardTitle className="text-3xl font-serif">
-                {products.filter(p => p.status === 'sold').length}
+                {products.filter((p) => p.status === "sold").length}
               </CardTitle>
             </CardHeader>
           </Card>
@@ -133,7 +143,7 @@ export default function SellerProductsPage() {
                 <CardContent className="p-6">
                   <div className="flex gap-6">
                     {product.image_url && (
-                      <div className="w-24 h-24 rounded-lg overflow-hidden bg-secondary/20 flex-shrink-0 border border-border">
+                      <div className="w-24 h-24 rounded-lg overflow-hidden bg-secondary/20 shrink-0 border border-border">
                         <img
                           src={product.image_url}
                           alt={product.title}
@@ -164,13 +174,21 @@ export default function SellerProductsPage() {
                         </p>
                         <div className="flex gap-3">
                           <Link href={`/seller/products/${product.id}/edit`}>
-                            <Button variant="outline" size="sm" className="border-border hover:bg-secondary hover:text-secondary-foreground">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="border-border hover:bg-secondary hover:text-secondary-foreground"
+                            >
                               <Edit className="w-4 h-4 mr-2" />
                               Edit
                             </Button>
                           </Link>
                           <Link href={`/products/${product.id}`}>
-                            <Button variant="outline" size="sm" className="border-border hover:bg-secondary hover:text-secondary-foreground">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="border-border hover:bg-secondary hover:text-secondary-foreground"
+                            >
                               View
                             </Button>
                           </Link>

@@ -21,7 +21,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { useToast } from "@/lib/hooks/use-toast";
 import { LoadingState } from "@/components/features/LoadingState";
 import Link from "next/link";
@@ -115,7 +121,7 @@ export default function EditProductPage() {
 
   if (authLoading || productLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-indigo-50/30 to-purple-50/30 dark:from-blue-950/10 dark:via-indigo-950/10 dark:to-purple-950/10">
+      <div className="min-h-screen bg-linear-to-br from-blue-50/50 via-indigo-50/30 to-purple-50/30 dark:from-blue-950/10 dark:via-indigo-950/10 dark:to-purple-950/10">
         <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <LoadingState count={1} type="card" />
         </main>
@@ -127,11 +133,13 @@ export default function EditProductPage() {
 
   if (product.seller_id !== user.id) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-indigo-50/30 to-purple-50/30 dark:from-blue-950/10 dark:via-indigo-950/10 dark:to-purple-950/10">
+      <div className="min-h-screen bg-linear-to-br from-blue-50/50 via-indigo-50/30 to-purple-50/30 dark:from-blue-950/10 dark:via-indigo-950/10 dark:to-purple-950/10">
         <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Card>
             <CardContent className="pt-6">
-              <p className="text-red-600">You don't have permission to edit this product.</p>
+              <p className="text-red-600">
+                You don't have permission to edit this product.
+              </p>
               <Link href={ROUTES.SELLER_PRODUCTS}>
                 <Button className="mt-4">Back to My Products</Button>
               </Link>
@@ -156,7 +164,9 @@ export default function EditProductPage() {
 
         <Card className="border-border shadow-none rounded-lg">
           <CardHeader className="pb-6 pt-8 px-8">
-            <CardTitle className="text-2xl font-serif font-bold text-foreground">Product Details</CardTitle>
+            <CardTitle className="text-2xl font-serif font-bold text-foreground">
+              Product Details
+            </CardTitle>
             <CardDescription className="text-base text-muted-foreground">
               Make changes to your product listing
             </CardDescription>
@@ -165,7 +175,12 @@ export default function EditProductPage() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
               {/* Title */}
               <div className="space-y-2">
-                <Label htmlFor="title" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Product Title *</Label>
+                <Label
+                  htmlFor="title"
+                  className="text-xs font-medium uppercase tracking-wider text-muted-foreground"
+                >
+                  Product Title *
+                </Label>
                 <Input
                   id="title"
                   {...register("title")}
@@ -173,13 +188,20 @@ export default function EditProductPage() {
                   className="border-border focus-visible:ring-0 focus-visible:border-foreground h-12"
                 />
                 {errors.title && (
-                  <p className="text-sm text-destructive mt-1">{errors.title.message}</p>
+                  <p className="text-sm text-destructive mt-1">
+                    {errors.title.message}
+                  </p>
                 )}
               </div>
 
               {/* Description */}
               <div className="space-y-2">
-                <Label htmlFor="description" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Description *</Label>
+                <Label
+                  htmlFor="description"
+                  className="text-xs font-medium uppercase tracking-wider text-muted-foreground"
+                >
+                  Description *
+                </Label>
                 <Textarea
                   id="description"
                   {...register("description")}
@@ -188,13 +210,20 @@ export default function EditProductPage() {
                   className="border-border focus-visible:ring-0 focus-visible:border-foreground resize-none"
                 />
                 {errors.description && (
-                  <p className="text-sm text-destructive mt-1">{errors.description.message}</p>
+                  <p className="text-sm text-destructive mt-1">
+                    {errors.description.message}
+                  </p>
                 )}
               </div>
 
               {/* Category */}
               <div className="space-y-2">
-                <Label htmlFor="category" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Category *</Label>
+                <Label
+                  htmlFor="category"
+                  className="text-xs font-medium uppercase tracking-wider text-muted-foreground"
+                >
+                  Category *
+                </Label>
                 <Select
                   value={category}
                   onValueChange={(value) => setValue("category", value as any)}
@@ -211,14 +240,21 @@ export default function EditProductPage() {
                   </SelectContent>
                 </Select>
                 {errors.category && (
-                  <p className="text-sm text-destructive mt-1">{errors.category.message}</p>
+                  <p className="text-sm text-destructive mt-1">
+                    {errors.category.message}
+                  </p>
                 )}
               </div>
 
               {/* Price, Inventory, and Status */}
               <div className="grid grid-cols-3 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="price" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Price (ETB) *</Label>
+                  <Label
+                    htmlFor="price"
+                    className="text-xs font-medium uppercase tracking-wider text-muted-foreground"
+                  >
+                    Price (ETB) *
+                  </Label>
                   <Input
                     id="price"
                     type="number"
@@ -228,11 +264,18 @@ export default function EditProductPage() {
                     className="border-border focus-visible:ring-0 focus-visible:border-foreground h-12"
                   />
                   {errors.price && (
-                    <p className="text-sm text-destructive mt-1">{errors.price.message}</p>
+                    <p className="text-sm text-destructive mt-1">
+                      {errors.price.message}
+                    </p>
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="inventory_quantity" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Inventory</Label>
+                  <Label
+                    htmlFor="inventory_quantity"
+                    className="text-xs font-medium uppercase tracking-wider text-muted-foreground"
+                  >
+                    Inventory
+                  </Label>
                   <Input
                     id="inventory_quantity"
                     type="number"
@@ -247,7 +290,12 @@ export default function EditProductPage() {
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="status" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Status *</Label>
+                  <Label
+                    htmlFor="status"
+                    className="text-xs font-medium uppercase tracking-wider text-muted-foreground"
+                  >
+                    Status *
+                  </Label>
                   <Select
                     value={status}
                     onValueChange={(value) => setValue("status", value as any)}
@@ -262,14 +310,21 @@ export default function EditProductPage() {
                     </SelectContent>
                   </Select>
                   {errors.status && (
-                    <p className="text-sm text-destructive mt-1">{errors.status.message}</p>
+                    <p className="text-sm text-destructive mt-1">
+                      {errors.status.message}
+                    </p>
                   )}
                 </div>
               </div>
 
               {/* Image URL */}
               <div className="space-y-2">
-                <Label htmlFor="image_url" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Image URL (optional)</Label>
+                <Label
+                  htmlFor="image_url"
+                  className="text-xs font-medium uppercase tracking-wider text-muted-foreground"
+                >
+                  Image URL (optional)
+                </Label>
                 <Input
                   id="image_url"
                   {...register("image_url")}
@@ -277,7 +332,9 @@ export default function EditProductPage() {
                   className="border-border focus-visible:ring-0 focus-visible:border-foreground h-12"
                 />
                 {errors.image_url && (
-                  <p className="text-sm text-destructive mt-1">{errors.image_url.message}</p>
+                  <p className="text-sm text-destructive mt-1">
+                    {errors.image_url.message}
+                  </p>
                 )}
                 <p className="text-xs text-muted-foreground mt-1">
                   Provide a direct link to your product image
@@ -294,7 +351,11 @@ export default function EditProductPage() {
                   {submitting ? "Saving..." : "Save Changes"}
                 </Button>
                 <Link href={ROUTES.SELLER_PRODUCTS}>
-                  <Button type="button" variant="outline" className="border-border hover:bg-secondary hover:text-secondary-foreground h-12 px-8">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="border-border hover:bg-secondary hover:text-secondary-foreground h-12 px-8"
+                  >
                     Cancel
                   </Button>
                 </Link>
