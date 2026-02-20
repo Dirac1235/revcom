@@ -1,15 +1,17 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
-import type { User } from "@supabase/supabase-js";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import type { User, Session } from "@supabase/supabase-js";
 import type { Profile } from "@/lib/types";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 interface AuthContextType {
   user: User | null;
   profile: Profile | null;
+  session: Session | null;
   loading: boolean;
+  isReady: boolean; // New: indicates auth check is complete
   signOut: () => Promise<void>;
   isAuthenticated: boolean;
   isBuyer: boolean;
@@ -29,83 +31,113 @@ export function AuthProvider({
   initialProfile: Profile | null;
 }) {
   const [user, setUser] = useState<User | null>(initialUser);
+  const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(initialProfile);
-  const [loading, setLoading] = useState(!initialUser);
+  const [loading, setLoading] = useState(true);
+  const [isReady, setIsReady] = useState(false);
   const router = useRouter();
   const supabase = createClient();
 
-  // Initial auth check - only run once on mount
+  // Check auth state on mount - ALWAYS run this
   useEffect(() => {
-    // If we already have initial data, skip the initial check
-    if (initialUser) {
-      setLoading(false);
-      return;
-    }
+    let mounted = true;
 
-    const checkAuth = async () => {
-      const {
-        data: { user: currentUser },
-      } = await supabase.auth.getUser();
+    const initializeAuth = async () => {
+      console.log("[AuthProvider] Initializing auth...");
+      
+      // Get current session
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      
+      if (!mounted) return;
 
-      setUser(currentUser);
-
-      if (currentUser) {
+      setSession(currentSession);
+      
+      if (currentSession?.user) {
+        console.log("[AuthProvider] Session found, user:", currentSession.user.id);
+        setUser(currentSession.user);
+        
+        // Fetch profile
         const { data: profileData } = await supabase
           .from("profiles")
           .select("*")
-          .eq("id", currentUser.id)
+          .eq("id", currentSession.user.id)
           .single();
-        setProfile(profileData);
+        
+        if (mounted) {
+          setProfile(profileData);
+        }
+      } else if (initialUser) {
+        // Use initial user from SSR if no session
+        console.log("[AuthProvider] Using initialUser from SSR");
+        setUser(initialUser);
+        setProfile(initialProfile);
       } else {
+        console.log("[AuthProvider] No session or initial user");
+        setUser(null);
         setProfile(null);
       }
-      setLoading(false);
+
+      if (mounted) {
+        setLoading(false);
+        setIsReady(true);
+        console.log("[AuthProvider] Auth initialized, isReady:", true);
+      }
     };
 
-    checkAuth();
-  }, [supabase, initialUser]);
+    initializeAuth();
+
+    return () => {
+      mounted = false;
+    };
+  }, [supabase, initialUser, initialProfile]);
 
   // Listen to auth state changes
   useEffect(() => {
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      const authUser = session?.user ?? null;
-      setUser(authUser);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, currentSession) => {
+        console.log("[AuthProvider] Auth state changed:", event);
+        
+        setSession(currentSession);
+        const authUser = currentSession?.user ?? null;
+        setUser(authUser);
 
-      if (authUser) {
-        const { data: profileData } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", authUser.id)
-          .single();
-        setProfile(profileData);
-      } else {
-        setProfile(null);
+        if (authUser) {
+          const { data: profileData } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", authUser.id)
+            .single();
+          setProfile(profileData);
+        } else {
+          setProfile(null);
+        }
+        
+        setIsReady(true);
       }
-    });
+    );
 
     return () => {
       subscription?.unsubscribe();
     };
   }, [supabase]);
 
-  const signOut = async () => {
+  const signOut = useCallback(async () => {
     try {
       setLoading(true);
       const { signOut } = await import("@/lib/actions/auth");
       await signOut();
       setUser(null);
       setProfile(null);
+      setSession(null);
       router.refresh();
     } catch (error) {
       console.error("Error signing out:", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [router]);
 
-  const refreshProfile = async () => {
+  const refreshProfile = useCallback(async () => {
     if (user) {
       const { data: profileData } = await supabase
         .from("profiles")
@@ -114,20 +146,20 @@ export function AuthProvider({
         .single();
       setProfile(profileData);
     }
-  };
+  }, [supabase, user]);
 
   return (
     <AuthContext.Provider
       value={{
         user,
         profile,
+        session,
         loading,
+        isReady,
         signOut,
         isAuthenticated: !!user,
-        isBuyer:
-          profile?.user_type === "buyer" || profile?.user_type === "both",
-        isSeller:
-          profile?.user_type === "seller" || profile?.user_type === "both",
+        isBuyer: profile?.user_type === "buyer" || profile?.user_type === "both",
+        isSeller: profile?.user_type === "seller" || profile?.user_type === "both",
         refreshProfile,
       }}
     >
