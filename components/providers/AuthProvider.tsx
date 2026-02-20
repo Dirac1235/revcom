@@ -11,7 +11,7 @@ interface AuthContextType {
   profile: Profile | null;
   session: Session | null;
   loading: boolean;
-  isReady: boolean; // New: indicates auth check is complete
+  isReady: boolean;
   signOut: () => Promise<void>;
   isAuthenticated: boolean;
   isBuyer: boolean;
@@ -33,93 +33,54 @@ export function AuthProvider({
   const [user, setUser] = useState<User | null>(initialUser);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(initialProfile);
-  const [loading, setLoading] = useState(true);
-  const [isReady, setIsReady] = useState(false);
+  // If SSR already gave us a user, we can start as ready/not-loading
+  const [loading, setLoading] = useState(!initialUser);
+  const [isReady, setIsReady] = useState(!!initialUser);
   const router = useRouter();
   const supabase = createClient();
 
-  // Check auth state on mount - ALWAYS run this
   useEffect(() => {
-    let mounted = true;
-
-    const initializeAuth = async () => {
-      console.log("[AuthProvider] Initializing auth...");
-      
-      // Get current session
-      const { data: { session: currentSession } } = await supabase.auth.getSession();
-      
-      if (!mounted) return;
+    // onAuthStateChange fires immediately on mount with the current session,
+    // so there's no need for a separate getSession() call. This eliminates
+    // the race condition between two competing async effects.
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
+      console.log(
+        "[AuthProvider] Auth state changed:",
+        event,
+        "user:",
+        currentSession?.user?.id ?? null
+      );
 
       setSession(currentSession);
-      
-      if (currentSession?.user) {
-        console.log("[AuthProvider] Session found, user:", currentSession.user.id);
-        setUser(currentSession.user);
-        
-        // Fetch profile
-        const { data: profileData } = await supabase
+      const authUser = currentSession?.user ?? null;
+      setUser(authUser);
+
+      if (authUser) {
+        const { data: profileData, error: profileError } = await supabase
           .from("profiles")
           .select("*")
-          .eq("id", currentSession.user.id)
+          .eq("id", authUser.id)
           .single();
-        
-        if (mounted) {
-          setProfile(profileData);
+
+        if (profileError) {
+          console.error("[AuthProvider] Profile fetch error:", profileError.message);
         }
-      } else if (initialUser) {
-        // Use initial user from SSR if no session
-        console.log("[AuthProvider] Using initialUser from SSR");
-        setUser(initialUser);
-        setProfile(initialProfile);
+
+        setProfile(profileData ?? null);
       } else {
-        console.log("[AuthProvider] No session or initial user");
-        setUser(null);
         setProfile(null);
       }
 
-      if (mounted) {
-        setLoading(false);
-        setIsReady(true);
-        console.log("[AuthProvider] Auth initialized, isReady:", true);
-      }
-    };
-
-    initializeAuth();
+      setLoading(false);
+      setIsReady(true);
+    });
 
     return () => {
-      mounted = false;
+      subscription.unsubscribe();
     };
-  }, [supabase, initialUser, initialProfile]);
-
-  // Listen to auth state changes
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, currentSession) => {
-        console.log("[AuthProvider] Auth state changed:", event);
-        
-        setSession(currentSession);
-        const authUser = currentSession?.user ?? null;
-        setUser(authUser);
-
-        if (authUser) {
-          const { data: profileData } = await supabase
-            .from("profiles")
-            .select("*")
-            .eq("id", authUser.id)
-            .single();
-          setProfile(profileData);
-        } else {
-          setProfile(null);
-        }
-        
-        setIsReady(true);
-      }
-    );
-
-    return () => {
-      subscription?.unsubscribe();
-    };
-  }, [supabase]);
+  }, []);
 
   const signOut = useCallback(async () => {
     try {
@@ -131,21 +92,27 @@ export function AuthProvider({
       setSession(null);
       router.refresh();
     } catch (error) {
-      console.error("Error signing out:", error);
+      console.error("[AuthProvider] Error signing out:", error);
     } finally {
       setLoading(false);
     }
   }, [router]);
 
   const refreshProfile = useCallback(async () => {
-    if (user) {
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-      setProfile(profileData);
+    if (!user) return;
+
+    const { data: profileData, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .single();
+
+    if (error) {
+      console.error("[AuthProvider] Error refreshing profile:", error.message);
+      return;
     }
+
+    setProfile(profileData ?? null);
   }, [supabase, user]);
 
   return (
@@ -158,8 +125,10 @@ export function AuthProvider({
         isReady,
         signOut,
         isAuthenticated: !!user,
-        isBuyer: profile?.user_type === "buyer" || profile?.user_type === "both",
-        isSeller: profile?.user_type === "seller" || profile?.user_type === "both",
+        isBuyer:
+          profile?.user_type === "buyer" || profile?.user_type === "both",
+        isSeller:
+          profile?.user_type === "seller" || profile?.user_type === "both",
         refreshProfile,
       }}
     >
