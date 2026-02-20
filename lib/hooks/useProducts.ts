@@ -1,5 +1,6 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { useEffect, useState, useCallback } from 'react';
+import { getListings, getListingById } from '@/lib/data/listings';
+import { useAuth } from '@/components/providers/AuthProvider';
 import type { Product } from '@/lib/types';
 
 interface UseProductsOptions {
@@ -14,48 +15,29 @@ export function useProducts(options: UseProductsOptions = {}) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const mountedRef = useRef(false);
+  const { isReady } = useAuth(); // Wait for auth to be ready
 
   const { sellerId, category, status, search, limit } = options;
 
   const fetchProducts = useCallback(async () => {
-    const supabase = createClient();
+    console.log('[useProducts] fetchProducts called');
+    
     try {
       setLoading(true);
       setError(null);
 
-      let query = supabase.from('listings').select('*');
+      const data = await getListings({
+        sellerId,
+        category,
+        status,
+        search,
+        limit
+      });
 
-      if (sellerId) {
-        query = query.eq('seller_id', sellerId);
-      }
-
-      if (category) {
-        query = query.eq('category', category);
-      }
-
-      if (status) {
-        query = query.eq('status', status);
-      } else {
-        // Default to active products only
-        query = query.eq('status', 'active');
-      }
-
-      if (search) {
-        query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
-      }
-
-      query = query.order('created_at', { ascending: false });
-
-      if (limit) {
-        query = query.limit(limit);
-      }
-
-      const { data, error: fetchError } = await query;
-
-      if (fetchError) throw fetchError;
-      setProducts(data || []);
+      console.log('[useProducts] fetchProducts succeeded with', data.length, 'products');
+      setProducts(data);
     } catch (err) {
+      console.error('[useProducts] fetchProducts failed:', err);
       setError(err as Error);
       setProducts([]);
     } finally {
@@ -64,10 +46,15 @@ export function useProducts(options: UseProductsOptions = {}) {
   }, [sellerId, category, status, search, limit]);
 
   useEffect(() => {
-    // Always fetch on mount
+    // Only fetch when auth is ready
+    if (!isReady) {
+      console.log('[useProducts] Waiting for auth to be ready...');
+      return;
+    }
+
+    console.log('[useProducts] Auth is ready, fetching products...');
     fetchProducts();
-    mountedRef.current = true;
-  }, [fetchProducts]);
+  }, [fetchProducts, isReady]);
 
   return {
     products,
@@ -81,46 +68,54 @@ export function useProduct(id: string | null) {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const { isReady } = useAuth();
 
   useEffect(() => {
+    if (!isReady) {
+      console.log('[useProduct] Waiting for auth to be ready...');
+      return;
+    }
+
     if (!id) {
       setProduct(null);
       setLoading(false);
       return;
     }
 
-    let mounted = true;
+    let cancelled = false;
 
     const fetchProduct = async () => {
-      const supabase = createClient();
+      console.log('[useProduct] Fetching product with id:', id);
+      
       try {
         setLoading(true);
         setError(null);
 
-        const { data, error: fetchError } = await supabase
-          .from('listings')
-          .select('*')
-          .eq('id', id)
-          .single();
+        const data = await getListingById(id);
 
-        if (fetchError) throw fetchError;
-        if (!mounted) return;
-        setProduct(data);
+        if (!cancelled) {
+          console.log('[useProduct] Product fetch succeeded:', data ? 'found' : 'not found');
+          setProduct(data);
+        }
       } catch (err) {
-        if (!mounted) return;
-        setError(err as Error);
-        setProduct(null);
+        if (!cancelled) {
+          console.error('[useProduct] Product fetch failed:', err);
+          setError(err as Error);
+          setProduct(null);
+        }
       } finally {
-        if (mounted) setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
 
     fetchProduct();
 
     return () => {
-      mounted = false;
+      cancelled = true;
     };
-  }, [id]);
+  }, [id, isReady]);
 
   return {
     product,

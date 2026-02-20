@@ -1,5 +1,6 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { useEffect, useState, useCallback } from 'react';
+import { getOpenRequests, getBuyerRequests, getRequestById } from '@/lib/data/requests';
+import { useAuth } from '@/components/providers/AuthProvider';
 import type { Request } from '@/lib/types';
 
 interface UseRequestsOptions {
@@ -14,48 +15,50 @@ export function useRequests(options: UseRequestsOptions = {}) {
   const [requests, setRequests] = useState<Request[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const mountedRef = useRef(false);
+  const { isReady } = useAuth();
 
   const { buyerId, status, category, search, limit } = options;
 
   const fetchRequests = useCallback(async () => {
-    const supabase = createClient();
+    console.log('[useRequests] fetchRequests called');
+    
     try {
       setLoading(true);
       setError(null);
 
-      let query = supabase.from('requests').select('*');
+      let data: Request[];
 
       if (buyerId) {
-        query = query.eq('buyer_id', buyerId);
+        data = await getBuyerRequests(buyerId);
+      } else {
+        data = await getOpenRequests();
       }
 
+      // Apply client-side filters
       if (status) {
-        query = query.eq('status', status);
-      } else {
-        // Default to open requests only
-        query = query.eq('status', 'open');
+        data = data.filter(r => r.status === status);
       }
 
       if (category) {
-        query = query.eq('category', category);
+        data = data.filter(r => r.category === category);
       }
 
       if (search) {
-        query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
+        const searchLower = search.toLowerCase();
+        data = data.filter(r => 
+          r.title?.toLowerCase().includes(searchLower) || 
+          r.description?.toLowerCase().includes(searchLower)
+        );
       }
-
-      query = query.order('created_at', { ascending: false });
 
       if (limit) {
-        query = query.limit(limit);
+        data = data.slice(0, limit);
       }
 
-      const { data, error: fetchError } = await query;
-
-      if (fetchError) throw fetchError;
-      setRequests(data || []);
+      console.log('[useRequests] fetchRequests succeeded with', data.length, 'requests');
+      setRequests(data);
     } catch (err) {
+      console.error('[useRequests] fetchRequests failed:', err);
       setError(err as Error);
       setRequests([]);
     } finally {
@@ -64,10 +67,14 @@ export function useRequests(options: UseRequestsOptions = {}) {
   }, [buyerId, status, category, search, limit]);
 
   useEffect(() => {
-    // Always fetch on mount
+    if (!isReady) {
+      console.log('[useRequests] Waiting for auth to be ready...');
+      return;
+    }
+
+    console.log('[useRequests] Auth is ready, fetching requests...');
     fetchRequests();
-    mountedRef.current = true;
-  }, [fetchRequests]);
+  }, [fetchRequests, isReady]);
 
   return {
     requests,
@@ -81,46 +88,54 @@ export function useRequest(id: string | null) {
   const [request, setRequest] = useState<Request | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const { isReady } = useAuth();
 
   useEffect(() => {
+    if (!isReady) {
+      console.log('[useRequest] Waiting for auth to be ready...');
+      return;
+    }
+
     if (!id) {
       setRequest(null);
       setLoading(false);
       return;
     }
 
-    let mounted = true;
+    let cancelled = false;
 
     const fetchRequest = async () => {
-      const supabase = createClient();
+      console.log('[useRequest] Fetching request with id:', id);
+      
       try {
         setLoading(true);
         setError(null);
 
-        const { data, error: fetchError } = await supabase
-          .from('requests')
-          .select('*')
-          .eq('id', id)
-          .single();
+        const data = await getRequestById(id);
 
-        if (fetchError) throw fetchError;
-        if (!mounted) return;
-        setRequest(data);
+        if (!cancelled) {
+          console.log('[useRequest] Request fetch succeeded:', data ? 'found' : 'not found');
+          setRequest(data);
+        }
       } catch (err) {
-        if (!mounted) return;
-        setError(err as Error);
-        setRequest(null);
+        if (!cancelled) {
+          console.error('[useRequest] Request fetch failed:', err);
+          setError(err as Error);
+          setRequest(null);
+        }
       } finally {
-        if (mounted) setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
 
     fetchRequest();
 
     return () => {
-      mounted = false;
+      cancelled = true;
     };
-  }, [id]);
+  }, [id, isReady]);
 
   return {
     request,
