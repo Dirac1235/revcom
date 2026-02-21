@@ -41,13 +41,37 @@ export async function getConversationById(id: string) {
   return data;
 }
 
-export async function createConversation(participant1Id: string, participant2Id: string) {
+export async function createConversation(
+  participant1Id: string, 
+  participant2Id: string,
+  listingId?: string,
+  requestId?: string
+) {
   const supabase = createClient();
+  
+  const { data: existing } = await supabase
+    .from("conversations")
+    .select("*")
+    .or(`and(participant_1_id.eq.${participant1Id},participant_2_id.eq.${participant2Id}),and(participant_1_id.eq.${participant2Id},participant_2_id.eq.${participant1Id})`)
+    .single();
+
+  if (existing) {
+    if (listingId && !existing.listing_id) {
+      await supabase
+        .from("conversations")
+        .update({ listing_id: listingId })
+        .eq("id", existing.id);
+    }
+    return existing;
+  }
+
   const { data, error } = await supabase
     .from("conversations")
     .insert({
       participant_1_id: participant1Id,
       participant_2_id: participant2Id,
+      listing_id: listingId || null,
+      request_id: requestId || null,
     })
     .select()
     .single();

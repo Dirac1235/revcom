@@ -24,6 +24,9 @@ export const ROUTES = {
   BUYER_ORDERS: '/buyer/orders',
   BUYER_ORDER_DETAIL: (id: string) => `/buyer/orders/${id}`,
   
+  // Public request routes
+  REQUEST_MAKE_OFFER: (id: string) => `/requests/${id}/make-offer`,
+  
   // Seller routes
   SELLER_EXPLORE: '/seller/explore',
   SELLER_PRODUCTS: '/seller/products',
@@ -31,6 +34,7 @@ export const ROUTES = {
   SELLER_PRODUCT_EDIT: (id: string) => `/seller/products/${id}/edit`,
   SELLER_ORDERS: '/seller/orders',
   SELLER_ORDER_DETAIL: (id: string) => `/seller/orders/${id}`,
+  SELLER_REQUEST_OFFER: (id: string) => `/seller/requests/${id}/offer`,
   
   // Shared routes
   MESSAGES: '/messages',

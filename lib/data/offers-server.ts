@@ -1,7 +1,9 @@
-import { createClient } from "@/lib/supabase/client";
+"use server";
+
+import { createClient } from "@/lib/supabase/server";
 
 export async function getOffersByRequest(requestId: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("offers")
     .select("*")
@@ -13,7 +15,7 @@ export async function getOffersByRequest(requestId: string) {
 }
 
 export async function getOffersBySeller(sellerId: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("offers")
     .select("*")
@@ -24,21 +26,8 @@ export async function getOffersBySeller(sellerId: string) {
   return data || [];
 }
 
-export async function getSellerOffers(sellerId: string, limit: number = 5) {
-  const supabase = createClient();
-  const { data, error } = await supabase
-    .from("offers")
-    .select("*")
-    .eq("seller_id", sellerId)
-    .order("created_at", { ascending: false })
-    .limit(limit);
-  
-  if (error) throw error;
-  return data || [];
-}
-
 export async function getOfferById(id: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("offers")
     .select("*")
@@ -50,7 +39,7 @@ export async function getOfferById(id: string) {
 }
 
 export async function getOfferBySellerAndRequest(sellerId: string, requestId: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("offers")
     .select("*")
@@ -73,7 +62,7 @@ export async function createOffer(payload: {
   attachments?: string[];
   status?: string;
 }) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("offers")
     .insert({
@@ -103,7 +92,7 @@ export async function updateOffer(id: string, updates: Partial<{
   attachments: string[];
   status: string;
 }>) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error } = await supabase
     .from("offers")
     .update(updates)
@@ -113,7 +102,7 @@ export async function updateOffer(id: string, updates: Partial<{
 }
 
 export async function updateOfferStatus(id: string, status: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error } = await supabase
     .from("offers")
     .update({ status })
@@ -123,20 +112,10 @@ export async function updateOfferStatus(id: string, status: string) {
 }
 
 export async function deleteOffer(id: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error } = await supabase
     .from("offers")
     .delete()
-    .eq("id", id);
-  
-  if (error) throw error;
-}
-
-export async function withdrawOffer(id: string) {
-  const supabase = createClient();
-  const { error } = await supabase
-    .from("offers")
-    .update({ status: "withdrawn" })
     .eq("id", id);
   
   if (error) throw error;

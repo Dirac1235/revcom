@@ -14,6 +14,7 @@ import { useToast } from "@/lib/hooks/use-toast";
 import { ROUTES } from "@/lib/constants/routes";
 import { getProfileById } from "@/lib/data/profiles";
 import { getListingById } from "@/lib/data/listings";
+import { createConversation } from "@/lib/data/conversations";
 import type { Profile, Product } from "@/lib/types";
 import {
   ArrowLeft,
@@ -260,19 +261,11 @@ export default function CheckoutPage() {
     if (!user || !seller) return;
 
     try {
-      const supabase = createClient();
-      const { data: conversation, error } = await supabase
-        .from("conversations")
-        .insert({
-          participant_1_id: user.id,
-          participant_2_id: seller.id,
-          listing_id: productId,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
+      const conversation = await createConversation(
+        user.id,
+        seller.id,
+        productId || undefined
+      );
       router.push(ROUTES.MESSAGE_CONVERSATION(conversation.id));
     } catch (error) {
       console.error("Error creating conversation:", error);

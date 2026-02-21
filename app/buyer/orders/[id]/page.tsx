@@ -1,13 +1,17 @@
-import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import DashboardNav from "@/components/dashboard-nav"
-import { ArrowLeft } from "lucide-react"
-import { getProfileById } from "@/lib/data/profiles-server"
-import { getOrderById } from "@/lib/data/orders-server"
+"use client";
+
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
+import { getProfileById } from "@/lib/data/profiles";
+import { getOrderById } from "@/lib/data/orders";
+import { createConversation } from "@/lib/data/conversations";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, MessageSquare } from "lucide-react";
+import type { Profile, Order } from "@/lib/types";
 
 const statusColors: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-800",
@@ -17,29 +21,75 @@ const statusColors: Record<string, string> = {
   cancelled: "bg-red-100 text-red-800",
 }
 
-export default async function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
-  const supabase = await createClient()
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser()
+export default function OrderDetailPage() {
+  const params = useParams();
+  const router = useRouter();
+  const orderId = params.id as string;
 
-  if (userError || !user) {
-    redirect("/auth/login")
-  }
+  const [user, setUser] = useState<any>(null);
+  const [order, setOrder] = useState<Order | null>(null);
+  const [seller, setSeller] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const profile = await getProfileById(user.id)
-  const order = await getOrderById(id)
-  const seller = order ? await getProfileById(order.seller_id) : null
+  useEffect(() => {
+    const fetchData = async () => {
+      const supabase = createClient();
+      const {
+        data: { user: authUser },
+      } = await supabase.auth.getUser();
 
-  if (!order) {
-    redirect("/buyer/orders")
+      if (!authUser) {
+        router.push("/auth/login");
+        return;
+      }
+      setUser(authUser);
+
+      try {
+        const orderData = await getOrderById(orderId);
+        if (!orderData) {
+          router.push("/buyer/orders");
+          return;
+        }
+        setOrder(orderData);
+
+        const sellerData = await getProfileById(orderData.seller_id);
+        setSeller(sellerData);
+      } catch (error) {
+        console.error("Error fetching order:", error);
+        router.push("/buyer/orders");
+      }
+
+      setLoading(false);
+    };
+
+    fetchData();
+  }, [orderId, router]);
+
+  const handleMessageSeller = async () => {
+    if (!user || !seller || !order) return;
+
+    try {
+      const conversation = await createConversation(
+        user.id,
+        seller.id,
+        order.listing_id || undefined
+      );
+      router.push(`/messages?conversation=${conversation.id}`);
+    } catch (error) {
+      console.error("Error creating conversation:", error);
+    }
+  };
+
+  if (loading || !order) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen bg-background">
-
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Link href="/buyer/orders" className="mb-4 inline-block">
           <Button variant="outline" size="sm">
@@ -73,7 +123,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Delivery Location</p>
-                    <p className="text-lg font-semibold">{order.delivery_location}</p>
+                    <p className="text-lg font-semibold">{order.delivery_location || "Not specified"}</p>
                   </div>
                 </div>
               </CardContent>
@@ -91,17 +141,22 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                   </div>
                   <div>
                     <p className="font-semibold">Order Created</p>
-                    <p className="text-sm text-muted-foreground">{new Date(order.created_at).toLocaleDateString()}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {new Date(order.created_at).toLocaleDateString()}
+                    </p>
                   </div>
                 </div>
 
                 <div className="flex gap-4">
                   <div className="flex flex-col items-center gap-2">
                     <div
-                      className={`w-3 h-3 rounded-full ${order.status !== "pending" ? "bg-primary" : "bg-border"}`}
+                      className={`w-3 h-3 rounded-full ${
+                        order.status !== "pending" ? "bg-primary" : "bg-border"
+                      }`}
                     ></div>
-                    {order.status === "shipped" ||
-                      (order.status === "delivered" && <div className="w-0.5 h-12 bg-border"></div>)}
+                    {(order.status === "shipped" || order.status === "delivered") && (
+                      <div className="w-0.5 h-12 bg-border"></div>
+                    )}
                   </div>
                   <div>
                     <p className="font-semibold">Accepted by Seller</p>
@@ -132,14 +187,16 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Unit Price</span>
-                    <span>${order.agreed_price}</span>
+                    <span>{order.agreed_price} ETB</span>
                   </div>
                 </div>
 
                 <div className="border-t pt-4">
                   <div className="flex justify-between font-semibold text-lg">
                     <span>Total</span>
-                    <span className="text-primary">${(order.agreed_price * order.quantity).toFixed(2)}</span>
+                    <span className="text-primary">
+                      {(order.agreed_price * order.quantity).toLocaleString()} ETB
+                    </span>
                   </div>
                 </div>
               </CardContent>
@@ -159,6 +216,14 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                     <p className="text-sm text-muted-foreground">Rating</p>
                     <p className="text-lg font-semibold">⭐ {seller.rating || "N/A"}</p>
                   </div>
+                  <Button 
+                    variant="outline" 
+                    className="w-full mt-2"
+                    onClick={handleMessageSeller}
+                  >
+                    <MessageSquare className="w-4 h-4 mr-2" />
+                    Message Seller
+                  </Button>
                 </CardContent>
               </Card>
             )}
@@ -166,5 +231,5 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
         </div>
       </main>
     </div>
-  )
+  );
 }

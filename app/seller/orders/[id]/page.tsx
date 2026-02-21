@@ -4,13 +4,14 @@ import { useState, useEffect } from "react"
 import { useRouter, useParams } from "next/navigation"
 import { getOrderById, updateOrderStatus } from "@/lib/data/orders"
 import { getProfileById } from "@/lib/data/profiles"
+import { createConversation } from "@/lib/data/conversations"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import DashboardNav from "@/components/dashboard-nav"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, MessageSquare } from "lucide-react"
 
 const statusColors: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-800",
@@ -97,6 +98,21 @@ export default function SellerOrderDetailPage() {
       console.error("[v0] Error updating order:", error)
     } finally {
       setUpdating(false)
+    }
+  }
+
+  const handleMessageBuyer = async () => {
+    if (!user || !buyer) return
+
+    try {
+      const conversation = await createConversation(
+        user.id,
+        buyer.id,
+        order.listing_id || undefined
+      )
+      router.push(`/messages?conversation=${conversation.id}`)
+    } catch (error) {
+      console.error("Error creating conversation:", error)
     }
   }
 
@@ -216,6 +232,14 @@ export default function SellerOrderDetailPage() {
                     <p className="text-sm text-muted-foreground">Rating</p>
                     <p className="text-lg font-semibold">⭐ {buyer.rating || "N/A"}</p>
                   </div>
+                  <Button 
+                    variant="outline" 
+                    className="w-full mt-2"
+                    onClick={handleMessageBuyer}
+                  >
+                    <MessageSquare className="w-4 h-4 mr-2" />
+                    Message Buyer
+                  </Button>
                 </CardContent>
               </Card>
             )}

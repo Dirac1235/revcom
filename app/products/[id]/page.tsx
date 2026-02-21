@@ -119,6 +119,7 @@ export default function ProductDetailPage() {
       const newConversation = await createConversation(
         user.id,
         product.seller_id,
+        product.id,
       );
       router.push(ROUTES.MESSAGE_CONVERSATION(newConversation.id));
     } catch (error) {
