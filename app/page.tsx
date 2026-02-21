@@ -12,8 +12,8 @@ import { SearchBar } from "@/components/features/SearchBar";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useProducts } from "@/lib/hooks/useProducts";
 import { useRequests } from "@/lib/hooks/useRequests";
-import { getListingsCount } from "@/lib/data/listings";
-import { getRequestsCount } from "@/lib/data/requests";
+import { getListingsCount } from "@/lib/data/listings-server";
+import { getRequestsCount } from "@/lib/data/requests-server";
 import { ROUTES } from "@/lib/constants/routes";
 import { Package, FileText, ArrowRight, TrendingUp, Users, ShoppingBag } from "lucide-react";
 

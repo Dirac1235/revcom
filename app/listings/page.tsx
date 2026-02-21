@@ -20,7 +20,7 @@ import { Search, Filter } from "lucide-react";
 import { RequestCard } from "@/components/features/RequestCard";
 import { LoadingState } from "@/components/features/LoadingState";
 import { EmptyState } from "@/components/features/EmptyState";
-import { getOpenRequests } from "@/lib/data/requests";
+import { getOpenRequests } from "@/lib/data/requests-server";
 
 import { Request } from "@/lib/types";
 

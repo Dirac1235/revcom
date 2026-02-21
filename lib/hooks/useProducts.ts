@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { getListings, getListingById } from '@/lib/data/listings';
+import { getListings, getListingById } from '@/lib/data/listings-server';
 import { useAuth } from '@/components/providers/AuthProvider';
 import type { Product } from '@/lib/types';
 

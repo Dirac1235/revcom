@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/providers/AuthProvider";
-import { getBuyerRequests, getOpenRequests } from "@/lib/data/requests";
+import { getBuyerRequests, getOpenRequests } from "@/lib/data/requests-server";
 import { getBuyerOrders, getSellerOrders } from "@/lib/data/orders";
 import {
   Card,

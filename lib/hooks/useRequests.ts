@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { getOpenRequests, getBuyerRequests, getRequestById } from '@/lib/data/requests';
+import { getOpenRequests, getBuyerRequests, getRequestById } from '@/lib/data/requests-server';
 import { useAuth } from '@/components/providers/AuthProvider';
 import type { Request } from '@/lib/types';
 

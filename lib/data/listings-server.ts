@@ -99,3 +99,17 @@ export async function deleteListing(id: string) {
   
   if (error) throw error;
 }
+
+export async function getListingsCount(filters?: { status?: string }) {
+  const supabase = await createClient();
+  let query = supabase.from("listings").select("id", { count: "exact", head: true });
+
+  if (filters?.status) {
+    query = query.eq("status", filters.status);
+  }
+
+  const { count, error } = await query;
+
+  if (error) throw error;
+  return count || 0;
+}
