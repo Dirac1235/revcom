@@ -51,7 +51,7 @@ export function RequestCard({ request, userId, userType, showActions = true }: R
   const showMakeOffer = isSeller && isOpen && !isOwner;
 
   return (
-    <Card className="group relative flex flex-col overflow-hidden rounded-2xl border border-border/50 bg-linear-to-b from-card to-card/95 shadow-sm transition-all duration-500 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/5 hover:border-primary/20 py-0">
+    <Card className="group relative flex flex-col overflow-hidden rounded-xl border border-border/50 bg-linear-to-b from-card to-card/95 shadow-sm transition-all duration-500 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/5 hover:border-primary/20 py-0">
       
       {/* Decorative Gradient Glow */}
       <div className="absolute -right-12 -top-12 h-24 w-24 rounded-full bg-primary/5 blur-3xl transition-opacity opacity-0 group-hover:opacity-100" />

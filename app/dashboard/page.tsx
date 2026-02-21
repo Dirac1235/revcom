@@ -389,7 +389,7 @@ function BuyerDashboard({ data, firstName }: { data: any; firstName: string }) {
                   <Link key={action.href} href={action.href}>
                     <div className={`relative flex flex-col items-center gap-2 p-4 rounded-xl text-center transition-all cursor-pointer hover:scale-105 ${
                       action.primary
-                        ? "bg-foreground text-background hover:bg-foreground/90"
+                        ? "bg-primary text-primary-foreground hover:bg-foreground/90"
                         : "hover:bg-secondary border border-border"
                     }`}>
                       {action.icon}
@@ -413,7 +413,7 @@ function BuyerDashboard({ data, firstName }: { data: any; firstName: string }) {
               <div className="space-y-3">
                 {requests.slice(0, 4).length > 0 ? requests.slice(0, 4).map((req: any) => (
                   <div key={req.id} className="flex items-start gap-3 text-sm">
-                    <div className="w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <div className="w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0 mt-0.5">
                       <Bell className="w-3.5 h-3.5 text-blue-600" />
                     </div>
                     <div className="flex-1 min-w-0">

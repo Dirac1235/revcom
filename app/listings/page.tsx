@@ -133,7 +133,7 @@ function ListingsContent() {
               <div className="flex gap-3">
                 <Button
                   type="submit"
-                  className="bg-foreground text-background hover:bg-foreground/90 shadow-none"
+                  className="bg-primary text-background hover:bg-foreground/90 shadow-none"
                 >
                   <Search className="w-4 h-4 mr-2" />
                   Search

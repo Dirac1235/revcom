@@ -226,7 +226,7 @@ export function MessagesClient({
             flex-col w-full lg:w-96 shrink-0
           `}
         >
-          <div className="flex flex-col rounded-2xl border border-foreground/10 bg-card/80 overflow-hidden h-[calc(100vh-12rem)] lg:h-[calc(100vh-14rem)]">
+          <div className="flex flex-col rounded-xl border border-foreground/10 bg-card/80 overflow-hidden h-[calc(100vh-12rem)] lg:h-[calc(100vh-14rem)]">
             {/* Search */}
             <div className="p-4 border-b border-foreground/5">
               <div className="relative">
@@ -269,7 +269,7 @@ export function MessagesClient({
             flex-col flex-1 min-w-0
           `}
         >
-          <div className="flex flex-col rounded-2xl border border-foreground/10 bg-card/80 overflow-hidden h-[calc(100vh-12rem)] lg:h-[calc(100vh-14rem)]">
+          <div className="flex flex-col rounded-xl border border-foreground/10 bg-card/80 overflow-hidden h-[calc(100vh-12rem)] lg:h-[calc(100vh-14rem)]">
             {selectedId ? (
               <>
                 {/* Mobile back header */}

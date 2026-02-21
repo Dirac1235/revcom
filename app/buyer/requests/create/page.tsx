@@ -1,19 +1,24 @@
 "use client"
 
 import type React from "react"
-
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
+
 import { createRequest } from "@/lib/data/requests"
 import { getProfileById } from "@/lib/data/profiles"
-import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import DashboardNav from "@/components/dashboard-nav"
-import { useEffect } from "react"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 const categories = [
   "Electronics",
@@ -66,9 +71,14 @@ export default function CreateRequestPage() {
     fetchUser()
   }, [router])
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
+  }
+
+  // Shadcn Select doesn't use standard native events, so we handle it directly
+  const handleCategoryChange = (value: string) => {
+    setFormData((prev) => ({ ...prev, category: value }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -98,117 +108,118 @@ export default function CreateRequestPage() {
   if (!user) return null
 
   return (
-    <div className="min-h-screen bg-background">
+    // Flexbox handles the vertical & horizontal centering perfectly
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 sm:p-8">
+      <Card className="w-full max-w-2xl shadow-lg">
+        <CardHeader className="space-y-2 pb-6 text-center sm:text-left">
+          <CardTitle className="text-3xl font-bold text-foreground font-serif">
+            Create a New Request
+          </CardTitle>
+          <CardDescription className="text-base">
+            Tell sellers what you're looking for, set your budget, and get offers.
+          </CardDescription>
+        </CardHeader>
+        
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="title">What are you looking for?</Label>
+              <Input
+                id="title"
+                name="title"
+                value={formData.title}
+                onChange={handleChange}
+                placeholder="e.g., iPhone 13 Pro"
+                required
+              />
+            </div>
 
-      <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Create a New Request</h1>
-          <p className="text-muted-foreground">Tell sellers what you're looking for</p>
-        </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Request Details</CardTitle>
-            <CardDescription>Provide details about what you need</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <Label htmlFor="title">What are you looking for?</Label>
-                <Input
-                  id="title"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleChange}
-                  placeholder="e.g., iPhone 13 Pro"
-                  required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="category">Category</Label>
-                <select
-                  id="category"
-                  name="category"
-                  value={formData.category}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-input rounded-md bg-background"
-                >
+            <div className="space-y-2">
+              <Label htmlFor="category">Category</Label>
+              <Select value={formData.category} onValueChange={handleCategoryChange}>
+                <SelectTrigger id="category" className="w-full">
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
                   {categories.map((cat) => (
-                    <option key={cat} value={cat}>
+                    <SelectItem key={cat} value={cat}>
                       {cat}
-                    </option>
+                    </SelectItem>
                   ))}
-                </select>
-              </div>
+                </SelectContent>
+              </Select>
+            </div>
 
-              <div>
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  placeholder="Describe what you need, preferred specs, condition, etc."
-                  rows={5}
-                  required
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                placeholder="Describe what you need, preferred specs, condition, etc."
+                rows={5}
+                className="resize-none"
+                required
+              />
+            </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="budget_min">Minimum Budget</Label>
-                  <Input
-                    id="budget_min"
-                    name="budget_min"
-                    type="number"
-                    step="0.01"
-                    value={formData.budget_min}
-                    onChange={handleChange}
-                    placeholder="0.00"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="budget_max">Maximum Budget</Label>
-                  <Input
-                    id="budget_max"
-                    name="budget_max"
-                    type="number"
-                    step="0.01"
-                    value={formData.budget_max}
-                    onChange={handleChange}
-                    placeholder="1000.00"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="quantity">Quantity</Label>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="budget_min">Minimum Budget</Label>
                 <Input
-                  id="quantity"
-                  name="quantity"
+                  id="budget_min"
+                  name="budget_min"
                   type="number"
-                  value={formData.quantity}
+                  step="0.01"
+                  value={formData.budget_min}
                   onChange={handleChange}
-                  min="1"
+                  placeholder="0.00"
                   required
                 />
               </div>
-
-              <div className="flex gap-4">
-                <Button type="submit" disabled={loading}>
-                  {loading ? "Creating..." : "Create Request"}
-                </Button>
-                <Link href="/buyer/requests">
-                  <Button variant="outline">Cancel</Button>
-                </Link>
+              <div className="space-y-2">
+                <Label htmlFor="budget_max">Maximum Budget</Label>
+                <Input
+                  id="budget_max"
+                  name="budget_max"
+                  type="number"
+                  step="0.01"
+                  value={formData.budget_max}
+                  onChange={handleChange}
+                  placeholder="1000.00"
+                  required
+                />
               </div>
-            </form>
-          </CardContent>
-        </Card>
-      </main>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="quantity">Quantity</Label>
+              <Input
+                id="quantity"
+                name="quantity"
+                type="number"
+                value={formData.quantity}
+                onChange={handleChange}
+                min="1"
+                required
+                className="sm:w-1/2"
+              />
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4 pt-4">
+              <Button type="submit" disabled={loading} className="w-full sm:w-auto">
+                {loading ? "Creating..." : "Create Request"}
+              </Button>
+              <Link href="/buyer/requests" className="w-full sm:w-auto">
+                <Button variant="outline" type="button" className="w-full">
+                  Cancel
+                </Button>
+              </Link>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   )
 }

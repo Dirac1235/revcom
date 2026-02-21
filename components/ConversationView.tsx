@@ -83,21 +83,21 @@ function MessageSkeleton() {
       <div className="flex items-end gap-2">
         <div className="w-8 h-8 rounded-full bg-foreground/8 shrink-0" />
         <div className="flex flex-col gap-1.5">
-          <div className="h-10 w-48 rounded-2xl rounded-bl-sm bg-foreground/8" />
+          <div className="h-10 w-48 rounded-xl rounded-bl-sm bg-foreground/8" />
         </div>
       </div>
       {/* Mine */}
       <div className="flex items-end justify-end">
-        <div className="h-10 w-36 rounded-2xl rounded-br-sm bg-foreground/8" />
+        <div className="h-10 w-36 rounded-xl rounded-br-sm bg-foreground/8" />
       </div>
       {/* Theirs */}
       <div className="flex items-end gap-2">
         <div className="w-8 h-8 rounded-full bg-foreground/8 shrink-0" />
-        <div className="h-14 w-56 rounded-2xl rounded-bl-sm bg-foreground/8" />
+        <div className="h-14 w-56 rounded-xl rounded-bl-sm bg-foreground/8" />
       </div>
       {/* Mine */}
       <div className="flex items-end justify-end">
-        <div className="h-10 w-44 rounded-2xl rounded-br-sm bg-foreground/8" />
+        <div className="h-10 w-44 rounded-xl rounded-br-sm bg-foreground/8" />
       </div>
     </div>
   );
@@ -170,8 +170,8 @@ function MessageBubble({
             px-3.5 py-2.5 text-[13.5px] leading-relaxed whitespace-pre-wrap wrap-break-word shadow-sm
             ${
               isMe
-                ? "bg-primary text-primary-foreground rounded-2xl rounded-br-[5px]"
-                : "bg-secondary text-secondary-foreground rounded-2xl rounded-bl-[5px] border border-foreground/5"
+                ? "bg-primary text-primary-foreground rounded-xl rounded-br-[5px]"
+                : "bg-secondary text-secondary-foreground rounded-xl rounded-bl-[5px] border border-foreground/5"
             }
           `}
         >
@@ -196,7 +196,7 @@ function MessageBubble({
 function EmptyMessages({ name }: { name: string }) {
   return (
     <div className="flex flex-col items-center justify-center flex-1 gap-3 text-center px-6">
-      <div className="w-12 h-12 rounded-2xl bg-foreground/5 border border-foreground/8 flex items-center justify-center text-lg font-bold text-foreground/25">
+      <div className="w-12 h-12 rounded-xl bg-foreground/5 border border-foreground/8 flex items-center justify-center text-lg font-bold text-foreground/25">
         {name[0]}
       </div>
       <div>
@@ -484,7 +484,7 @@ export function ConversationView({
             placeholder="Message…"
             rows={1}
             className="
-              flex-1 resize-none px-3.5 py-2.5 rounded-2xl
+              flex-1 resize-none px-3.5 py-2.5 rounded-xl
               bg-foreground/5 border border-foreground/10
               text-sm text-foreground placeholder:text-foreground/30
               focus:outline-none focus:ring-2 focus:ring-foreground/15
@@ -497,7 +497,7 @@ export function ConversationView({
             onClick={() => handleSend()}
             disabled={!messageText.trim() || sending}
             className="
-              w-10 h-10 rounded-2xl shrink-0
+              w-10 h-10 rounded-xl shrink-0
               bg-primary text-primary-foreground
               flex items-center justify-center
               disabled:opacity-30 disabled:cursor-not-allowed

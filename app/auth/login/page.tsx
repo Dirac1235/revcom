@@ -4,12 +4,32 @@ import type React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { 
-  Loader2, Mail, Lock, Eye, EyeOff, Command, 
-  ShoppingBag, Package, Tag, ShoppingCart, 
-  Truck, Wallet, Store, CreditCard, Users, 
-  Box, Globe, ShieldCheck, BarChart3, Zap,
-  Coins, Receipt, Scale, Gift, Bell
+import {
+  Loader2,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  Command,
+  ShoppingBag,
+  Package,
+  Tag,
+  ShoppingCart,
+  Truck,
+  Wallet,
+  Store,
+  CreditCard,
+  Users,
+  Box,
+  Globe,
+  ShieldCheck,
+  BarChart3,
+  Zap,
+  Coins,
+  Receipt,
+  Scale,
+  Gift,
+  Bell,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -25,7 +45,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  
+
   const router = useRouter();
   const { user, loading } = useAuth();
 
@@ -86,25 +106,25 @@ export default function LoginPage() {
 
   // Swarm Configuration
   const swarmIcons = [
-    { Icon: ShoppingBag, top: '10%', left: '15%', size: 24, delay: '0s' },
-    { Icon: Package, top: '25%', left: '70%', size: 32, delay: '1s' },
-    { Icon: Tag, top: '50%', left: '10%', size: 20, delay: '2s' },
-    { Icon: ShoppingCart, top: '80%', left: '20%', size: 28, delay: '3s' },
-    { Icon: Truck, top: '15%', left: '85%', size: 26, delay: '4s' },
-    { Icon: Wallet, top: '70%', left: '80%', size: 22, delay: '5s' },
-    { Icon: Store, top: '40%', left: '90%', size: 30, delay: '1.5s' },
-    { Icon: CreditCard, top: '85%', left: '60%', size: 24, delay: '2.5s' },
-    { Icon: Users, top: '10%', left: '50%', size: 28, delay: '3.5s' },
-    { Icon: Box, top: '60%', left: '40%', size: 20, delay: '4.5s' },
-    { Icon: Globe, top: '30%', left: '30%', size: 24, delay: '0.5s' },
-    { Icon: ShieldCheck, top: '75%', left: '5%', size: 22, delay: '5.5s' },
-    { Icon: BarChart3, top: '5%', left: '80%', size: 24, delay: '1.2s' },
-    { Icon: Zap, top: '90%', left: '45%', size: 20, delay: '2.2s' },
-    { Icon: Coins, top: '45%', left: '75%', size: 28, delay: '3.2s' },
-    { Icon: Receipt, top: '20%', left: '5%', size: 20, delay: '4.2s' },
-    { Icon: Scale, top: '65%', left: '15%', size: 24, delay: '0.8s' },
-    { Icon: Gift, top: '35%', left: '65%', size: 26, delay: '1.8s' },
-    { Icon: Bell, top: '55%', left: '85%', size: 22, delay: '2.8s' },
+    { Icon: ShoppingBag, top: "10%", left: "15%", size: 24, delay: "0s" },
+    { Icon: Package, top: "25%", left: "70%", size: 32, delay: "1s" },
+    { Icon: Tag, top: "50%", left: "10%", size: 20, delay: "2s" },
+    { Icon: ShoppingCart, top: "80%", left: "20%", size: 28, delay: "3s" },
+    { Icon: Truck, top: "15%", left: "85%", size: 26, delay: "4s" },
+    { Icon: Wallet, top: "70%", left: "80%", size: 22, delay: "5s" },
+    { Icon: Store, top: "40%", left: "90%", size: 30, delay: "1.5s" },
+    { Icon: CreditCard, top: "85%", left: "60%", size: 24, delay: "2.5s" },
+    { Icon: Users, top: "10%", left: "50%", size: 28, delay: "3.5s" },
+    { Icon: Box, top: "60%", left: "40%", size: 20, delay: "4.5s" },
+    { Icon: Globe, top: "30%", left: "30%", size: 24, delay: "0.5s" },
+    { Icon: ShieldCheck, top: "75%", left: "5%", size: 22, delay: "5.5s" },
+    { Icon: BarChart3, top: "5%", left: "80%", size: 24, delay: "1.2s" },
+    { Icon: Zap, top: "90%", left: "45%", size: 20, delay: "2.2s" },
+    { Icon: Coins, top: "45%", left: "75%", size: 28, delay: "3.2s" },
+    { Icon: Receipt, top: "20%", left: "5%", size: 20, delay: "4.2s" },
+    { Icon: Scale, top: "65%", left: "15%", size: 24, delay: "0.8s" },
+    { Icon: Gift, top: "35%", left: "65%", size: 26, delay: "1.8s" },
+    { Icon: Bell, top: "55%", left: "85%", size: 22, delay: "2.8s" },
   ];
 
   return (
@@ -112,12 +132,11 @@ export default function LoginPage() {
       {/* LEFT SIDE: Form Area */}
       <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-background z-20">
         <div className="mx-auto grid w-full max-w-100 gap-6">
-          
           <div className="grid gap-2 text-center mb-4">
             <div className="flex justify-center mb-4">
-                <div className="h-12 w-12 bg-primary/10 rounded-xl flex items-center justify-center">
-                    <Command className="h-6 w-6 text-primary" />
-                </div>
+              <div className="h-12 w-12 bg-primary/10 rounded-xl flex items-center justify-center">
+                <Command className="h-6 w-6 text-primary" />
+              </div>
             </div>
             <h1 className="text-3xl md:text-4xl font-serif font-bold text-foreground tracking-tight">
               Welcome back
@@ -230,11 +249,14 @@ export default function LoginPage() {
 
           <div className="text-center text-sm">
             Don&apos;t have an account?{" "}
-            <Link href="/auth/sign-up" className="underline font-medium hover:text-primary transition-colors">
+            <Link
+              href="/auth/sign-up"
+              className="underline font-medium hover:text-primary transition-colors"
+            >
               Sign up
             </Link>
           </div>
-          
+
           <p className="text-center text-[10px] uppercase tracking-widest text-muted-foreground px-6 opacity-70">
             Secure connection via encrypted protocols
           </p>
@@ -243,7 +265,6 @@ export default function LoginPage() {
 
       {/* RIGHT SIDE: Independent Floating Icon Swarm */}
       <div className="hidden lg:flex flex-col items-center justify-center relative bg-primary overflow-hidden">
-        
         {/* Background Depth Layers */}
         <div className="absolute top-[-5%] left-[-5%] w-[40%] h-[40%] bg-white/10 rounded-full blur-[100px] animate-pulse" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-black/10 rounded-full blur-[120px] animate-pulse animation-duration-[8s]" />
@@ -258,13 +279,13 @@ export default function LoginPage() {
                 top: item.top,
                 left: item.left,
                 animationDelay: item.delay,
-                opacity: 0.2
+                opacity: 0.2,
               }}
             >
-              <div className="bg-primary-foreground/10 p-3 rounded-2xl backdrop-blur-[1px] border border-primary-foreground/5 shadow-lg">
-                <item.Icon 
-                  size={item.size} 
-                  className="text-primary-foreground" 
+              <div className="bg-primary-foreground/10 p-3 rounded-xl backdrop-blur-[1px] border border-primary-foreground/5 shadow-lg">
+                <item.Icon
+                  size={item.size}
+                  className="text-primary-foreground"
                 />
               </div>
             </div>
@@ -275,12 +296,14 @@ export default function LoginPage() {
         <div className="relative z-10 max-w-lg text-center p-12 select-none">
           <blockquote className="space-y-8">
             <h2 className="text-2xl md:text-4xl font-serif font-bold text-primary-foreground leading-tight drop-shadow-2xl">
-              "Why search through thousands of listings? I post exactly what I need, and the right partner knocks on my door. It’s sourcing on my own terms."
+              "Why search through thousands of listings? I post exactly what I
+              need, and the right partner knocks on my door. It’s sourcing on my
+              own terms."
             </h2>
             <div className="flex flex-col items-center gap-4">
               <div className="h-1.5 w-16 bg-primary-foreground/30 rounded-full" />
               <footer className="text-primary-foreground/70 text-sm tracking-widest uppercase font-medium">
-               Independent Retailer
+                Independent Retailer
               </footer>
             </div>
           </blockquote>
@@ -289,10 +312,18 @@ export default function LoginPage() {
         {/* Custom Float Keyframes */}
         <style jsx global>{`
           @keyframes float {
-            0% { transform: translateY(0px) translateX(0px) rotate(0deg); }
-            33% { transform: translateY(-25px) translateX(15px) rotate(4deg); }
-            66% { transform: translateY(15px) translateX(-20px) rotate(-4deg); }
-            100% { transform: translateY(0px) translateX(0px) rotate(0deg); }
+            0% {
+              transform: translateY(0px) translateX(0px) rotate(0deg);
+            }
+            33% {
+              transform: translateY(-25px) translateX(15px) rotate(4deg);
+            }
+            66% {
+              transform: translateY(15px) translateX(-20px) rotate(-4deg);
+            }
+            100% {
+              transform: translateY(0px) translateX(0px) rotate(0deg);
+            }
           }
           .animate-float {
             animation: float 12s ease-in-out infinite;

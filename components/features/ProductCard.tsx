@@ -16,7 +16,7 @@ export function ProductCard({ product, showSeller = false }: ProductCardProps) {
   const isActive = product.status === 'active';
 
   return (
-    <Card className="group flex flex-col overflow-hidden rounded-lg border-border/50 bg-card/60 p-0 shadow-none [backdrop-filter:blur(20px)_saturate(150%)] transition-all duration-500 hover:border-border hover:shadow-xl">
+    <Card className="group flex flex-col overflow-hidden rounded-xl border-border/50 bg-card/60 p-0 shadow-none [backdrop-filter:blur(20px)_saturate(150%)] transition-all duration-500 hover:border-border hover:shadow-xl">
 
       {/* Subtle top specular line */}
       <div className="absolute top-0 inset-x-0 h-px bg-border/30 pointer-events-none" />
