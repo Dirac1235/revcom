@@ -2,11 +2,11 @@
 
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import {
-  getSupabaseBrowser,
-  getConversationFull,
-  sendMessageLegacy,
-  markMessagesAsRead,
-} from "@/lib/data/conversations";
+  getConversationWithMessages,
+  sendMessageServer,
+  markMessagesAsReadServer,
+} from "@/lib/data/conversations-server";
+import { createClient } from "@/lib/supabase/client";
 import { Send, ChevronLeft, MoreVertical } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { Profile, Message, Conversation } from "@/lib/types";
@@ -14,12 +14,6 @@ import type { Profile, Message, Conversation } from "@/lib/types";
 /* ─────────────────────────────────────────────
    Types
 ───────────────────────────────────────────── */
-interface ConversationFull {
-  conversation: Conversation;
-  otherProfile: Profile | null;
-  messages: Message[];
-}
-
 interface ConversationViewProps {
   conversationId: string;
   /** The authenticated user's ID — passed directly from the server so there's no client-side race. */
@@ -226,7 +220,8 @@ export function ConversationView({
   onBack,
   onConversationRead,
 }: ConversationViewProps) {
-  const supabase = useMemo(() => getSupabaseBrowser(), []);
+  // Browser client is only used for real-time subscriptions (no session race — uses anon key over WebSocket)
+  const supabase = useMemo(() => createClient(), []);
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [conversation, setConversation] = useState<Conversation | null>(null);
@@ -244,23 +239,21 @@ export function ConversationView({
   /* ── Fetch ── */
   const fetchConversation = useCallback(async () => {
     try {
-      const full: ConversationFull | null = await getConversationFull(
-        supabase,
-        conversationId,
-        userId,
-      );
+      // Use server action — auth is guaranteed via server cookies, no client-side session race
+      const full = await getConversationWithMessages(conversationId, userId);
       if (!full) return;
       setConversation(full.conversation);
-      setOtherParticipant(full.otherProfile);
+      setOtherParticipant(full.otherProfile ?? null);
       setMessages(full.messages);
-      await markMessagesAsRead(conversationId, userId);
+      // Mark messages as read via server action too
+      await markMessagesAsReadServer(conversationId, userId);
       onConversationRead?.(conversationId);
     } catch (err) {
       console.error("[ConversationView] Fetch error:", err);
     } finally {
       setLoading(false);
     }
-  }, [supabase, conversationId, userId, onConversationRead]);
+  }, [conversationId, userId, onConversationRead]);
 
   useEffect(() => {
     if (conversationId && userId) {
@@ -347,7 +340,12 @@ export function ConversationView({
       }
 
       try {
-        await sendMessageLegacy(supabase, conversationId, userId, text);
+        // Send via server action — guaranteed auth via server cookies
+        await sendMessageServer({
+          conversation_id: conversationId,
+          sender_id: userId,
+          content: text,
+        });
         // Real-time subscription will append — no manual refetch needed
       } catch (err) {
         console.error("[ConversationView] Send error:", err);
