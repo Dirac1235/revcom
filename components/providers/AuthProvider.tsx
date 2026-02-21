@@ -86,9 +86,10 @@ export function AuthProvider({
         ]);
         if (mounted) await applySession(currentSession);
       } catch (err) {
-        console.warn("[AuthProvider] getSession error or timeout, continuing without session:", err);
+        console.warn("[AuthProvider] getSession error or timeout, keeping server session if any:", err);
+        // Do not call applySession(null) — that would overwrite initialUser from the layout and log the user out.
+        // Keep existing user/profile from server; just mark ready so the app can render.
         if (mounted) {
-          await applySession(null);
           setLoading(false);
           setIsReady(true);
         }
