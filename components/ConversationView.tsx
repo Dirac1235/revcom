@@ -11,6 +11,7 @@ import {
   getSupabaseBrowser,
   getConversationFull,
   sendMessageLegacy,
+  markMessagesAsRead,
 } from "@/lib/data/conversations";
 import { Send, ChevronLeft, MoreVertical } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -30,6 +31,7 @@ interface ConversationViewProps {
   conversationId: string;
   user: User | null;
   onBack?: () => void;
+  onConversationRead?: (conversationId: string) => void;
 }
 
 /* ─────────────────────────────────────────────
@@ -215,6 +217,7 @@ export function ConversationView({
   conversationId,
   user,
   onBack,
+  onConversationRead,
 }: ConversationViewProps) {
   const supabase = useMemo(() => getSupabaseBrowser(), []);
 
@@ -242,13 +245,15 @@ export function ConversationView({
         setConversation(full.conversation);
         setOtherParticipant(full.otherProfile);
         setMessages(full.messages);
+        await markMessagesAsRead(conversationId, userId);
+        onConversationRead?.(conversationId);
       } catch (err) {
         console.error("[ConversationView] Fetch error:", err);
       } finally {
         setLoading(false);
       }
     },
-    [supabase, conversationId]
+    [supabase, conversationId, onConversationRead]
   );
 
   useEffect(() => {

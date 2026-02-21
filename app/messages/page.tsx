@@ -390,6 +390,40 @@ function MessagesContent() {
     refreshTimeoutRef.current = setTimeout(() => fetchConversations(uid, true), 500);
   }, [fetchConversations]);
 
+  /** Update a single conversation in state (no full refetch). Used when we send a message or conversation row updates. */
+  const patchConversationInPlace = useCallback(
+    (conversationId: string, patch: { lastMessage?: MessageWithRead | null; updatedAt?: string; unreadCount?: number }) => {
+      setConversations((prev) => {
+        const idx = prev.findIndex((c) => c.id === conversationId);
+        if (idx < 0) return prev;
+        const conv = prev[idx];
+        const updated = patch.updatedAt ? { ...conv, updated_at: patch.updatedAt } : conv;
+        const shouldMoveToTop = patch.updatedAt ?? patch.lastMessage;
+        if (idx === 0 && !shouldMoveToTop) return prev;
+        const rest = prev.filter((_, i) => i !== idx);
+        return [updated, ...rest];
+      });
+      if (patch.lastMessage !== undefined || patch.unreadCount !== undefined) {
+        setConversationDetails((prev) => {
+          const cur = prev.get(conversationId);
+          if (!cur && patch.lastMessage === undefined && patch.unreadCount === undefined) return prev;
+          const next = new Map(prev);
+          next.set(conversationId, {
+            otherProfile: cur?.otherProfile ?? null,
+            lastMessage: patch.lastMessage !== undefined ? patch.lastMessage : cur?.lastMessage ?? null,
+            unreadCount: patch.unreadCount !== undefined ? patch.unreadCount : cur?.unreadCount ?? 0,
+          });
+          return next;
+        });
+      }
+    },
+    []
+  );
+
+  const handleConversationRead = useCallback((conversationId: string) => {
+    patchConversationInPlace(conversationId, { unreadCount: 0 });
+  }, [patchConversationInPlace]);
+
   useEffect(() => {
     if (isInitialized.current) return;
     isInitialized.current = true;
@@ -423,14 +457,34 @@ function MessagesContent() {
     const uid = user.id;
     const msgSub = supabase
       .channel(`msgs-${uid}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, () => debouncedRefresh(uid))
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "messages" },
+        (payload: { new: Record<string, unknown> }) => {
+          const newMsg = payload.new as { conversation_id: string; sender_id: string; [k: string]: unknown };
+          if (newMsg.sender_id === uid) {
+            patchConversationInPlace(newMsg.conversation_id, {
+              lastMessage: newMsg as unknown as MessageWithRead,
+            });
+          } else {
+            debouncedRefresh(uid);
+          }
+        }
+      )
       .subscribe();
     const convSub = supabase
       .channel(`convs-${uid}`)
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "conversations" }, () => debouncedRefresh(uid))
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "conversations" },
+        (payload: { new: Record<string, unknown> }) => {
+          const conv = payload.new as { id: string; updated_at?: string };
+          patchConversationInPlace(conv.id, { updatedAt: conv.updated_at });
+        }
+      )
       .subscribe();
     return () => { msgSub.unsubscribe(); convSub.unsubscribe(); };
-  }, [user?.id, debouncedRefresh]);
+  }, [user?.id, debouncedRefresh, patchConversationInPlace]);
 
   useEffect(() => {
     const param = searchParams.get("conversation");
@@ -606,6 +660,7 @@ function MessagesContent() {
                     conversationId={selectedConversationId}
                     user={user}
                     onBack={() => setSelectedConversationId(null)}
+                    onConversationRead={handleConversationRead}
                   />
                 </>
               ) : (
