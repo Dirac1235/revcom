@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  useState,
-  useEffect,
-  useRef,
-  useMemo,
-  useCallback,
-} from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import {
   getSupabaseBrowser,
   getConversationFull,
@@ -15,7 +9,6 @@ import {
 } from "@/lib/data/conversations";
 import { Send, ChevronLeft, MoreVertical } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import type { User } from "@supabase/supabase-js";
 import type { Profile, Message, Conversation } from "@/lib/types";
 
 /* ─────────────────────────────────────────────
@@ -29,7 +22,8 @@ interface ConversationFull {
 
 interface ConversationViewProps {
   conversationId: string;
-  user: User | null;
+  /** The authenticated user's ID — passed directly from the server so there's no client-side race. */
+  userId: string;
   onBack?: () => void;
   onConversationRead?: (conversationId: string) => void;
 }
@@ -140,7 +134,12 @@ interface BubbleProps {
   showAvatar: boolean; // only show on last message in a run
 }
 
-function MessageBubble({ message, isMe, otherParticipant, showAvatar }: BubbleProps) {
+function MessageBubble({
+  message,
+  isMe,
+  otherParticipant,
+  showAvatar,
+}: BubbleProps) {
   return (
     <div
       className={`flex items-end gap-2 px-5 ${isMe ? "justify-end" : "justify-start"}`}
@@ -157,7 +156,10 @@ function MessageBubble({ message, isMe, otherParticipant, showAvatar }: BubblePr
                 />
               ) : (
                 <AvatarFallback className="text-[10px] font-bold bg-foreground/8 text-foreground">
-                  {getInitials(otherParticipant?.first_name, otherParticipant?.last_name)}
+                  {getInitials(
+                    otherParticipant?.first_name,
+                    otherParticipant?.last_name,
+                  )}
                 </AvatarFallback>
               )}
             </Avatar>
@@ -166,19 +168,24 @@ function MessageBubble({ message, isMe, otherParticipant, showAvatar }: BubblePr
       )}
 
       {/* Bubble */}
-      <div className={`flex flex-col gap-0.5 max-w-[68%] ${isMe ? "items-end" : "items-start"}`}>
+      <div
+        className={`flex flex-col gap-0.5 max-w-[68%] ${isMe ? "items-end" : "items-start"}`}
+      >
         <div
           className={`
             px-3.5 py-2.5 text-[13.5px] leading-relaxed whitespace-pre-wrap wrap-break-word shadow-sm
-            ${isMe
-              ? "bg-primary text-primary-foreground rounded-2xl rounded-br-[5px]"
-              : "bg-secondary text-secondary-foreground rounded-2xl rounded-bl-[5px] border border-foreground/5"
+            ${
+              isMe
+                ? "bg-primary text-primary-foreground rounded-2xl rounded-br-[5px]"
+                : "bg-secondary text-secondary-foreground rounded-2xl rounded-bl-[5px] border border-foreground/5"
             }
           `}
         >
           {message.content}
         </div>
-        <span className={`text-[10px] px-1 tabular-nums ${isMe ? "text-primary/50" : "text-foreground/30"}`}>
+        <span
+          className={`text-[10px] px-1 tabular-nums ${isMe ? "text-primary/50" : "text-foreground/30"}`}
+        >
           {formatTime(message.created_at)}
         </span>
       </div>
@@ -215,7 +222,7 @@ function EmptyMessages({ name }: { name: string }) {
 ───────────────────────────────────────────── */
 export function ConversationView({
   conversationId,
-  user,
+  userId,
   onBack,
   onConversationRead,
 }: ConversationViewProps) {
@@ -223,7 +230,9 @@ export function ConversationView({
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [conversation, setConversation] = useState<Conversation | null>(null);
-  const [otherParticipant, setOtherParticipant] = useState<Profile | null>(null);
+  const [otherParticipant, setOtherParticipant] = useState<Profile | null>(
+    null,
+  );
   const [messageText, setMessageText] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
@@ -233,39 +242,36 @@ export function ConversationView({
   const containerRef = useRef<HTMLDivElement>(null);
 
   /* ── Fetch ── */
-  const fetchConversation = useCallback(
-    async (userId: string) => {
-      try {
-        const full: ConversationFull | null = await getConversationFull(
-          supabase,
-          conversationId,
-          userId
-        );
-        if (!full) return;
-        setConversation(full.conversation);
-        setOtherParticipant(full.otherProfile);
-        setMessages(full.messages);
-        await markMessagesAsRead(conversationId, userId);
-        onConversationRead?.(conversationId);
-      } catch (err) {
-        console.error("[ConversationView] Fetch error:", err);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [supabase, conversationId, onConversationRead]
-  );
+  const fetchConversation = useCallback(async () => {
+    try {
+      const full: ConversationFull | null = await getConversationFull(
+        supabase,
+        conversationId,
+        userId,
+      );
+      if (!full) return;
+      setConversation(full.conversation);
+      setOtherParticipant(full.otherProfile);
+      setMessages(full.messages);
+      await markMessagesAsRead(conversationId, userId);
+      onConversationRead?.(conversationId);
+    } catch (err) {
+      console.error("[ConversationView] Fetch error:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [supabase, conversationId, userId, onConversationRead]);
 
   useEffect(() => {
-    if (conversationId && user) {
+    if (conversationId && userId) {
       setLoading(true);
-      fetchConversation(user.id);
+      fetchConversation();
     }
-  }, [conversationId, user, fetchConversation]);
+  }, [conversationId, userId, fetchConversation]);
 
   /* ── Real-time subscription ── */
   useEffect(() => {
-    if (!user?.id) return;
+    if (!userId) return;
 
     const channel = supabase
       .channel(`conv-view-${conversationId}`)
@@ -284,12 +290,14 @@ export function ConversationView({
             if (exists) return prev;
             return [...prev, payload.new as Message];
           });
-        }
+        },
       )
       .subscribe();
 
-    return () => { channel.unsubscribe(); };
-  }, [supabase, conversationId, user?.id]);
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [supabase, conversationId, userId]);
 
   /* ── Auto-scroll ── */
   // Only scroll within the chat container when user sends a new message
@@ -298,12 +306,16 @@ export function ConversationView({
     if (messages.length > prevMessagesLength.current) {
       const container = containerRef.current;
       if (container && messagesEndRef.current) {
-        const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
+        const isNearBottom =
+          container.scrollHeight -
+            container.scrollTop -
+            container.clientHeight <
+          150;
         if (isNearBottom) {
           // Scroll the container instead of using scrollIntoView to avoid scrolling the page
           container.scrollTo({
             top: container.scrollHeight,
-            behavior: "smooth"
+            behavior: "smooth",
           });
         }
       }
@@ -323,7 +335,7 @@ export function ConversationView({
   const handleSend = useCallback(
     async (e?: React.FormEvent) => {
       e?.preventDefault();
-      if (!messageText.trim() || !user || sending) return;
+      if (!messageText.trim() || !userId || sending) return;
 
       const text = messageText.trim();
       setSending(true);
@@ -335,7 +347,7 @@ export function ConversationView({
       }
 
       try {
-        await sendMessageLegacy(supabase, conversationId, user.id, text);
+        await sendMessageLegacy(supabase, conversationId, userId, text);
         // Real-time subscription will append — no manual refetch needed
       } catch (err) {
         console.error("[ConversationView] Send error:", err);
@@ -345,7 +357,7 @@ export function ConversationView({
         textareaRef.current?.focus();
       }
     },
-    [supabase, conversationId, messageText, user, sending]
+    [supabase, conversationId, messageText, userId, sending],
   );
 
   /* ── Send on Enter (Shift+Enter = newline) ── */
@@ -368,7 +380,6 @@ export function ConversationView({
   ───────────────────────────────────────────── */
   return (
     <div className="flex flex-col h-full">
-
       {/* ── Header ── */}
       <div className="flex items-center gap-3 px-4 py-3.5 border-b border-foreground/8 shrink-0">
         {/* Back button (mobile) */}
@@ -389,13 +400,13 @@ export function ConversationView({
         {/* Avatar */}
         <Avatar className="w-9 h-9 border border-foreground/10 shrink-0">
           {otherParticipant?.avatar_url ? (
-            <AvatarImage
-              src={otherParticipant.avatar_url}
-              alt={otherName}
-            />
+            <AvatarImage src={otherParticipant.avatar_url} alt={otherName} />
           ) : (
             <AvatarFallback className="text-xs font-bold bg-foreground/8 text-foreground">
-              {getInitials(otherParticipant?.first_name, otherParticipant?.last_name)}
+              {getInitials(
+                otherParticipant?.first_name,
+                otherParticipant?.last_name,
+              )}
             </AvatarFallback>
           )}
         </Avatar>
@@ -429,7 +440,10 @@ export function ConversationView({
       <div
         ref={containerRef}
         className="flex-1 overflow-y-auto py-4 flex flex-col gap-1 scroll-smooth"
-        style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(0,0,0,.1) transparent" }}
+        style={{
+          scrollbarWidth: "thin",
+          scrollbarColor: "rgba(0,0,0,.1) transparent",
+        }}
       >
         {loading ? (
           <MessageSkeleton />
@@ -440,7 +454,7 @@ export function ConversationView({
             <div key={gi} className="flex flex-col gap-1">
               <DateDivider label={group.label} />
               {group.messages.map((msg, mi) => {
-                const isMe = msg.sender_id === user?.id;
+                const isMe = msg.sender_id === userId;
                 // Show avatar only on the last message in a consecutive run from same sender
                 const nextMsg = group.messages[mi + 1];
                 const isLastInRun =
