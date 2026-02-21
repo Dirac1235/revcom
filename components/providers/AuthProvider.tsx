@@ -40,21 +40,11 @@ export function AuthProvider({
   const supabase = createClient();
 
   useEffect(() => {
-    // onAuthStateChange fires immediately on mount with the current session,
-    // so there's no need for a separate getSession() call. This eliminates
-    // the race condition between two competing async effects.
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
-      console.log(
-        "[AuthProvider] Auth state changed:",
-        event,
-        "user:",
-        currentSession?.user?.id ?? null
-      );
+    let mounted = true;
 
-      setSession(currentSession);
+    const applySession = async (currentSession: Session | null) => {
       const authUser = currentSession?.user ?? null;
+      setSession(currentSession);
       setUser(authUser);
 
       if (authUser) {
@@ -68,16 +58,49 @@ export function AuthProvider({
           console.error("[AuthProvider] Profile fetch error:", profileError.message);
         }
 
-        setProfile(profileData ?? null);
+        if (mounted) setProfile(profileData ?? null);
       } else {
         setProfile(null);
       }
 
-      setLoading(false);
-      setIsReady(true);
+      if (mounted) {
+        setLoading(false);
+        setIsReady(true);
+      }
+    };
+
+    // Resolve initial session from storage/cookies. In production, onAuthStateChange
+    // can fail to fire (e.g. SSR/cookie timing), so we must not rely on it alone.
+    const initSession = async () => {
+      try {
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        if (mounted) await applySession(currentSession);
+      } catch (err) {
+        console.error("[AuthProvider] getSession error:", err);
+        if (mounted) {
+          setLoading(false);
+          setIsReady(true);
+        }
+      }
+    };
+
+    initSession();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
+      if (!mounted) return;
+      console.log(
+        "[AuthProvider] Auth state changed:",
+        event,
+        "user:",
+        currentSession?.user?.id ?? null
+      );
+      await applySession(currentSession);
     });
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
   }, []);
