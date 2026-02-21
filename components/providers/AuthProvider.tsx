@@ -69,15 +69,26 @@ export function AuthProvider({
       }
     };
 
-    // Resolve initial session from storage/cookies. In production, onAuthStateChange
-    // can fail to fire (e.g. SSR/cookie timing), so we must not rely on it alone.
+    // Resolve initial session from storage/cookies. In production, getSession() can
+    // time out waiting for Navigator LockManager (e.g. "lock:sb-...-auth-token").
+    // Use a short timeout so we don't block the app; onAuthStateChange may still fire with the session.
+    const SESSION_INIT_TIMEOUT_MS = 4000;
+
     const initSession = async () => {
       try {
-        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        const sessionPromise = supabase.auth.getSession();
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("getSession timeout")), SESSION_INIT_TIMEOUT_MS)
+        );
+        const { data: { session: currentSession } } = await Promise.race([
+          sessionPromise,
+          timeoutPromise,
+        ]);
         if (mounted) await applySession(currentSession);
       } catch (err) {
-        console.error("[AuthProvider] getSession error:", err);
+        console.warn("[AuthProvider] getSession error or timeout, continuing without session:", err);
         if (mounted) {
+          await applySession(null);
           setLoading(false);
           setIsReady(true);
         }

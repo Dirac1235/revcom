@@ -19,6 +19,7 @@ import { MessagesSkeleton } from "@/components/skeletons/MessagesSkeleton";
 import { ConversationView } from "@/components/ConversationView";
 import { LoadingState } from "@/components/features/LoadingState";
 import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/components/providers/AuthProvider";
 import type { User } from "@supabase/supabase-js";
 import type { Profile, Conversation, Message } from "@/lib/types";
 
@@ -65,21 +66,6 @@ function getInitials(first?: string | null, last?: string | null): string {
     Supabase helpers
 ───────────────────────────────────────────── */
 const supabase = createClient();
-
-async function getUserWithProfile(
-  sb: typeof supabase
-): Promise<{ user: User | null; profile: Profile | null }> {
-  const {
-    data: { user },
-  } = await sb.auth.getUser();
-  if (!user) return { user: null, profile: null };
-  const { data: profile } = await sb
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
-  return { user, profile };
-}
 
 async function getUserConversations(
   sb: typeof supabase,
@@ -353,12 +339,12 @@ function SelectChatPlaceholder() {
 function MessagesContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user, isReady } = useAuth();
 
-  const isInitialized = useRef(false);
   const userIdRef = useRef<string | null>(null);
   const refreshTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const hasFetchedForUserRef = useRef<string | null>(null);
 
-  const [user, setUser] = useState<User | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [conversationDetails, setConversationDetails] = useState<Map<string, ConversationDetails>>(new Map());
   const [loading, setLoading] = useState(true);
@@ -424,33 +410,27 @@ function MessagesContent() {
     patchConversationInPlace(conversationId, { unreadCount: 0 });
   }, [patchConversationInPlace]);
 
+  // Rely on AuthProvider for auth; avoid a second getSession/getUser call that can trigger LockManager timeout in production.
   useEffect(() => {
-    if (isInitialized.current) return;
-    isInitialized.current = true;
-    let active = true;
+    if (!isReady) return;
+    if (!user) {
+      setLoading(false);
+      router.push("/auth/login");
+      return;
+    }
+    if (hasFetchedForUserRef.current === user.id) return;
+    hasFetchedForUserRef.current = user.id;
+    setError(null);
     (async () => {
       try {
-        const { user: u } = await getUserWithProfile(supabase);
-        if (!active) return;
-        if (!u) {
-          setLoading(false);
-          router.push("/auth/login");
-          return;
-        }
-        setUser(u);
-        await fetchConversations(u.id);
+        await fetchConversations(user.id);
       } catch {
-        if (active) {
-          setError("Failed to initialize.");
-          setLoading(false);
-        }
+        setError("Failed to load conversations.");
+      } finally {
+        setLoading(false);
       }
     })();
-    return () => {
-      active = false;
-      if (refreshTimeoutRef.current) clearTimeout(refreshTimeoutRef.current);
-    };
-  }, [router, fetchConversations]);
+  }, [isReady, user, router, fetchConversations]);
 
   useEffect(() => {
     if (!user?.id) return;
