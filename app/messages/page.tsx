@@ -108,7 +108,7 @@ async function getConversationListDetails(
           : conv.participant_1_id;
       const [{ data: otherProfile }, { data: lastMessage }, { count }] =
         await Promise.all([
-          sb.from("profiles").select("*").eq("id", otherId).single(),
+          sb.from("profiles").select("*").eq("id", otherId).maybeSingle(),
           sb
             .from("messages")
             .select("*")
@@ -398,11 +398,18 @@ function MessagesContent() {
       try {
         const { user: u } = await getUserWithProfile(supabase);
         if (!active) return;
-        if (!u) { router.push("/auth/login"); return; }
+        if (!u) {
+          setLoading(false);
+          router.push("/auth/login");
+          return;
+        }
         setUser(u);
         await fetchConversations(u.id);
       } catch {
-        if (active) setError("Failed to initialize.");
+        if (active) {
+          setError("Failed to initialize.");
+          setLoading(false);
+        }
       }
     })();
     return () => {
