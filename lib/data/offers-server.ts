@@ -14,13 +14,34 @@ export async function getOffersByRequest(requestId: string) {
   return data || [];
 }
 
-export async function getOffersBySeller(sellerId: string) {
+export async function getOffersByRequestWithSellers(requestId: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
+    .from("offers")
+    .select(`
+      *,
+      seller:profiles!seller_id (*)
+    `)
+    .eq("request_id", requestId)
+    .order("created_at", { ascending: false });
+  
+  if (error) throw error;
+  return data || [];
+}
+
+export async function getOffersBySeller(sellerId: string, limit?: number) {
+  const supabase = await createClient();
+  let query = supabase
     .from("offers")
     .select("*")
     .eq("seller_id", sellerId)
     .order("created_at", { ascending: false });
+  
+  if (limit) {
+    query = query.limit(limit);
+  }
+  
+  const { data, error } = await query;
   
   if (error) throw error;
   return data || [];

@@ -6,11 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Request } from '@/lib/types';
 import { ROUTES } from '@/lib/constants/routes';
-import { ArrowUpRight, Calendar, Layers, DollarSign } from 'lucide-react';
+import { ArrowUpRight, Calendar, Layers, DollarSign, Send } from 'lucide-react';
 
 interface RequestCardProps {
   request: Request;
   userId?: string | null;
+  userType?: 'buyer' | 'seller' | 'both' | null;
   showActions?: boolean;
 }
 
@@ -40,10 +41,14 @@ function BudgetDisplay({ min, max }: { min?: number | null; max?: number | null 
   return <span className="text-muted-foreground text-sm font-normal">Budget Negotiable</span>;
 }
 
-export function RequestCard({ request, userId, showActions = true }: RequestCardProps) {
+export function RequestCard({ request, userId, userType, showActions = true }: RequestCardProps) {
   const isOwner = userId && request.buyer_id === userId;
+  const isSeller = userType === 'seller' || userType === 'both';
+  const isOpen = request.status === 'open';
   const statusStyle = STATUS_STYLES[request.status] ?? STATUS_STYLES.closed;
   const dotStyle = STATUS_DOT[request.status] ?? STATUS_DOT.closed;
+
+  const showMakeOffer = isSeller && isOpen && !isOwner;
 
   return (
     <Card className="group relative flex flex-col overflow-hidden rounded-2xl border border-border/50 bg-linear-to-b from-card to-card/95 shadow-sm transition-all duration-500 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/5 hover:border-primary/20 py-0">
@@ -109,18 +114,32 @@ export function RequestCard({ request, userId, showActions = true }: RequestCard
 
         {/* Action Button */}
         {showActions && (
-          <div className="mt-6">
-            <Button
-              className="w-full h-11 group/btn relative overflow-hidden rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
-              asChild
-            >
-              <Link href={ROUTES.LISTING_DETAIL(request.id)}>
-                <span className="relative z-10 flex items-center gap-2 font-semibold">
-                    Send Proposal
+          <div className="mt-6 space-y-2">
+            {showMakeOffer ? (
+              <Button
+                className="w-full h-11 group/btn relative overflow-hidden rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                asChild
+              >
+                <Link href={ROUTES.REQUEST_MAKE_OFFER(request.id)}>
+                  <span className="relative z-10 flex items-center gap-2 font-semibold">
+                    Make Offer
+                    <Send className="h-4 w-4 transition-transform duration-300 group-hover/btn:translate-x-1" />
+                  </span>
+                </Link>
+              </Button>
+            ) : (
+              <Button
+                className="w-full h-11 group/btn relative overflow-hidden rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                asChild
+              >
+                <Link href={ROUTES.LISTING_DETAIL(request.id)}>
+                  <span className="relative z-10 flex items-center gap-2 font-semibold">
+                    View Details
                     <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1" />
-                </span>
-              </Link>
-            </Button>
+                  </span>
+                </Link>
+              </Button>
+            )}
           </div>
         )}
       </CardContent>

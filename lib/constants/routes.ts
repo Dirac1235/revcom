@@ -29,12 +29,12 @@ export const ROUTES = {
   
   // Seller routes
   SELLER_EXPLORE: '/seller/explore',
+  SELLER_OFFERS: '/seller/offers',
   SELLER_PRODUCTS: '/seller/products',
   SELLER_PRODUCT_CREATE: '/seller/products/create',
   SELLER_PRODUCT_EDIT: (id: string) => `/seller/products/${id}/edit`,
   SELLER_ORDERS: '/seller/orders',
   SELLER_ORDER_DETAIL: (id: string) => `/seller/orders/${id}`,
-  SELLER_REQUEST_OFFER: (id: string) => `/seller/requests/${id}/offer`,
   
   // Shared routes
   MESSAGES: '/messages',
