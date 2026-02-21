@@ -138,10 +138,9 @@ export default function ProductDetailPage() {
       router.push(ROUTES.LOGIN);
       return;
     }
-    toast({
-      title: "Feature coming soon",
-      description: "Order placement feature will be available soon",
-    });
+    router.push(
+      `/checkout?product_id=${productId}&quantity=${quantity}`
+    );
   };
 
   const isOwnProduct = user?.id === product?.seller_id;

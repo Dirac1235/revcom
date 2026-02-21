@@ -55,11 +55,16 @@ export interface Order {
   buyer_id: string;
   seller_id: string;
   request_id: string | null;
+  listing_id: string | null;
   title: string;
   description: string;
   quantity: number;
   agreed_price: number;
   delivery_location: string | null;
+  delivery_phone: string | null;
+  delivery_notes: string | null;
+  order_notes: string | null;
+  payment_method: string | null;
   status: 'pending' | 'accepted' | 'shipped' | 'delivered' | 'cancelled';
   created_at: string;
   updated_at: string;
