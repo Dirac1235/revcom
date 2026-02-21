@@ -104,44 +104,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-card rounded-lg border border-border p-8 shadow-none">
-            <div className="flex items-center gap-5">
-              <div className="bg-secondary/50 p-3 rounded-md">
-                <Users className="w-6 h-6 text-foreground" />
-              </div>
-              <div>
-                <p className="text-3xl font-serif font-bold text-foreground">{stats.users}</p>
-                <p className="text-sm text-muted-foreground uppercase tracking-wide mt-1">Active Users</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-card rounded-lg border border-border p-8 shadow-none">
-            <div className="flex items-center gap-5">
-              <div className="bg-secondary/50 p-3 rounded-md">
-                <ShoppingBag className="w-6 h-6 text-foreground" />
-              </div>
-              <div>
-                <p className="text-3xl font-serif font-bold text-foreground">{stats.products}</p>
-                <p className="text-sm text-muted-foreground uppercase tracking-wide mt-1">Products Listed</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-card rounded-lg border border-border p-8 shadow-none">
-            <div className="flex items-center gap-5">
-              <div className="bg-secondary/50 p-3 rounded-md">
-                <TrendingUp className="w-6 h-6 text-foreground" />
-              </div>
-              <div>
-                <p className="text-3xl font-serif font-bold text-foreground">{stats.requests}</p>
-                <p className="text-sm text-muted-foreground uppercase tracking-wide mt-1">Active Requests</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 space-y-24">
         {/* Featured Products */}

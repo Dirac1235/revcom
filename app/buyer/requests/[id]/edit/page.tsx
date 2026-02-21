@@ -1,18 +1,12 @@
-"use client"
-
-import type React from "react"
-
-import { useState, useEffect } from "react"
-import { useRouter, useParams } from "next/navigation"
-import { updateRequest, getRequestById } from "@/lib/data/requests"
-import { getProfileById } from "@/lib/data/profiles"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import DashboardNav from "@/components/dashboard-nav"
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import EditRequestForm from "./form";
 
 const categories = [
   "Electronics",
@@ -24,193 +18,71 @@ const categories = [
   "Toys & Games",
   "Services",
   "Other",
-]
+];
 
-export default function EditRequestPage() {
-  const router = useRouter()
-  const params = useParams()
-  const requestId = params.id as string
-
-  const [user, setUser] = useState<any>(null)
-  const [profile, setProfile] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [formData, setFormData] = useState({
-    title: "",
-    category: "Electronics",
-    description: "",
-    budget_min: "",
-    budget_max: "",
-    quantity: "1",
-  })
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const { createClient } = await import("@/lib/supabase/client")
-      const supabase = createClient()
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-
-      if (!user) {
-        router.push("/auth/login")
-        return
-      }
-
-      setUser(user)
-
-      try {
-        const profileData = await getProfileById(user.id)
-        setProfile(profileData)
-
-        const requestData = await getRequestById(requestId)
-
-        if (requestData) {
-          setFormData({
-            title: requestData.title,
-            category: requestData.category,
-            description: requestData.description,
-            budget_min: String(requestData.budget_min),
-            budget_max: String(requestData.budget_max),
-            quantity: "1",
-          })
-        }
-      } catch (error) {
-        console.error("Error fetching data:", error)
-      }
-
-      setLoading(false)
-    }
-
-    fetchData()
-  }, [requestId, router])
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
+export default async function EditRequestPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: requestId } = await params;
+  const supabase = await createClient();
+  
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  
+  if (authError || !user) {
+    redirect("/auth/login");
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setSaving(true)
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
 
-    try {
-      await updateRequest(requestId, {
-        title: formData.title,
-        category: formData.category,
-        description: formData.description,
-        budget_min: Number.parseFloat(formData.budget_min),
-        budget_max: Number.parseFloat(formData.budget_max),
-      })
+  const { data: request } = await supabase
+    .from("requests")
+    .select("*")
+    .eq("id", requestId)
+    .single();
 
-      router.push("/buyer/requests")
-      router.refresh()
-    } catch (error) {
-      console.error("[v0] Error updating request:", error)
-    } finally {
-      setSaving(false)
-    }
+  if (!request) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-2">Request Not Found</h2>
+          <Link href="/buyer/requests">
+            <Button>Back to Requests</Button>
+          </Link>
+        </div>
+      </div>
+    );
   }
 
-  if (loading || !user) return null
+  // Check if user owns this request
+  if (request.buyer_id !== user.id) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
+          <p className="text-muted-foreground mb-4">You can only edit your own requests.</p>
+          <Link href="/buyer/requests">
+            <Button>Back to Requests</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
-
       <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
+          <Link href={`/buyer/requests/${requestId}`} className="text-sm text-muted-foreground hover:text-foreground mb-2 inline-block">
+            ← Back to Request
+          </Link>
           <h1 className="text-3xl font-bold text-foreground mb-2">Edit Request</h1>
           <p className="text-muted-foreground">Update your buyer request details</p>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Request Details</CardTitle>
-            <CardDescription>Update what you're looking for</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <Label htmlFor="title">What are you looking for?</Label>
-                <Input
-                  id="title"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleChange}
-                  placeholder="e.g., iPhone 13 Pro"
-                  required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="category">Category</Label>
-                <select
-                  id="category"
-                  name="category"
-                  value={formData.category}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-input rounded-md bg-background"
-                >
-                  {categories.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  placeholder="Describe what you need"
-                  rows={5}
-                  required
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="budget_min">Minimum Budget</Label>
-                  <Input
-                    id="budget_min"
-                    name="budget_min"
-                    type="number"
-                    step="0.01"
-                    value={formData.budget_min}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="budget_max">Maximum Budget</Label>
-                  <Input
-                    id="budget_max"
-                    name="budget_max"
-                    type="number"
-                    step="0.01"
-                    value={formData.budget_max}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="flex gap-4">
-                <Button type="submit" disabled={saving}>
-                  {saving ? "Saving..." : "Save Changes"}
-                </Button>
-                <Link href="/buyer/requests">
-                  <Button variant="outline">Cancel</Button>
-                </Link>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+        <EditRequestForm request={request} requestId={requestId} />
       </main>
     </div>
-  )
+  );
 }
