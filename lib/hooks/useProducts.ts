@@ -20,24 +20,18 @@ export function useProducts(options: UseProductsOptions = {}) {
   const { sellerId, category, status, search, limit } = options;
 
   const fetchProducts = useCallback(async () => {
-    console.log('[useProducts] fetchProducts called');
-    
     try {
       setLoading(true);
       setError(null);
-
       const data = await getListings({
         sellerId,
         category,
         status,
         search,
-        limit
+        limit,
       });
-
-      console.log('[useProducts] fetchProducts succeeded with', data.length, 'products');
       setProducts(data);
     } catch (err) {
-      console.error('[useProducts] fetchProducts failed:', err);
       setError(err as Error);
       setProducts([]);
     } finally {
@@ -46,13 +40,7 @@ export function useProducts(options: UseProductsOptions = {}) {
   }, [sellerId, category, status, search, limit]);
 
   useEffect(() => {
-    // Only fetch when auth is ready
-    if (!isReady) {
-      console.log('[useProducts] Waiting for auth to be ready...');
-      return;
-    }
-
-    console.log('[useProducts] Auth is ready, fetching products...');
+    if (!isReady) return;
     fetchProducts();
   }, [fetchProducts, isReady]);
 
@@ -71,11 +59,7 @@ export function useProduct(id: string | null) {
   const { isReady } = useAuth();
 
   useEffect(() => {
-    if (!isReady) {
-      console.log('[useProduct] Waiting for auth to be ready...');
-      return;
-    }
-
+    if (!isReady) return;
     if (!id) {
       setProduct(null);
       setLoading(false);
@@ -84,33 +68,21 @@ export function useProduct(id: string | null) {
 
     let cancelled = false;
 
-    const fetchProduct = async () => {
-      console.log('[useProduct] Fetching product with id:', id);
-      
+    (async () => {
       try {
         setLoading(true);
         setError(null);
-
         const data = await getListingById(id);
-
-        if (!cancelled) {
-          console.log('[useProduct] Product fetch succeeded:', data ? 'found' : 'not found');
-          setProduct(data);
-        }
+        if (!cancelled) setProduct(data);
       } catch (err) {
         if (!cancelled) {
-          console.error('[useProduct] Product fetch failed:', err);
           setError(err as Error);
           setProduct(null);
         }
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        if (!cancelled) setLoading(false);
       }
-    };
-
-    fetchProduct();
+    })();
 
     return () => {
       cancelled = true;

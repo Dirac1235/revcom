@@ -2,12 +2,8 @@
 
 import React, { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -20,9 +16,8 @@ import { Search, Filter } from "lucide-react";
 import { RequestCard } from "@/components/features/RequestCard";
 import { LoadingState } from "@/components/features/LoadingState";
 import { EmptyState } from "@/components/features/EmptyState";
-import { getOpenRequests } from "@/lib/data/requests-server";
-
-import { Request } from "@/lib/types";
+import { useAuth } from "@/components/providers/AuthProvider";
+import { useRequests } from "@/lib/hooks/useRequests";
 
 const categories = [
   "Electronics",
@@ -39,68 +34,23 @@ const categories = [
 function ListingsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  
+  const { user } = useAuth();
+
   const searchParam = searchParams?.get("search") ?? "";
   const categoryParam = searchParams?.get("category") ?? "all";
 
   const [query, setQuery] = useState<string>(searchParam);
   const [category, setCategory] = useState<string>(categoryParam === "" ? "all" : categoryParam);
-  const [listings, setListings] = useState<Request[] | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+
+  const { requests: listings, loading, error } = useRequests({
+    category: category && category !== "all" ? category : undefined,
+    search: query?.trim() || undefined,
+  });
 
   useEffect(() => {
-    // Keep query and category in sync with URL
     setQuery(searchParam);
     setCategory(categoryParam === "" ? "all" : categoryParam);
   }, [searchParam, categoryParam]);
-
-  useEffect(() => {
-    let mounted = true;
-
-    async function load() {
-      setLoading(true);
-      try {
-        // fetch current user (if any)
-        const { createClient } = await import("@/lib/supabase/client");
-        const supabase = createClient();
-        const userRes = await supabase.auth.getUser();
-        const uid = userRes?.data?.user?.id ?? null;
-        if (!mounted) return;
-        setUserId(uid);
-
-        // fetch buyer requests with filters
-        const listingsData = await getOpenRequests();
-        
-        // Apply client-side filtering for search and category
-        let filtered = listingsData;
-        if (query && query.trim() !== "") {
-          const q = query.trim().toLowerCase();
-          filtered = filtered.filter((l: any) => 
-            l.title?.toLowerCase().includes(q) || 
-            l.description?.toLowerCase().includes(q)
-          );
-        }
-        if (category && category.trim() !== "" && category !== "all") {
-          filtered = filtered.filter((l: any) => l.category === category);
-        }
-
-        if (!mounted) return;
-        setListings(filtered as Request[] ?? []);
-      } catch (e) {
-        console.error("Error loading listings:", e);
-        setListings([]);
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    }
-
-    load();
-
-    return () => {
-      mounted = false;
-    };
-  }, [query, category]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -207,7 +157,13 @@ function ListingsContent() {
         <section>
           {loading ? (
             <LoadingState count={8} type="card" />
-          ) : listings && listings.length > 0 ? (
+          ) : error ? (
+            <EmptyState
+              icon={Filter}
+              title="Error loading requests"
+              description="Please try again later."
+            />
+          ) : listings.length > 0 ? (
             <>
               <div className="mb-6 text-sm font-medium text-muted-foreground uppercase tracking-wider">
                 Found {listings.length} request{listings.length !== 1 ? "s" : ""}
@@ -219,7 +175,7 @@ function ListingsContent() {
                   <RequestCard
                     key={l.id}
                     request={l}
-                    userId={userId}
+                    userId={user?.id ?? null}
                   />
                 ))}
               </div>

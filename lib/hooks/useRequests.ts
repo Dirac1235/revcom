@@ -20,45 +20,28 @@ export function useRequests(options: UseRequestsOptions = {}) {
   const { buyerId, status, category, search, limit } = options;
 
   const fetchRequests = useCallback(async () => {
-    console.log('[useRequests] fetchRequests called');
-    
     try {
       setLoading(true);
       setError(null);
 
-      let data: Request[];
+      let data: Request[] = buyerId
+        ? await getBuyerRequests(buyerId)
+        : await getOpenRequests();
 
-      if (buyerId) {
-        data = await getBuyerRequests(buyerId);
-      } else {
-        data = await getOpenRequests();
-      }
-
-      // Apply client-side filters
-      if (status) {
-        data = data.filter(r => r.status === status);
-      }
-
-      if (category) {
-        data = data.filter(r => r.category === category);
-      }
-
+      if (status) data = data.filter((r) => r.status === status);
+      if (category) data = data.filter((r) => r.category === category);
       if (search) {
-        const searchLower = search.toLowerCase();
-        data = data.filter(r => 
-          r.title?.toLowerCase().includes(searchLower) || 
-          r.description?.toLowerCase().includes(searchLower)
+        const q = search.toLowerCase();
+        data = data.filter(
+          (r) =>
+            r.title?.toLowerCase().includes(q) ||
+            r.description?.toLowerCase().includes(q)
         );
       }
+      if (limit) data = data.slice(0, limit);
 
-      if (limit) {
-        data = data.slice(0, limit);
-      }
-
-      console.log('[useRequests] fetchRequests succeeded with', data.length, 'requests');
       setRequests(data);
     } catch (err) {
-      console.error('[useRequests] fetchRequests failed:', err);
       setError(err as Error);
       setRequests([]);
     } finally {
@@ -67,12 +50,7 @@ export function useRequests(options: UseRequestsOptions = {}) {
   }, [buyerId, status, category, search, limit]);
 
   useEffect(() => {
-    if (!isReady) {
-      console.log('[useRequests] Waiting for auth to be ready...');
-      return;
-    }
-
-    console.log('[useRequests] Auth is ready, fetching requests...');
+    if (!isReady) return;
     fetchRequests();
   }, [fetchRequests, isReady]);
 
@@ -91,11 +69,7 @@ export function useRequest(id: string | null) {
   const { isReady } = useAuth();
 
   useEffect(() => {
-    if (!isReady) {
-      console.log('[useRequest] Waiting for auth to be ready...');
-      return;
-    }
-
+    if (!isReady) return;
     if (!id) {
       setRequest(null);
       setLoading(false);
@@ -104,33 +78,21 @@ export function useRequest(id: string | null) {
 
     let cancelled = false;
 
-    const fetchRequest = async () => {
-      console.log('[useRequest] Fetching request with id:', id);
-      
+    (async () => {
       try {
         setLoading(true);
         setError(null);
-
         const data = await getRequestById(id);
-
-        if (!cancelled) {
-          console.log('[useRequest] Request fetch succeeded:', data ? 'found' : 'not found');
-          setRequest(data);
-        }
+        if (!cancelled) setRequest(data);
       } catch (err) {
         if (!cancelled) {
-          console.error('[useRequest] Request fetch failed:', err);
           setError(err as Error);
           setRequest(null);
         }
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        if (!cancelled) setLoading(false);
       }
-    };
-
-    fetchRequest();
+    })();
 
     return () => {
       cancelled = true;
