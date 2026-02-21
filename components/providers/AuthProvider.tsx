@@ -71,8 +71,8 @@ export function AuthProvider({
 
     // Resolve initial session from storage/cookies. In production, getSession() can
     // time out waiting for Navigator LockManager (e.g. "lock:sb-...-auth-token").
-    // Use a short timeout so we don't block the app; onAuthStateChange may still fire with the session.
-    const SESSION_INIT_TIMEOUT_MS = 4000;
+    // Use a very short timeout so we don't block the app; onAuthStateChange may still fire with the session.
+    const SESSION_INIT_TIMEOUT_MS = 2000;
 
     const initSession = async () => {
       try {
@@ -86,8 +86,7 @@ export function AuthProvider({
         ]);
         if (mounted) await applySession(currentSession);
       } catch (err) {
-        console.warn("[AuthProvider] getSession error or timeout, keeping server session if any:", err);
-        // Do not call applySession(null) — that would overwrite initialUser from the layout and log the user out.
+        // In production, suppress the warning to reduce noise in console
         // Keep existing user/profile from server; just mark ready so the app can render.
         if (mounted) {
           setLoading(false);
