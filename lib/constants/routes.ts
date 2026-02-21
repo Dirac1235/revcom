@@ -24,8 +24,12 @@ export const ROUTES = {
   BUYER_ORDERS: '/buyer/orders',
   BUYER_ORDER_DETAIL: (id: string) => `/buyer/orders/${id}`,
   
+  // Public request routes
+  REQUEST_MAKE_OFFER: (id: string) => `/requests/${id}/make-offer`,
+  
   // Seller routes
   SELLER_EXPLORE: '/seller/explore',
+  SELLER_OFFERS: '/seller/offers',
   SELLER_PRODUCTS: '/seller/products',
   SELLER_PRODUCT_CREATE: '/seller/products/create',
   SELLER_PRODUCT_EDIT: (id: string) => `/seller/products/${id}/edit`,

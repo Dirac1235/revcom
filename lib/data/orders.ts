@@ -50,11 +50,16 @@ export async function createOrder(payload: {
   buyer_id: string;
   seller_id: string;
   request_id?: string;
+  listing_id?: string;
   title: string;
   description?: string;
   quantity: number;
   agreed_price: number;
   delivery_location?: string;
+  delivery_phone?: string;
+  delivery_notes?: string;
+  order_notes?: string;
+  payment_method?: string;
   status?: string;
 }) {
   const supabase = createClient();

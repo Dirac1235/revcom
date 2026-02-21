@@ -34,7 +34,7 @@ const categories = [
 function ListingsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isSeller } = useAuth();
 
   const searchParam = searchParams?.get("search") ?? "";
   const categoryParam = searchParams?.get("category") ?? "all";
@@ -176,6 +176,7 @@ function ListingsContent() {
                     key={l.id}
                     request={l}
                     userId={user?.id ?? null}
+                    userType={isSeller ? 'seller' : null}
                   />
                 ))}
               </div>

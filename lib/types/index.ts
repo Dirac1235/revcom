@@ -28,6 +28,9 @@ export interface Request {
   category: string;
   budget_min: number | null;
   budget_max: number | null;
+  quantity: number | null;
+  deadline: string | null;
+  delivery_location: string | null;
   status: 'open' | 'closed' | 'completed';
   created_at: string;
   updated_at: string;
@@ -55,11 +58,16 @@ export interface Order {
   buyer_id: string;
   seller_id: string;
   request_id: string | null;
+  listing_id: string | null;
   title: string;
   description: string;
   quantity: number;
   agreed_price: number;
   delivery_location: string | null;
+  delivery_phone: string | null;
+  delivery_notes: string | null;
+  order_notes: string | null;
+  payment_method: string | null;
   status: 'pending' | 'accepted' | 'shipped' | 'delivered' | 'cancelled';
   created_at: string;
   updated_at: string;
@@ -100,6 +108,26 @@ export interface Review {
   rating: number;
   comment: string | null;
   created_at: string;
+}
+
+export interface Offer {
+  id: string;
+  seller_id: string;
+  request_id: string;
+  price: number;
+  description: string;
+  delivery_timeline: string;
+  delivery_cost: number;
+  payment_terms: string | null;
+  attachments: string[] | null;
+  status: 'pending' | 'accepted' | 'rejected' | 'withdrawn';
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OfferWithDetails extends Offer {
+  seller?: Profile;
+  request?: Request;
 }
 
 // Extended types with relations

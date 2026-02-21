@@ -62,7 +62,7 @@ function getInitials(first?: string | null, last?: string | null): string {
 }
 
 /* ─────────────────────────────────────────────
-   Supabase helpers
+    Supabase helpers
 ───────────────────────────────────────────── */
 const supabase = createClient();
 
