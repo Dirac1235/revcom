@@ -45,6 +45,7 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [unreadCount, setUnreadCount] = useState(0);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -66,6 +67,35 @@ export function Navbar() {
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [pathname]);
+
+  // Fetch notification count
+  useEffect(() => {
+    const fetchNotificationCount = async () => {
+      if (!user?.id) return;
+      
+      try {
+        const { createClient } = await import('@/lib/supabase/client');
+        const supabase = createClient();
+        const { count, error } = await supabase
+          .from('notifications')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('read', false);
+        
+        if (!error && count !== null) {
+          setUnreadCount(count);
+        }
+      } catch (error) {
+        console.error('Error fetching notification count:', error);
+      }
+    };
+
+    fetchNotificationCount();
+    
+    // Refresh every 30 seconds
+    const interval = setInterval(fetchNotificationCount, 30000);
+    return () => clearInterval(interval);
+  }, [user?.id]);
 
   const handleSignOut = async () => {
     setMobileMenuOpen(false);
@@ -208,23 +238,17 @@ export function Navbar() {
                       </Button>
                     </Link>
 
-                    {/* Notifications */}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground">
-                          <Bell className="h-3.5 w-3.5" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" sideOffset={12} className="w-72 rounded-xl border-border/50 bg-card/95 [backdrop-filter:blur(20px)_saturate(150%)] shadow-xl p-0 overflow-hidden">
-                        <div className="px-4 py-3 border-b border-border/50">
-                          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Notifications</p>
-                        </div>
-                        <div className="py-10 text-center">
-                          <Bell className="h-5 w-5 text-muted-foreground/30 mx-auto mb-2" />
-                          <p className="text-sm text-muted-foreground">No new notifications</p>
-                        </div>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    {/* Notifications - Click to go to notifications page */}
+                    <Link href={ROUTES.NOTIFICATIONS}>
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground relative">
+                        <Bell className="h-3.5 w-3.5" />
+                        {unreadCount > 0 && (
+                          <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
+                            {unreadCount > 9 ? '9+' : unreadCount}
+                          </span>
+                        )}
+                      </Button>
+                    </Link>
 
                     {/* User menu */}
                     <DropdownMenu>
@@ -371,6 +395,14 @@ export function Navbar() {
                     <MobileNavItem href={ROUTES.DASHBOARD} onClick={() => setMobileMenuOpen(false)}>Dashboard</MobileNavItem>
                     <MobileNavItem href={ROUTES.PROFILE} onClick={() => setMobileMenuOpen(false)}>Profile</MobileNavItem>
                     <MobileNavItem href={ROUTES.MESSAGES} onClick={() => setMobileMenuOpen(false)}>Messages</MobileNavItem>
+                    <MobileNavItem href={ROUTES.NOTIFICATIONS} onClick={() => setMobileMenuOpen(false)}>
+                      Notifications
+                      {unreadCount > 0 && (
+                        <span className="ml-2 px-1.5 py-0.5 text-[10px] font-bold bg-red-500 text-white rounded-full">
+                          {unreadCount > 9 ? '9+' : unreadCount}
+                        </span>
+                      )}
+                    </MobileNavItem>
                   </MobileSection>
 
                   {isBuyer && (

@@ -4,15 +4,11 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DollarSign, Star, MessageSquare, Check, X, Clock, ArrowRight } from "lucide-react";
+import { DollarSign, Star, MessageSquare, Clock } from "lucide-react";
 import { getProfileById } from "@/lib/data/profiles-server";
 import { getRequestById } from "@/lib/data/requests-server";
 import { getOffersByRequestWithSellers } from "@/lib/data/offers-server";
-import AcceptOfferButton from "./accept-offer-button";
+import { OfferActions } from "@/components/offer-actions";
 
 export default async function RequestDetailPage({
   params,
@@ -186,9 +182,10 @@ export default async function RequestDetailPage({
 
                   {request.status === "open" && offer.status === "pending" && isOwner && (
                     <div className="flex gap-3 pt-2">
-                      <AcceptOfferButton 
-                        offerId={offer.id} 
+                      <OfferActions 
+                        offer={offer} 
                         requestId={id}
+                        requestStatus={request.status}
                       />
                       <Link href={`/messages?conversation=&request_id=${id}&to=${offer.seller_id}`} className="flex-1">
                         <Button variant="outline" className="w-full">
@@ -196,6 +193,16 @@ export default async function RequestDetailPage({
                           Message Seller
                         </Button>
                       </Link>
+                    </div>
+                  )}
+
+                  {request.status === "open" && offer.status === "accepted" && isOwner && (
+                    <div className="pt-2">
+                      <OfferActions 
+                        offer={offer} 
+                        requestId={id}
+                        requestStatus={request.status}
+                      />
                     </div>
                   )}
                 </CardContent>

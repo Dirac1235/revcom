@@ -39,6 +39,7 @@ export const ROUTES = {
   // Shared routes
   MESSAGES: '/messages',
   MESSAGE_CONVERSATION: (id: string) => `/messages?conversation=${id}`,
+  NOTIFICATIONS: '/notifications',
   PROFILE: '/profile',
   DASHBOARD: '/dashboard',
   EXPLORE: '/explore',

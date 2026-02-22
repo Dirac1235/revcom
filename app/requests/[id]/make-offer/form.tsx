@@ -11,7 +11,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/lib/hooks/use-toast";
 import { ROUTES } from "@/lib/constants/routes";
 import type { Profile, Request } from "@/lib/types";
@@ -46,7 +52,13 @@ interface MakeOfferFormProps {
   requestId: string;
 }
 
-export default function MakeOfferForm({ request, buyer, existingOffer, userId, requestId }: MakeOfferFormProps) {
+export default function MakeOfferForm({
+  request,
+  buyer,
+  existingOffer,
+  userId,
+  requestId,
+}: MakeOfferFormProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [submitting, setSubmitting] = useState(false);
@@ -67,7 +79,7 @@ export default function MakeOfferForm({ request, buyer, existingOffer, userId, r
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -115,7 +127,6 @@ export default function MakeOfferForm({ request, buyer, existingOffer, userId, r
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -124,9 +135,10 @@ export default function MakeOfferForm({ request, buyer, existingOffer, userId, r
     setSubmitting(true);
 
     try {
-      const timeline = formData.delivery_timeline === "custom" 
-        ? formData.custom_timeline 
-        : formData.delivery_timeline;
+      const timeline =
+        formData.delivery_timeline === "custom"
+          ? formData.custom_timeline
+          : formData.delivery_timeline;
 
       await createOffer({
         seller_id: userId,
@@ -134,17 +146,23 @@ export default function MakeOfferForm({ request, buyer, existingOffer, userId, r
         price: parseFloat(formData.price),
         description: formData.description,
         delivery_timeline: timeline,
-        delivery_cost: freeDelivery ? 0 : parseFloat(formData.delivery_cost || "0"),
+        delivery_cost: freeDelivery
+          ? 0
+          : parseFloat(formData.delivery_cost || "0"),
         payment_terms: formData.payment_terms || undefined,
         status: "pending",
       });
 
-      await createConversation(
-        userId,
-        request.buyer_id,
-        undefined,
-        requestId
-      );
+      await createConversation(userId, request.buyer_id, undefined, requestId);
+
+      const supabase = createClient();
+      await supabase.from("notifications").insert({
+        user_id: request.buyer_id,
+        type: "new_offer",
+        title: "New Offer Received",
+        message: `You have a new offer for "${request.title}"`,
+        link: `/buyer/requests/${requestId}`,
+      });
 
       toast({
         title: existingOffer ? "Offer Updated!" : "Offer Submitted!",
@@ -156,7 +174,8 @@ export default function MakeOfferForm({ request, buyer, existingOffer, userId, r
       console.error("[MakeOffer] Error:", error);
       toast({
         title: "Error",
-        description: error.message || "Failed to submit offer. Please try again.",
+        description:
+          error.message || "Failed to submit offer. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -181,9 +200,13 @@ export default function MakeOfferForm({ request, buyer, existingOffer, userId, r
         <CardContent className="space-y-5">
           {/* Pricing */}
           <div className="space-y-2">
-            <Label htmlFor="price">Offer Price <span className="text-red-500">*</span></Label>
+            <Label htmlFor="price">
+              Offer Price <span className="text-red-500">*</span>
+            </Label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">ETB</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                ETB
+              </span>
               <Input
                 id="price"
                 name="price"
@@ -194,9 +217,16 @@ export default function MakeOfferForm({ request, buyer, existingOffer, userId, r
                 className={`pl-14 text-lg font-semibold ${errors.price ? "border-red-500" : ""}`}
               />
             </div>
-            {errors.price && <p className="text-sm text-red-500">{errors.price}</p>}
+            {errors.price && (
+              <p className="text-sm text-red-500">{errors.price}</p>
+            )}
             {formData.price && request.quantity && request.quantity > 1 && (
-              <p className="text-sm text-muted-foreground">Price per unit: <span className="font-semibold">{getPricePerUnit().toLocaleString()} ETB</span></p>
+              <p className="text-sm text-muted-foreground">
+                Price per unit:{" "}
+                <span className="font-semibold">
+                  {getPricePerUnit().toLocaleString()} ETB
+                </span>
+              </p>
             )}
             {formData.price && isPriceOutsideBudget() && (
               <div className="flex items-center gap-2 p-2 bg-amber-50 border border-amber-200 rounded-lg text-amber-700 text-sm">
@@ -208,7 +238,9 @@ export default function MakeOfferForm({ request, buyer, existingOffer, userId, r
 
           {/* Proposal Description */}
           <div className="space-y-2">
-            <Label htmlFor="description">Proposal Description <span className="text-red-500">*</span></Label>
+            <Label htmlFor="description">
+              Proposal Description <span className="text-red-500">*</span>
+            </Label>
             <Textarea
               id="description"
               name="description"
@@ -219,59 +251,119 @@ export default function MakeOfferForm({ request, buyer, existingOffer, userId, r
               className={errors.description ? "border-red-500" : ""}
             />
             <div className="flex justify-between text-xs text-muted-foreground">
-              {errors.description ? <span className="text-red-500">{errors.description}</span> : <span>Be specific about product specs</span>}
+              {errors.description ? (
+                <span className="text-red-500">{errors.description}</span>
+              ) : (
+                <span>Be specific about product specs</span>
+              )}
               <span>{formData.description.length}/1000</span>
             </div>
           </div>
 
           {/* Delivery Timeline */}
           <div className="space-y-2">
-            <Label htmlFor="delivery_timeline">Delivery Timeline <span className="text-red-500">*</span></Label>
-            <Select value={formData.delivery_timeline} onValueChange={(value) => setFormData(prev => ({ ...prev, delivery_timeline: value }))}>
-              <SelectTrigger className={errors.delivery_timeline ? "border-red-500" : ""}>
+            <Label htmlFor="delivery_timeline">
+              Delivery Timeline <span className="text-red-500">*</span>
+            </Label>
+            <Select
+              value={formData.delivery_timeline}
+              onValueChange={(value) =>
+                setFormData((prev) => ({ ...prev, delivery_timeline: value }))
+              }
+            >
+              <SelectTrigger
+                className={errors.delivery_timeline ? "border-red-500" : ""}
+              >
                 <SelectValue placeholder="Select delivery timeline" />
               </SelectTrigger>
               <SelectContent>
                 {DELIVERY_TIMELINES.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            {errors.delivery_timeline && <p className="text-sm text-red-500">{errors.delivery_timeline}</p>}
+            {errors.delivery_timeline && (
+              <p className="text-sm text-red-500">{errors.delivery_timeline}</p>
+            )}
             {formData.delivery_timeline === "custom" && (
-              <Input name="custom_timeline" placeholder="Specify delivery date" value={formData.custom_timeline} onChange={handleChange} className="mt-2" />
+              <Input
+                name="custom_timeline"
+                placeholder="Specify delivery date"
+                value={formData.custom_timeline}
+                onChange={handleChange}
+                className="mt-2"
+              />
             )}
           </div>
 
           {/* Delivery Cost */}
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <input type="checkbox" id="free_delivery" checked={freeDelivery} onChange={(e) => setFreeDelivery(e.target.checked)} className="w-4 h-4" />
-              <Label htmlFor="free_delivery" className="font-normal cursor-pointer">Free delivery</Label>
+              <input
+                type="checkbox"
+                id="free_delivery"
+                checked={freeDelivery}
+                onChange={(e) => setFreeDelivery(e.target.checked)}
+                className="w-4 h-4"
+              />
+              <Label
+                htmlFor="free_delivery"
+                className="font-normal cursor-pointer"
+              >
+                Free delivery
+              </Label>
             </div>
             {!freeDelivery && (
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">ETB</span>
-                <Input name="delivery_cost" type="number" placeholder="Delivery cost" value={formData.delivery_cost} onChange={handleChange} className="pl-14" />
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                  ETB
+                </span>
+                <Input
+                  name="delivery_cost"
+                  type="number"
+                  placeholder="Delivery cost"
+                  value={formData.delivery_cost}
+                  onChange={handleChange}
+                  className="pl-14"
+                />
               </div>
             )}
           </div>
 
           {/* Additional Terms */}
           <div>
-            <button type="button" onClick={() => setShowAdditionalTerms(!showAdditionalTerms)} className="flex items-center justify-between w-full text-left">
+            <button
+              type="button"
+              onClick={() => setShowAdditionalTerms(!showAdditionalTerms)}
+              className="flex items-center justify-between w-full text-left"
+            >
               <span className="text-sm font-medium">Additional Terms</span>
-              {showAdditionalTerms ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+              {showAdditionalTerms ? (
+                <ChevronUp className="w-4 h-4 text-muted-foreground" />
+              ) : (
+                <ChevronDown className="w-4 h-4 text-muted-foreground" />
+              )}
             </button>
             {showAdditionalTerms && (
               <div className="mt-4 space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="payment_terms">Payment Terms</Label>
-                  <Select value={formData.payment_terms} onValueChange={(value) => setFormData(prev => ({ ...prev, payment_terms: value }))}>
-                    <SelectTrigger><SelectValue placeholder="Select payment terms" /></SelectTrigger>
+                  <Select
+                    value={formData.payment_terms}
+                    onValueChange={(value) =>
+                      setFormData((prev) => ({ ...prev, payment_terms: value }))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select payment terms" />
+                    </SelectTrigger>
                     <SelectContent>
                       {PAYMENT_TERMS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -282,45 +374,112 @@ export default function MakeOfferForm({ request, buyer, existingOffer, userId, r
 
           {/* Preview */}
           <div>
-            <button type="button" onClick={() => setShowPreview(!showPreview)} className="flex items-center justify-between w-full text-left">
+            <button
+              type="button"
+              onClick={() => setShowPreview(!showPreview)}
+              className="flex items-center justify-between w-full text-left"
+            >
               <span className="text-sm font-medium">Preview your offer</span>
-              {showPreview ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+              {showPreview ? (
+                <ChevronUp className="w-4 h-4 text-muted-foreground" />
+              ) : (
+                <ChevronDown className="w-4 h-4 text-muted-foreground" />
+              )}
             </button>
             {showPreview && (
               <div className="mt-4 p-4 bg-secondary/20 rounded-lg space-y-2">
-                <p><span className="font-semibold">Price:</span> {formData.price ? `${parseFloat(formData.price).toLocaleString()} ETB` : "-"}</p>
-                <p><span className="font-semibold">Delivery:</span> {formData.delivery_timeline || "-"}</p>
-                <p><span className="font-semibold">Description:</span></p>
-                <p className="text-sm text-muted-foreground">{formData.description || "-"}</p>
+                <p>
+                  <span className="font-semibold">Price:</span>{" "}
+                  {formData.price
+                    ? `${parseFloat(formData.price).toLocaleString()} ETB`
+                    : "-"}
+                </p>
+                <p>
+                  <span className="font-semibold">Delivery:</span>{" "}
+                  {formData.delivery_timeline || "-"}
+                </p>
+                <p>
+                  <span className="font-semibold">Description:</span>
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {formData.description || "-"}
+                </p>
               </div>
             )}
           </div>
 
           {/* Tips */}
           <div>
-            <button type="button" onClick={() => setShowTips(!showTips)} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+            <button
+              type="button"
+              onClick={() => setShowTips(!showTips)}
+              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+            >
               <Lightbulb className="w-4 h-4" />
               <span>Tips for better offers</span>
-              {showTips ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              {showTips ? (
+                <ChevronUp className="w-4 h-4" />
+              ) : (
+                <ChevronDown className="w-4 h-4" />
+              )}
             </button>
             {showTips && (
               <ul className="mt-3 space-y-2 text-sm text-muted-foreground bg-secondary/10 p-4 rounded-lg">
-                <li className="flex items-start gap-2"><Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />Be competitive but realistic</li>
-                <li className="flex items-start gap-2"><Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />Highlight your unique value</li>
-                <li className="flex items-start gap-2"><Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />Respond quickly</li>
-                <li className="flex items-start gap-2"><Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />Include delivery details</li>
+                <li className="flex items-start gap-2">
+                  <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                  Be competitive but realistic
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                  Highlight your unique value
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                  Respond quickly
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                  Include delivery details
+                </li>
               </ul>
             )}
           </div>
 
           {/* Action Buttons */}
           <div className="space-y-3 pt-4">
-            <Button type="submit" disabled={submitting || request.status !== "open"} className="w-full h-12 text-base font-semibold">
-              {submitting ? <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>Submitting...</> : existingOffer ? "Update Offer" : "Submit Offer"}
+            <Button
+              type="submit"
+              disabled={submitting || request.status !== "open"}
+              className="w-full h-12 text-base font-semibold"
+            >
+              {submitting ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Submitting...
+                </>
+              ) : existingOffer ? (
+                "Update Offer"
+              ) : (
+                "Submit Offer"
+              )}
             </Button>
             <div className="grid grid-cols-2 gap-3">
-              <Button type="button" variant="outline" onClick={handleSaveDraft} className="w-full">Save Draft</Button>
-              <Button type="button" variant="ghost" onClick={() => router.back()} className="w-full">Cancel</Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleSaveDraft}
+                className="w-full"
+              >
+                Save Draft
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => router.back()}
+                className="w-full"
+              >
+                Cancel
+              </Button>
             </div>
           </div>
         </CardContent>
