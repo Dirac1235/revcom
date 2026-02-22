@@ -457,7 +457,7 @@ function BuyerDashboard({ data, firstName }: { data: any; firstName: string }) {
                       key={order.id}
                       className="group flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-secondary/40 transition-colors border-b border-foreground/5 last:border-0"
                     >
-                      <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0">
+                      <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center shrink-0">
                         <ShoppingBag className="w-4 h-4 text-muted-foreground" />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -471,7 +471,7 @@ function BuyerDashboard({ data, firstName }: { data: any; firstName: string }) {
                           </span>
                         </div>
                       </div>
-                      <div className="text-right flex-shrink-0">
+                      <div className="text-right shrink-0">
                         <p className="text-sm font-semibold">
                           ${order.agreed_price?.toLocaleString()}
                         </p>
@@ -739,7 +739,7 @@ function SellerDashboard({ data }: { data: any }) {
                           {timeAgo(order.created_at)}
                         </p>
                       </div>
-                      <div className="flex gap-2 ml-3 flex-shrink-0">
+                      <div className="flex gap-2 ml-3 shrink-0">
                         <Button
                           size="sm"
                           className="h-7 bg-green-600 hover:bg-green-700 text-white text-xs px-3"
@@ -772,7 +772,7 @@ function SellerDashboard({ data }: { data: any }) {
                       key={order.id}
                       className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-secondary/40 transition-colors border-b border-foreground/5 last:border-0"
                     >
-                      <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center flex-shrink-0 text-xs font-bold text-muted-foreground">
+                      <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center shrink-0 text-xs font-bold text-muted-foreground">
                         {order.buyer_id?.slice(0, 2).toUpperCase() || "B"}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -786,7 +786,7 @@ function SellerDashboard({ data }: { data: any }) {
                           </span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
+                      <div className="flex items-center gap-2 shrink-0">
                         <p className="text-sm font-semibold">
                           ${order.agreed_price?.toLocaleString()}
                         </p>
@@ -1001,7 +1001,7 @@ function SellerDashboard({ data }: { data: any }) {
                         <p className="text-sm font-medium line-clamp-1 flex-1">
                           {req.title}
                         </p>
-                        <span className="text-[10px] text-muted-foreground flex-shrink-0">
+                        <span className="text-[10px] text-muted-foreground shrink-0">
                           {timeAgo(req.created_at)}
                         </span>
                       </div>
@@ -1043,7 +1043,7 @@ function SellerDashboard({ data }: { data: any }) {
                       key={product.id}
                       className="flex items-center gap-3 p-2 rounded-lg hover:bg-secondary/30 transition-colors"
                     >
-                      <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0">
+                      <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center shrink-0">
                         <Package className="w-4 h-4 text-muted-foreground" />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -1060,7 +1060,7 @@ function SellerDashboard({ data }: { data: any }) {
                           </span>
                         </div>
                       </div>
-                      <span className="text-xs text-muted-foreground flex-shrink-0">
+                      <span className="text-xs text-muted-foreground shrink-0">
                         {product.stock || 0} left
                       </span>
                     </div>
@@ -1085,7 +1085,7 @@ function SellerDashboard({ data }: { data: any }) {
                       key={order.id}
                       className="flex items-start gap-3 text-sm"
                     >
-                      <div className="w-7 h-7 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <div className="w-7 h-7 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center shrink-0 mt-0.5">
                         <ShoppingBag className="w-3.5 h-3.5 text-green-600" />
                       </div>
                       <div>

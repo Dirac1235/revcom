@@ -133,6 +133,18 @@ function getNotificationConfig(type: string) {
   };
 }
 
+async function handleNotificationClick(formData: FormData) {
+  "use server";
+  const notificationId = formData.get("id") as string;
+  const link = formData.get("link") as string;
+  const supabase = await createClient();
+  await supabase
+    .from("notifications")
+    .update({ read: true })
+    .eq("id", notificationId);
+  redirect(link || "/dashboard");
+}
+
 export default async function NotificationsPage({
   searchParams,
 }: {
@@ -228,55 +240,60 @@ export default async function NotificationsPage({
               const isUnread = !notification.read;
 
               return (
-                <Link
-                  key={notification.id}
-                  href={notification.link || "/dashboard"}
-                >
-                  <Card
-                    className={`group hover:shadow-md transition-all duration-200 border-border/60 overflow-hidden cursor-pointer p-2 mb-2
-                      ${isUnread ? "border-l-4 border-l-primary bg-primary/5" : ""}`}
-                  >
-                    <CardContent className="p-5">
-                      <div className="flex items-start gap-4">
-                        {/* Icon */}
-                        <div
-                          className={`p-3 rounded-2xl shrink-0 ${config.color}`}
-                        >
-                          {config.icon}
-                        </div>
-
-                        {/* Content */}
-                        <div className="flex-1 min-w-0 pt-0.5">
-                          <div className="flex items-center gap-2 mb-1.5">
-                            <p className="font-semibold text-foreground leading-tight">
-                              {notification.title}
-                            </p>
-                            <Badge
-                              className={`text-xs px-2 py-px font-medium ${config.badgeColor}`}
-                            >
-                              {config.badge}
-                            </Badge>
+                <form action={handleNotificationClick} key={notification.id}>
+                  <input type="hidden" name="id" value={notification.id} />
+                  <input
+                    type="hidden"
+                    name="link"
+                    value={notification.link || "/dashboard"}
+                  />
+                  <button type="submit" className="w-full text-left block">
+                    <Card
+                      className={`group hover:shadow-md transition-all duration-200 border-border/60 overflow-hidden cursor-pointer p-2 mb-2
+                        ${isUnread ? "border-l-4 border-l-primary bg-primary/5" : ""}`}
+                    >
+                      <CardContent className="p-5">
+                        <div className="flex items-start gap-4">
+                          {/* Icon */}
+                          <div
+                            className={`p-3 rounded-2xl shrink-0 ${config.color}`}
+                          >
+                            {config.icon}
                           </div>
 
-                          <p className="text-sm text-muted-foreground line-clamp-2">
-                            {notification.message}
-                          </p>
-                        </div>
+                          {/* Content */}
+                          <div className="flex-1 min-w-0 pt-0.5">
+                            <div className="flex items-center gap-2 mb-1.5">
+                              <p className="font-semibold text-foreground leading-tight">
+                                {notification.title}
+                              </p>
+                              <Badge
+                                className={`text-xs px-2 py-px font-medium ${config.badgeColor}`}
+                              >
+                                {config.badge}
+                              </Badge>
+                            </div>
 
-                        {/* Time + Unread indicator */}
-                        <div className="flex flex-col items-end justify-between h-[68px] py-0.5">
-                          <p className="text-xs text-muted-foreground whitespace-nowrap">
-                            {timeAgo(notification.created_at)}
-                          </p>
-                          {isUnread && (
-                            <div className="w-2 h-2 rounded-full bg-primary ring-2 ring-background" />
-                          )}
-                          <ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all translate-x-1 group-hover:translate-x-0" />
+                            <p className="text-sm text-muted-foreground line-clamp-2">
+                              {notification.message}
+                            </p>
+                          </div>
+
+                          {/* Time + Unread indicator */}
+                          <div className="flex flex-col items-end justify-between h-[68px] py-0.5">
+                            <p className="text-xs text-muted-foreground whitespace-nowrap">
+                              {timeAgo(notification.created_at)}
+                            </p>
+                            {isUnread && (
+                              <div className="w-2 h-2 rounded-full bg-primary ring-2 ring-background" />
+                            )}
+                            <ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all translate-x-1 group-hover:translate-x-0" />
+                          </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
+                      </CardContent>
+                    </Card>
+                  </button>
+                </form>
               );
             })}
           </div>

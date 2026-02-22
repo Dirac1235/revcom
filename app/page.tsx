@@ -238,7 +238,7 @@ export default function HomePage() {
             </div>
 
             {/* Horizontal Divider */}
-            <div className="w-full h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+            <div className="w-full h-px bg-linear-to-r from-transparent via-primary/20 to-transparent" />
 
             {/* Seller Flow - Horizontal */}
             <div className="relative">
