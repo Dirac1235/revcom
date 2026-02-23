@@ -17,6 +17,7 @@ export async function updateProfile(userId: string, updates: {
   last_name?: string;
   bio?: string;
   avatar_url?: string;
+  phone_number?: string;
 }) {
   const supabase = createClient();
   const { error } = await supabase

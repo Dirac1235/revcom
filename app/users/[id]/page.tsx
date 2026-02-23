@@ -26,6 +26,7 @@ import {
   Package,
   ShieldCheck,
   Share2,
+  Phone,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
@@ -212,12 +213,20 @@ export default function PublicProfilePage() {
                     </p>
                   )}
 
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Calendar className="w-3.5 h-3.5" />
-                    <span>
-                      Member for{" "}
-                      {formatDistanceToNow(new Date(profile.created_at))}
-                    </span>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5" />
+                      <span>
+                        Member for{" "}
+                        {formatDistanceToNow(new Date(profile.created_at))}
+                      </span>
+                    </div>
+                    {user && profile.phone_number && (
+                      <div className="flex items-center gap-1.5">
+                        <Phone className="w-3.5 h-3.5" />
+                        <span>{profile.phone_number}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

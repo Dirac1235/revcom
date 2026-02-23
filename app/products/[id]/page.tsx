@@ -35,6 +35,7 @@ import {
   Heart,
   Share2,
   Truck,
+  Phone,
 } from "lucide-react";
 
 interface InventoryStatus {
@@ -449,6 +450,12 @@ export default function ProductDetailPage() {
                       <span className="text-xs font-semibold capitalize">
                         {seller.user_type.replace("_", " ")}
                       </span>
+                    </div>
+                  )}
+                  {user && seller?.phone_number && (
+                    <div className="flex items-center gap-1 mt-2 text-muted-foreground">
+                      <Phone className="w-3.5 h-3.5" />
+                      <span className="text-xs">{seller.phone_number}</span>
                     </div>
                   )}
                 </div>

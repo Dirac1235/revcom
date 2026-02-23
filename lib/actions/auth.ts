@@ -79,6 +79,7 @@ export async function signup(formData: FormData) {
   const lastName = formData.get("last_name") as string;
   const firstName = formData.get("first_name") as string;
   const userType = formData.get("userType") as "buyer" | "seller" | "both";
+  const phoneNumber = formData.get("phone_number") as string | null;
 
   const supabase = await createClient();
 
@@ -106,6 +107,7 @@ export async function signup(formData: FormData) {
       first_name: firstName,
       last_name: lastName,
       user_type: userType,
+      phone_number: phoneNumber || null,
     });
 
     if (profileError) {

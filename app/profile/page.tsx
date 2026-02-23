@@ -31,6 +31,7 @@ import {
   Truck,
   Eye,
   ArrowUpRight,
+  Phone,
 } from "lucide-react";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { formatDistanceToNow } from "date-fns";
@@ -42,6 +43,7 @@ export default function ProfilePage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [bio, setBio] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
 
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -64,6 +66,7 @@ export default function ProfilePage() {
       setFirstName(authProfile.first_name || "");
       setLastName(authProfile.last_name || "");
       setBio(authProfile.bio || "");
+      setPhoneNumber(authProfile.phone_number || "");
     }
   }, [authProfile]);
 
@@ -104,6 +107,7 @@ export default function ProfilePage() {
         first_name: firstName,
         last_name: lastName,
         bio: bio,
+        phone_number: phoneNumber.trim() || undefined,
       });
 
       await refreshProfile();
@@ -280,6 +284,26 @@ export default function ProfilePage() {
                       disabled={saving}
                       className="min-h-32 border-border focus-visible:ring-0 focus-visible:border-foreground resize-none"
                     />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label
+                      htmlFor="phone"
+                      className="text-xs font-medium uppercase tracking-wider text-muted-foreground"
+                    >
+                      Phone Number
+                    </Label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
+                      <Input
+                        id="phone"
+                        type="tel"
+                        placeholder="+251 912 345 678"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
+                        disabled={saving}
+                        className="border-border focus-visible:ring-0 focus-visible:border-foreground pl-10"
+                      />
+                    </div>
                   </div>
 
                   {error && (

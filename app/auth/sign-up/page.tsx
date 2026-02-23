@@ -12,6 +12,7 @@ import {
   EyeOff,
   Command,
   User,
+  Phone,
   ShoppingBag,
   Package,
   Tag,
@@ -49,6 +50,7 @@ import { signInWithGoogle } from "@/lib/actions/auth";
 export default function SignUpPage() {
   const [name, setName] = useState({ first_name: "", last_name: "" });
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
   const [userType, setUserType] = useState("both");
@@ -117,6 +119,7 @@ export default function SignUpPage() {
     formData.append("first_name", name.first_name);
     formData.append("last_name", name.last_name);
     formData.append("userType", userType);
+    if (phone.trim()) formData.append("phone_number", phone.trim());
 
     try {
       const { signup } = await import("@/lib/actions/auth");
@@ -245,6 +248,21 @@ export default function SignUpPage() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    className="h-11 pl-10"
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="phone">Phone Number</Label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-3 h-5 w-5 text-muted-foreground/60" />
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="+251 912 345 678"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
                     className="h-11 pl-10"
                   />
                 </div>
