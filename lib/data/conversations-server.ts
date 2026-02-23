@@ -43,6 +43,46 @@ export async function getConversationById(conversationId: string) {
   return data;
 }
 
+export async function createConversation(
+  participant1Id: string,
+  participant2Id: string,
+  listingId?: string,
+  requestId?: string,
+) {
+  const supabase = await createClient();
+  const { data: existing } = await supabase
+    .from("conversations")
+    .select("*")
+    .or(
+      `and(participant_1_id.eq.${participant1Id},participant_2_id.eq.${participant2Id}),and(participant_1_id.eq.${participant2Id},participant_2_id.eq.${participant1Id})`,
+    )
+    .maybeSingle();
+
+  if (existing) {
+    const updates: { listing_id?: string; request_id?: string } = {};
+    if (listingId && !existing.listing_id) updates.listing_id = listingId;
+    if (requestId && !existing.request_id) updates.request_id = requestId;
+    if (Object.keys(updates).length > 0) {
+      await supabase.from("conversations").update(updates).eq("id", existing.id);
+    }
+    return existing;
+  }
+
+  const { data, error } = await supabase
+    .from("conversations")
+    .insert({
+      participant_1_id: participant1Id,
+      participant_2_id: participant2Id,
+      listing_id: listingId || null,
+      request_id: requestId || null,
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
 export async function getConversationMessages(conversationId: string) {
   const supabase = await createClient();
   const { data, error } = await supabase

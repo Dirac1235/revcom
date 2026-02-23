@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
-import { createOffer } from "@/lib/data/offers";
-import { createConversation } from "@/lib/data/conversations";
+import { createOffer } from "@/lib/data/offers-server";
+import { createConversation } from "@/lib/data/conversations-server";
+import { createNotification } from "@/lib/data/notifications-server";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -155,8 +155,7 @@ export default function MakeOfferForm({
 
       await createConversation(userId, request.buyer_id, undefined, requestId);
 
-      const supabase = createClient();
-      await supabase.from("notifications").insert({
+      await createNotification({
         user_id: request.buyer_id,
         type: "new_offer",
         title: "New Offer Received",
@@ -169,7 +168,7 @@ export default function MakeOfferForm({
         description: "The buyer has been notified of your offer.",
       });
 
-      router.push(ROUTES.SELLER_ORDERS);
+      router.push(ROUTES.SELLER_OFFERS);
     } catch (error: any) {
       console.error("[MakeOffer] Error:", error);
       toast({
