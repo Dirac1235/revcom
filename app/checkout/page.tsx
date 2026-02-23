@@ -244,8 +244,7 @@ export default function CheckoutPage() {
         description: "Your order has been successfully placed",
       });
 
-      router.push(`/orders/${order.id}/confirmation`);
-      router.refresh();
+      window.location.href = `/orders/${order.id}/confirmation`;
     } catch (error: any) {
       console.error("[Checkout] Error creating order:", error);
       toast({

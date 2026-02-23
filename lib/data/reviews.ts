@@ -199,7 +199,7 @@ export async function getEligibleOrderForReview(
     .select("id")
     .eq("buyer_id", buyerId)
     .eq("listing_id", productId)
-    .eq("status", "delivered");
+    .neq("status", "cancelled");
 
   if (ordersError || !orders || orders.length === 0) return null;
 
