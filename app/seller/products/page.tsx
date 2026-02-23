@@ -170,7 +170,7 @@ export default function SellerProductsPage() {
                       </p>
                       <div className="flex justify-between items-center">
                         <p className="text-lg font-bold text-foreground">
-                          ${product.price}
+                          {product.price?.toLocaleString()} ETB
                         </p>
                         <div className="flex gap-3">
                           <Link href={`/seller/products/${product.id}/edit`}>

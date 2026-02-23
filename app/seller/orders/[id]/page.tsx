@@ -229,7 +229,7 @@ export default function SellerOrderDetailPage() {
                 <div className="space-y-2 border-b pb-4 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Unit Price</span>
-                    <span>${order.agreed_price.toLocaleString()}</span>
+                    <span>{order.agreed_price.toLocaleString()} ETB</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Quantity</span>
@@ -239,7 +239,7 @@ export default function SellerOrderDetailPage() {
                 <div className="flex justify-between items-center pt-2">
                   <span className="font-bold text-lg">Your Earnings</span>
                   <span className="text-2xl font-black text-primary">
-                    ${totalPrice.toLocaleString()}
+                    {totalPrice.toLocaleString()} ETB
                   </span>
                 </div>
               </CardContent>

@@ -37,7 +37,7 @@ import {
 async function getBuyerData(userId: string) {
   const supabase = await createClient();
 
-  const [requestsRes, ordersRes, messagesRes, notificationsRes] =
+  const [requestsRes, ordersRes, conversationsRes, notificationsRes] =
     await Promise.all([
       supabase
         .from("requests")
@@ -50,10 +50,11 @@ async function getBuyerData(userId: string) {
         .eq("buyer_id", userId)
         .order("created_at", { ascending: false }),
       supabase
-        .from("messages")
+        .from("conversations")
         .select("id")
-        .eq("receiver_id", userId)
-        .eq("is_read", false),
+        .or(
+          `participant_1_id.eq.${userId},participant_2_id.eq.${userId}`,
+        ),
       supabase
         .from("notifications")
         .select("id")
@@ -61,9 +62,20 @@ async function getBuyerData(userId: string) {
         .eq("read", false),
     ]);
 
+  let unreadMessages = 0;
+  const convIds = (conversationsRes.data || []).map((c: any) => c.id);
+  if (convIds.length > 0) {
+    const { count } = await supabase
+      .from("messages")
+      .select("id", { count: "exact", head: true })
+      .in("conversation_id", convIds)
+      .neq("sender_id", userId)
+      .eq("read", false);
+    unreadMessages = count || 0;
+  }
+
   const requests = requestsRes.data || [];
   const orders = ordersRes.data || [];
-  const unreadMessages = messagesRes.data?.length || 0;
   const unreadNotifications = notificationsRes.data?.length || 0;
 
   const activeRequests = requests.filter(
@@ -103,7 +115,7 @@ async function getSellerData(userId: string) {
     ordersRes,
     offersRes,
     productsRes,
-    messagesRes,
+    conversationsRes,
     notificationsRes,
   ] = await Promise.all([
     supabase
@@ -121,12 +133,13 @@ async function getSellerData(userId: string) {
       .select("*, requests(title)")
       .eq("seller_id", userId)
       .order("created_at", { ascending: false }),
-    supabase.from("products").select("*").eq("seller_id", userId),
+    supabase.from("listings").select("*").eq("seller_id", userId),
     supabase
-      .from("messages")
+      .from("conversations")
       .select("id")
-      .eq("receiver_id", userId)
-      .eq("is_read", false),
+      .or(
+        `participant_1_id.eq.${userId},participant_2_id.eq.${userId}`,
+      ),
     supabase
       .from("notifications")
       .select("id")
@@ -138,8 +151,19 @@ async function getSellerData(userId: string) {
   const orders = ordersRes.data || [];
   const offers = offersRes.data || [];
   const products = productsRes.data || [];
-  const unreadMessages = messagesRes.data?.length || 0;
   const unreadNotifications = notificationsRes.data?.length || 0;
+
+  let unreadMessages = 0;
+  const sellerConvIds = (conversationsRes.data || []).map((c: any) => c.id);
+  if (sellerConvIds.length > 0) {
+    const { count } = await supabase
+      .from("messages")
+      .select("id", { count: "exact", head: true })
+      .in("conversation_id", sellerConvIds)
+      .neq("sender_id", userId)
+      .eq("read", false);
+    unreadMessages = count || 0;
+  }
 
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -400,8 +424,8 @@ function BuyerDashboard({ data, firstName }: { data: any; firstName: string }) {
                           )}
                           {req.budget_min && (
                             <span>
-                              ${req.budget_min.toLocaleString()} – $
-                              {req.budget_max?.toLocaleString()}
+                              {req.budget_min.toLocaleString()} –{" "}
+                              {req.budget_max?.toLocaleString()} ETB
                             </span>
                           )}
                           <span>{timeAgo(req.created_at)}</span>
@@ -473,7 +497,7 @@ function BuyerDashboard({ data, firstName }: { data: any; firstName: string }) {
                       </div>
                       <div className="text-right shrink-0">
                         <p className="text-sm font-semibold">
-                          ${order.agreed_price?.toLocaleString()}
+                          {order.agreed_price?.toLocaleString()} ETB
                         </p>
                         <div className="flex gap-1 mt-1 justify-end">
                           <Link href={`/buyer/orders/${order.id}`}>
@@ -581,7 +605,7 @@ function BuyerDashboard({ data, firstName }: { data: any; firstName: string }) {
                     primary: true,
                   },
                   {
-                    href: "/listings",
+                    href: "/products",
                     icon: <Search className="w-5 h-5" />,
                     label: "Browse Products",
                   },
@@ -704,8 +728,8 @@ function SellerDashboard({ data }: { data: any }) {
           iconBg="bg-green-100 dark:bg-green-900/30"
           value={`${stats.monthlyRevenue.toLocaleString()} ETB`}
           label={`${new Date().toLocaleString("default", { month: "long" })} revenue`}
-          trend="up"
-          trendLabel="+12% vs last month"
+          trend={stats.monthlyRevenue > 0 ? "up" : "neutral"}
+          trendLabel={stats.monthlyRevenue > 0 ? "From delivered orders" : "No deliveries yet"}
         />
       </div>
 
@@ -735,24 +759,19 @@ function SellerDashboard({ data }: { data: any }) {
                           {order.title || `Order #${order.id.slice(0, 8)}`}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          ${order.agreed_price?.toLocaleString()} ·{" "}
+                          {order.agreed_price?.toLocaleString()} ETB ·{" "}
                           {timeAgo(order.created_at)}
                         </p>
                       </div>
                       <div className="flex gap-2 ml-3 shrink-0">
-                        <Button
-                          size="sm"
-                          className="h-7 bg-green-600 hover:bg-green-700 text-white text-xs px-3"
-                        >
-                          Accept
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-7 border-red-300 text-red-600 hover:bg-red-50 text-xs px-3"
-                        >
-                          Reject
-                        </Button>
+                        <Link href={`/seller/orders/${order.id}`}>
+                          <Button
+                            size="sm"
+                            className="h-7 bg-green-600 hover:bg-green-700 text-white text-xs px-3"
+                          >
+                            Review
+                          </Button>
+                        </Link>
                       </div>
                     </div>
                   ))}
@@ -788,7 +807,7 @@ function SellerDashboard({ data }: { data: any }) {
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
                         <p className="text-sm font-semibold">
-                          ${order.agreed_price?.toLocaleString()}
+                          {order.agreed_price?.toLocaleString()} ETB
                         </p>
                         <Link href={`/seller/orders/${order.id}`}>
                           <Button
@@ -834,13 +853,13 @@ function SellerDashboard({ data }: { data: any }) {
                           {offer.requests?.title || `Offer for request`}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          ${offer.price?.toLocaleString()} ·{" "}
+                          {offer.price?.toLocaleString()} ETB ·{" "}
                           {timeAgo(offer.created_at)}
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
                         <StatusBadge status={offer.status} />
-                        <Link href={`/requests/${offer.request_id}`}>
+                        <Link href={`/buyer/requests/${offer.request_id}`}>
                           <Button
                             size="sm"
                             variant="ghost"
@@ -858,7 +877,7 @@ function SellerDashboard({ data }: { data: any }) {
                   icon={<Send className="w-14 h-14" />}
                   message="No offers submitted. Browse buyer requests"
                   action={
-                    <Link href="/listings">
+                    <Link href="/seller/explore">
                       <Button size="sm" variant="outline">
                         Explore Requests
                       </Button>
@@ -948,7 +967,7 @@ function SellerDashboard({ data }: { data: any }) {
                     primary: true,
                   },
                   {
-                    href: "/listings",
+                    href: "/seller/explore",
                     icon: <Search className="w-5 h-5" />,
                     label: "Browse Requests",
                   },
@@ -987,7 +1006,7 @@ function SellerDashboard({ data }: { data: any }) {
             <CardContent className="p-6">
               <SectionHeader
                 title="New Buyer Requests"
-                href="/listings"
+                href="/seller/explore"
                 label="Browse all"
               />
               {requests.length > 0 ? (
@@ -1007,8 +1026,8 @@ function SellerDashboard({ data }: { data: any }) {
                       </div>
                       <div className="flex items-center justify-between mt-2">
                         <p className="text-xs font-semibold">
-                          ${req.budget_min?.toLocaleString()} – $
-                          {req.budget_max?.toLocaleString()}
+                          {req.budget_min?.toLocaleString()} –{" "}
+                          {req.budget_max?.toLocaleString()} ETB
                         </p>
                         <Link href={`/requests/${req.id}/make-offer`}>
                           <Button size="sm" className="h-7 px-3 text-xs">
@@ -1048,20 +1067,20 @@ function SellerDashboard({ data }: { data: any }) {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">
-                          {product.name || product.title}
+                          {product.title}
                         </p>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <span className="flex items-center gap-0.5">
                             <Eye className="w-3 h-3" /> {product.views || 0}
                           </span>
                           <span className="flex items-center gap-0.5">
-                            <ShoppingBag className="w-3 h-3" />{" "}
-                            {product.orders_count || 0}
+                            <Star className="w-3 h-3" />{" "}
+                            {product.average_rating ? Number(product.average_rating).toFixed(1) : "N/A"}
                           </span>
                         </div>
                       </div>
                       <span className="text-xs text-muted-foreground shrink-0">
-                        {product.stock || 0} left
+                        {product.inventory_quantity ?? 0} left
                       </span>
                     </div>
                   ))}

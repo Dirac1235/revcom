@@ -164,7 +164,7 @@ function RequestCard({ request }: { request: any }) {
             {(request.budget_min || request.budget_max) && (
               <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-secondary/50 text-xs font-medium text-secondary-foreground">
                 <Banknote className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-                ${request.budget_min?.toLocaleString()} – ${request.budget_max?.toLocaleString()}
+                {request.budget_min?.toLocaleString()} – {request.budget_max?.toLocaleString()} ETB
               </div>
             )}
           </div>
@@ -248,12 +248,13 @@ function EmptyState() {
 export default async function BuyerRequestsPage({
   searchParams,
 }: {
-  searchParams: { status?: string };
+  searchParams: Promise<{ status?: string }>;
 }) {
+  const { status: statusParam } = await searchParams;
   const supabase = await createClient();
   const { data: { user }, error: userError } = await supabase.auth.getUser();
   if (userError || !user) redirect("/auth/login");
-  const filterStatus = searchParams.status || "all";
+  const filterStatus = statusParam || "all";
   // Fetch requests
   let query = supabase
     .from("requests")

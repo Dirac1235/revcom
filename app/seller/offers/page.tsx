@@ -181,7 +181,7 @@ export default async function SellerOffersPage() {
               You haven't submitted any offers to buyer requests yet. Start
               exploring and send your first offer!
             </p>
-            <Link href="/listings">
+            <Link href="/seller/explore">
               <Button>Browse Requests</Button>
             </Link>
           </div>
