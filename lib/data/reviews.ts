@@ -188,6 +188,35 @@ export type RatingBreakdown = {
   5: number;
 };
 
+export async function getEligibleOrderForReview(
+  buyerId: string,
+  productId: string,
+): Promise<{ orderId: string } | null> {
+  const supabase = createClient();
+
+  const { data: orders, error: ordersError } = await supabase
+    .from("orders")
+    .select("id")
+    .eq("buyer_id", buyerId)
+    .eq("listing_id", productId)
+    .eq("status", "delivered");
+
+  if (ordersError || !orders || orders.length === 0) return null;
+
+  const orderIds = orders.map((o) => o.id);
+  const { data: existingReviews } = await supabase
+    .from("reviews")
+    .select("order_id")
+    .in("order_id", orderIds);
+
+  const reviewedOrderIds = new Set(
+    existingReviews?.map((r) => r.order_id) || [],
+  );
+  const eligibleOrder = orders.find((o) => !reviewedOrderIds.has(o.id));
+
+  return eligibleOrder ? { orderId: eligibleOrder.id } : null;
+}
+
 export async function getProductRatingBreakdown(
   productId: string,
 ): Promise<RatingBreakdown> {
