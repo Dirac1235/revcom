@@ -18,17 +18,38 @@ import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/features/EmptyState";
 import { LoadingState } from "@/components/features/LoadingState";
 import { ROUTES } from "@/lib/constants/routes";
-import { Package, Plus, Edit, Trash2, Eye } from "lucide-react";
+import {
+  Package,
+  Plus,
+  Edit,
+  Trash2,
+  Eye,
+  Star,
+  ArrowUpRight,
+  Search,
+  Filter,
+} from "lucide-react";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/lib/hooks/use-toast";
+import { formatDistanceToNow } from "date-fns";
 
 export default function SellerProductsPage() {
   const router = useRouter();
   const { user, profile, loading: authLoading } = useAuth();
   const { toast } = useToast();
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const { products, loading, refetch } = useProducts({
     sellerId: user?.id,
-    status: undefined, // Show all statuses for seller
+    status: undefined,
   });
 
   useEffect(() => {
@@ -42,14 +63,9 @@ export default function SellerProductsPage() {
 
     try {
       await deleteListing(id);
-
-      toast({
-        title: "Success",
-        description: "Product deleted successfully",
-      });
-
+      toast({ title: "Success", description: "Product deleted successfully" });
       refetch();
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "Failed to delete product",
@@ -60,8 +76,8 @@ export default function SellerProductsPage() {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-blue-50/50 via-indigo-50/30 to-purple-50/30 dark:from-blue-950/10 dark:via-indigo-950/10 dark:to-purple-950/10">
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="min-h-screen bg-background">
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <LoadingState count={4} type="list" />
         </main>
       </div>
@@ -70,23 +86,51 @@ export default function SellerProductsPage() {
 
   if (!user) return null;
 
-  const statusColors = {
-    active:
-      "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300",
-    inactive:
-      "bg-gray-100 text-gray-700 dark:bg-gray-900/50 dark:text-gray-300",
-    sold: "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300",
+  const activeCount = products.filter((p) => p.status === "active").length;
+  const soldCount = products.filter((p) => p.status === "sold").length;
+  const inactiveCount = products.filter((p) => p.status === "inactive").length;
+  const totalViews = products.reduce((sum, p) => sum + (p.views || 0), 0);
+  const totalRevenue = products.reduce(
+    (sum, p) => sum + p.price * (p.review_count || 0),
+    0,
+  );
+
+  const filtered = products
+    .filter((p) => statusFilter === "all" || p.status === statusFilter)
+    .filter(
+      (p) =>
+        !search ||
+        p.title.toLowerCase().includes(search.toLowerCase()) ||
+        p.category.toLowerCase().includes(search.toLowerCase()),
+    );
+
+  const statusConfig: Record<string, { color: string; label: string }> = {
+    active: {
+      color:
+        "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800",
+      label: "Active",
+    },
+    inactive: {
+      color:
+        "bg-secondary text-muted-foreground border-border dark:bg-secondary dark:text-muted-foreground",
+      label: "Inactive",
+    },
+    sold: {
+      color:
+        "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800",
+      label: "Sold",
+    },
   };
 
   return (
     <div className="min-h-screen bg-background">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="flex justify-between items-center mb-12">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
           <div>
-            <h1 className="text-4xl font-serif font-bold text-foreground mb-3">
+            <h1 className="text-4xl font-serif font-bold text-foreground mb-2">
               My Products
             </h1>
-            <p className="text-muted-foreground text-lg">
+            <p className="text-muted-foreground">
               Manage your product listings
             </p>
           </div>
@@ -98,122 +142,215 @@ export default function SellerProductsPage() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-          <Card className="border-border shadow-none rounded-lg">
-            <CardHeader className="pb-3 pt-6 px-6">
-              <CardDescription>Total Products</CardDescription>
-              <CardTitle className="text-3xl font-serif">
-                {products.length}
-              </CardTitle>
-            </CardHeader>
-          </Card>
-          <Card className="border-border shadow-none rounded-lg">
-            <CardHeader className="pb-3 pt-6 px-6">
-              <CardDescription>Active</CardDescription>
-              <CardTitle className="text-3xl font-serif">
-                {products.filter((p) => p.status === "active").length}
-              </CardTitle>
-            </CardHeader>
-          </Card>
-          <Card className="border-border shadow-none rounded-lg">
-            <CardHeader className="pb-3 pt-6 px-6">
-              <CardDescription>Sold</CardDescription>
-              <CardTitle className="text-3xl font-serif">
-                {products.filter((p) => p.status === "sold").length}
-              </CardTitle>
-            </CardHeader>
-          </Card>
-          <Card className="border-border shadow-none rounded-lg">
-            <CardHeader className="pb-3 pt-6 px-6">
-              <CardDescription>Total Views</CardDescription>
-              <CardTitle className="text-3xl font-serif">
-                {products.reduce((sum, p) => sum + (p.views || 0), 0)}
-              </CardTitle>
-            </CardHeader>
-          </Card>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+          <button
+            onClick={() => setStatusFilter("all")}
+            className={`p-4 rounded-lg border text-left transition-all duration-200 ${statusFilter === "all" ? "border-primary bg-primary/5" : "border-border/30 bg-secondary/20 hover:border-border"}`}
+          >
+            <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wide mb-1">
+              Total
+            </p>
+            <p className="text-3xl font-bold text-foreground">
+              {products.length}
+            </p>
+          </button>
+          <button
+            onClick={() =>
+              setStatusFilter(statusFilter === "active" ? "all" : "active")
+            }
+            className={`p-4 rounded-lg border text-left transition-all duration-200 ${statusFilter === "active" ? "border-emerald-400 bg-emerald-50 dark:bg-emerald-900/20" : "border-border/30 bg-secondary/20 hover:border-border"}`}
+          >
+            <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wide mb-1">
+              Active
+            </p>
+            <p className="text-3xl font-bold text-foreground">{activeCount}</p>
+          </button>
+          <button
+            onClick={() =>
+              setStatusFilter(statusFilter === "sold" ? "all" : "sold")
+            }
+            className={`p-4 rounded-lg border text-left transition-all duration-200 ${statusFilter === "sold" ? "border-blue-400 bg-blue-50 dark:bg-blue-900/20" : "border-border/30 bg-secondary/20 hover:border-border"}`}
+          >
+            <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wide mb-1">
+              Sold
+            </p>
+            <p className="text-3xl font-bold text-foreground">{soldCount}</p>
+          </button>
+          <div className="p-4 rounded-lg border border-border/30 bg-secondary/20">
+            <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wide mb-1">
+              Total Views
+            </p>
+            <p className="text-3xl font-bold text-foreground">{totalViews}</p>
+          </div>
         </div>
 
-        <div className="grid gap-6">
-          {products && products.length > 0 ? (
-            products.map((product: any) => (
-              <Card
-                key={product.id}
-                className="border-border shadow-none rounded-lg hover:bg-secondary/20 transition-colors"
-              >
-                <CardContent className="p-6">
-                  <div className="flex gap-6">
-                    {product.image_url && (
-                      <div className="w-24 h-24 rounded-lg overflow-hidden bg-secondary/20 shrink-0 border border-border">
+        <div className="flex flex-col sm:flex-row gap-3 mb-6">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Search products..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-10 border-border focus-visible:ring-0 focus-visible:border-foreground"
+            />
+          </div>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full sm:w-[160px] border-border focus:ring-0 focus:border-foreground">
+              <Filter className="w-4 h-4 mr-2 opacity-50" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="inactive">Inactive</SelectItem>
+              <SelectItem value="sold">Sold</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {!loading && filtered.length > 0 && (
+          <p className="text-sm text-muted-foreground mb-4 uppercase tracking-wider font-medium">
+            {filtered.length} {filtered.length === 1 ? "product" : "products"}
+            {statusFilter !== "all" ? ` (${statusFilter})` : ""}
+          </p>
+        )}
+
+        <div className="space-y-4">
+          {filtered.length > 0 ? (
+            filtered.map((product) => {
+              const status = statusConfig[product.status] || statusConfig.inactive;
+              const imageUrl =
+                product.images?.[0] || product.image_url || null;
+
+              return (
+                <div
+                  key={product.id}
+                  className="group flex gap-4 sm:gap-5 p-4 rounded-xl border border-border/50 bg-card/60 [backdrop-filter:blur(20px)_saturate(150%)] hover:border-border hover:shadow-md transition-all duration-300"
+                >
+                  <Link
+                    href={ROUTES.PRODUCT_DETAIL(product.id)}
+                    className="shrink-0"
+                  >
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg overflow-hidden bg-muted/30 border border-border/30">
+                      {imageUrl ? (
                         <img
-                          src={product.image_url}
+                          src={imageUrl}
                           alt={product.title}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />
-                      </div>
-                    )}
-                    <div className="flex-1">
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <h3 className="text-xl font-medium text-foreground mb-1">
-                            {product.title}
-                          </h3>
-                          <p className="text-muted-foreground text-sm">
-                            {product.category}
-                          </p>
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Package className="w-6 h-6 text-muted-foreground/40" />
                         </div>
-                        <span className="px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wider border border-border bg-secondary text-secondary-foreground">
-                          {product.status}
-                        </span>
-                      </div>
-                      <p className="text-muted-foreground mb-4 line-clamp-2">
-                        {product.description}
-                      </p>
-                      <div className="flex justify-between items-center">
+                      )}
+                    </div>
+                  </Link>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-3 mb-1">
+                      <Link
+                        href={ROUTES.PRODUCT_DETAIL(product.id)}
+                        className="hover:underline"
+                      >
+                        <h3 className="font-semibold text-foreground text-sm sm:text-base leading-snug line-clamp-1">
+                          {product.title}
+                        </h3>
+                      </Link>
+                      <Badge
+                        variant="outline"
+                        className={`shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] border ${status.color}`}
+                      >
+                        {status.label}
+                      </Badge>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+                      <span>{product.category}</span>
+                      <span>·</span>
+                      <span>
+                        {formatDistanceToNow(new Date(product.created_at), {
+                          addSuffix: true,
+                        })}
+                      </span>
+                      {(product.average_rating ?? 0) > 0 && (
+                        <>
+                          <span>·</span>
+                          <span className="flex items-center gap-0.5">
+                            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                            {Number(product.average_rating).toFixed(1)}
+                          </span>
+                        </>
+                      )}
+                    </div>
+
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div className="flex items-center gap-4">
                         <p className="text-lg font-bold text-foreground">
-                          {product.price?.toLocaleString()} ETB
+                          {product.price.toLocaleString()} ETB
                         </p>
-                        <div className="flex gap-3">
-                          <Link href={`/seller/products/${product.id}/edit`}>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="border-border hover:bg-secondary hover:text-secondary-foreground"
-                            >
-                              <Edit className="w-4 h-4 mr-2" />
-                              Edit
-                            </Button>
-                          </Link>
-                          <Link href={`/products/${product.id}`}>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="border-border hover:bg-secondary hover:text-secondary-foreground"
-                            >
-                              View
-                            </Button>
-                          </Link>
+                        <div className="hidden sm:flex items-center gap-3 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <Package className="w-3 h-3" />
+                            {product.inventory_quantity ?? 0} in stock
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Eye className="w-3 h-3" />
+                            {product.views || 0}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <Link href={ROUTES.SELLER_PRODUCT_EDIT(product.id)}>
                           <Button
                             variant="outline"
                             size="sm"
-                            className="border-border hover:bg-secondary hover:text-secondary-foreground"
-                            onClick={() => handleDelete(product.id)}
+                            className="h-8 text-xs gap-1.5 rounded-lg border-border/50 hover:bg-secondary/30"
                           >
-                            <Trash2 className="w-4 h-4 text-red-600" />
+                            <Edit className="w-3 h-3" />
+                            Edit
                           </Button>
-                        </div>
+                        </Link>
+                        <Link href={ROUTES.PRODUCT_DETAIL(product.id)}>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 text-xs gap-1.5 rounded-lg border-border/50 hover:bg-secondary/30"
+                          >
+                            <ArrowUpRight className="w-3 h-3" />
+                            View
+                          </Button>
+                        </Link>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-8 w-8 rounded-lg border-border/50 hover:bg-destructive/10 hover:border-destructive/30 hover:text-destructive"
+                          onClick={() => handleDelete(product.id)}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
                       </div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            ))
+                </div>
+              );
+            })
           ) : (
             <EmptyState
               icon={Package}
-              title="No products yet"
-              description="Start selling by adding your first product listing"
-              actionLabel="Add Product"
-              actionHref={ROUTES.SELLER_PRODUCT_CREATE}
+              title={search || statusFilter !== "all" ? "No matching products" : "No products yet"}
+              description={
+                search || statusFilter !== "all"
+                  ? "Try adjusting your search or filters."
+                  : "Start selling by adding your first product listing."
+              }
+              actionLabel={search || statusFilter !== "all" ? "Clear Filters" : "Add Product"}
+              onAction={
+                search || statusFilter !== "all"
+                  ? () => { setSearch(""); setStatusFilter("all"); }
+                  : undefined
+              }
+              actionHref={search || statusFilter !== "all" ? undefined : ROUTES.SELLER_PRODUCT_CREATE}
             />
           )}
         </div>
