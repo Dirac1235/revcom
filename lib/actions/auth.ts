@@ -156,8 +156,10 @@ export async function signInWithGoogle() {
   }
 
   if (data.url) {
-    redirect(data.url);
+    return { url: data.url };
   }
+
+  return { error: "No redirect URL returned" };
 }
 
 // Note: OAuth callback is now handled server-side in app/auth/callback/route.ts
