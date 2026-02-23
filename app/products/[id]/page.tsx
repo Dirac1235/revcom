@@ -14,6 +14,8 @@ import { updateListing } from "@/lib/data/listings";
 import { createConversation } from "@/lib/data/conversations";
 import { getProfileById } from "@/lib/data/profiles";
 import { useToast } from "@/lib/hooks/use-toast";
+import { ProductReviews } from "@/components/reviews/ProductReviews";
+import { ProductQA } from "@/components/comments/ProductQA";
 import type { Profile } from "@/lib/types";
 import {
   Package,
@@ -33,6 +35,7 @@ import {
   Heart,
   Share2,
   Truck,
+  Phone,
 } from "lucide-react";
 
 interface InventoryStatus {
@@ -139,9 +142,7 @@ export default function ProductDetailPage() {
       router.push(ROUTES.LOGIN);
       return;
     }
-    router.push(
-      `/checkout?product_id=${productId}&quantity=${quantity}`
-    );
+    router.push(`/checkout?product_id=${productId}&quantity=${quantity}`);
   };
 
   const isOwnProduct = user?.id === product?.seller_id;
@@ -426,9 +427,11 @@ export default function ProductDetailPage() {
                 )}
                 <div className="flex-1 min-w-0">
                   <h4 className="font-semibold text-foreground text-sm truncate">
-                    {seller
-                      ? `${seller.first_name} ${seller.last_name}`
-                      : "Seller"}
+                    <Link href={`/users/${product.seller_id}`} className="hover:underline">
+                      {seller
+                        ? `${seller.first_name} ${seller.last_name}`
+                        : "Seller"}
+                    </Link>
                   </h4>
                   <div className="flex items-center gap-1 mt-1">
                     <div className="flex items-center gap-0.5">
@@ -447,6 +450,12 @@ export default function ProductDetailPage() {
                       <span className="text-xs font-semibold capitalize">
                         {seller.user_type.replace("_", " ")}
                       </span>
+                    </div>
+                  )}
+                  {user && seller?.phone_number && (
+                    <div className="flex items-center gap-1 mt-2 text-muted-foreground">
+                      <Phone className="w-3.5 h-3.5" />
+                      <span className="text-xs">{seller.phone_number}</span>
                     </div>
                   )}
                 </div>
@@ -630,6 +639,21 @@ export default function ProductDetailPage() {
             </div>
           </div>
         </div>
+
+        {/* Product Reviews Section */}
+        <ProductReviews
+          productId={productId}
+          currentUserId={user?.id}
+          averageRating={product.average_rating || 0}
+          totalReviews={product.review_count || 0}
+        />
+
+        {/* Product Q&A Section */}
+        <ProductQA
+          productId={productId}
+          currentUserId={user?.id}
+          sellerId={product.seller_id}
+        />
       </main>
 
       <style jsx>{`

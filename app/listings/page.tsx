@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, Suspense } from "react";
+import React, { useEffect, useState, useMemo, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, Filter } from "lucide-react";
+import { Search, Filter, ChevronLeft, ChevronRight } from "lucide-react";
 import { RequestCard } from "@/components/features/RequestCard";
 import { LoadingState } from "@/components/features/LoadingState";
 import { EmptyState } from "@/components/features/EmptyState";
@@ -31,6 +31,8 @@ const categories = [
   "Other",
 ];
 
+const PER_PAGE = 12;
+
 function ListingsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -41,6 +43,7 @@ function ListingsContent() {
 
   const [query, setQuery] = useState<string>(searchParam);
   const [category, setCategory] = useState<string>(categoryParam === "" ? "all" : categoryParam);
+  const [page, setPage] = useState(1);
 
   const { requests: listings, loading, error } = useRequests({
     category: category && category !== "all" ? category : undefined,
@@ -50,10 +53,34 @@ function ListingsContent() {
   useEffect(() => {
     setQuery(searchParam);
     setCategory(categoryParam === "" ? "all" : categoryParam);
+    setPage(1);
   }, [searchParam, categoryParam]);
+
+  const totalPages = Math.max(1, Math.ceil(listings.length / PER_PAGE));
+  const paginatedListings = useMemo(
+    () => listings.slice((page - 1) * PER_PAGE, page * PER_PAGE),
+    [listings, page],
+  );
+
+  const pageNumbers = useMemo(() => {
+    const pages: (number | "...")[] = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      if (page > 3) pages.push("...");
+      for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) {
+        pages.push(i);
+      }
+      if (page < totalPages - 2) pages.push("...");
+      pages.push(totalPages);
+    }
+    return pages;
+  }, [page, totalPages]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    setPage(1);
     const params = new URLSearchParams();
     if (query.trim()) params.set("search", query.trim());
     if (category && category !== "all") params.set("category", category);
@@ -62,6 +89,7 @@ function ListingsContent() {
 
   const handleCategoryChange = (value: string) => {
     setCategory(value);
+    setPage(1);
     const params = new URLSearchParams();
     if (query.trim()) params.set("search", query.trim());
     if (value && value !== "all") params.set("category", value);
@@ -71,6 +99,7 @@ function ListingsContent() {
   const clearFilters = () => {
     setQuery("");
     setCategory("all");
+    setPage(1);
     router.push("/listings");
   };
 
@@ -86,12 +115,10 @@ function ListingsContent() {
           </p>
         </div>
 
-        {/* Search and Filter Section */}
         <Card className="mb-12 border-border bg-card shadow-none rounded-lg">
           <CardContent className="p-6">
             <form onSubmit={handleSearch} className="space-y-6">
               <div className="grid md:grid-cols-3 gap-6">
-                {/* Search Input */}
                 <div className="md:col-span-2">
                   <label className="text-sm font-medium mb-2 block text-foreground">
                     Search
@@ -108,7 +135,6 @@ function ListingsContent() {
                   </div>
                 </div>
 
-                {/* Category Filter */}
                 <div>
                   <label className="text-sm font-medium mb-2 block text-foreground">
                     Category
@@ -129,7 +155,6 @@ function ListingsContent() {
                 </div>
               </div>
 
-              {/* Action Buttons */}
               <div className="flex gap-3">
                 <Button
                   type="submit"
@@ -153,7 +178,6 @@ function ListingsContent() {
           </CardContent>
         </Card>
 
-        {/* Results Section */}
         <section>
           {loading ? (
             <LoadingState count={8} type="card" />
@@ -171,7 +195,7 @@ function ListingsContent() {
                 {category && category !== "all" && ` in ${category}`}
               </div>
               <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-                {listings.map((l) => (
+                {paginatedListings.map((l) => (
                   <RequestCard
                     key={l.id}
                     request={l}
@@ -180,6 +204,46 @@ function ListingsContent() {
                   />
                 ))}
               </div>
+
+              {totalPages > 1 && (
+                <div className="mt-12 flex items-center justify-center gap-1.5">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-9 w-9 border-border/50"
+                    disabled={page === 1}
+                    onClick={() => setPage(page - 1)}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+                  {pageNumbers.map((p, i) =>
+                    p === "..." ? (
+                      <span key={`dots-${i}`} className="px-2 text-sm text-muted-foreground">
+                        ...
+                      </span>
+                    ) : (
+                      <Button
+                        key={p}
+                        variant={page === p ? "default" : "outline"}
+                        size="icon"
+                        className={`h-9 w-9 text-sm ${page === p ? "shadow-none" : "border-border/50"}`}
+                        onClick={() => setPage(p as number)}
+                      >
+                        {p}
+                      </Button>
+                    ),
+                  )}
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-9 w-9 border-border/50"
+                    disabled={page === totalPages}
+                    onClick={() => setPage(page + 1)}
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
             </>
           ) : (
             <EmptyState

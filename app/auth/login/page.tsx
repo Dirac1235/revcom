@@ -37,6 +37,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { signInWithGoogle } from "@/lib/actions/auth";
+import { useSearchParams } from "next/navigation";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -47,14 +48,16 @@ export default function LoginPage() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectParam = searchParams.get("redirect");
   const { user, loading } = useAuth();
 
   useEffect(() => {
     if (!loading && user) {
-      router.push("/");
+      router.push(redirectParam || "/dashboard");
       router.refresh();
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, redirectParam]);
 
   if (loading) {
     return (
@@ -74,6 +77,9 @@ export default function LoginPage() {
     const formData = new FormData();
     formData.append("email", email);
     formData.append("password", password);
+    if (redirectParam) {
+      formData.append("redirect", redirectParam);
+    }
 
     try {
       const { login } = await import("@/lib/actions/auth");
@@ -97,6 +103,8 @@ export default function LoginPage() {
       if (result?.error) {
         setError(result.error);
         setIsGoogleLoading(false);
+      } else if (result?.url) {
+        window.location.href = result.url;
       }
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
@@ -193,12 +201,6 @@ export default function LoginPage() {
               <div className="grid gap-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password">Password</Label>
-                  <Link
-                    href="/auth/forgot-password"
-                    className="text-xs text-muted-foreground underline-offset-4 hover:underline"
-                  >
-                    Forgot password?
-                  </Link>
                 </div>
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 h-5 w-5 text-muted-foreground/60" />

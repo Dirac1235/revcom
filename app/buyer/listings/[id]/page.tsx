@@ -79,7 +79,7 @@ export default async function BuyerListingDetailPage({
               <div>
                 <p className="text-sm text-muted-foreground">Budget Range</p>
                 <p className="text-lg font-semibold">
-                  ${listing.budget_min} - ${listing.budget_max}
+                  {listing.budget_min?.toLocaleString()} - {listing.budget_max?.toLocaleString()} ETB
                 </p>
               </div>
               <div>

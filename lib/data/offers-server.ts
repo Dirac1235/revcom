@@ -2,6 +2,13 @@
 
 import { createClient } from "@/lib/supabase/server";
 
+function generateUUID(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 export async function getOffersByRequest(requestId: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -140,4 +147,167 @@ export async function deleteOffer(id: string) {
     .eq("id", id);
   
   if (error) throw error;
+}
+
+export async function acceptOffer(offerId: string, userId: string) {
+  const supabase = await createClient();
+
+  try {
+    // Step 1: Validate offer exists and is pending
+    const { data: offerData, error: offerError } = await supabase
+      .from("offers")
+      .select("*")
+      .eq("id", offerId)
+      .single();
+
+    if (offerError || !offerData) throw new Error("Offer not found");
+    if (offerData.status !== "pending") throw new Error("Offer is no longer pending");
+
+    // Step 2: Validate request exists and is open
+    const { data: requestData, error: requestError } = await supabase
+      .from("requests")
+      .select("*")
+      .eq("id", offerData.request_id)
+      .single();
+
+    if (requestError || !requestData) throw new Error("Request not found");
+    if (requestData.status !== "open") throw new Error("Request is no longer open");
+
+    // Step 3: Validate user is the buyer of this request
+    if (userId && requestData.buyer_id !== userId) {
+      throw new Error("You are not authorized to accept this offer");
+    }
+
+    // Step 4: Update accepted offer to 'accepted'
+    const { error: updateAcceptedError } = await supabase
+      .from("offers")
+      .update({ status: "accepted" })
+      .eq("id", offerId);
+
+    if (updateAcceptedError) throw updateAcceptedError;
+
+    // Step 5: Reject all other pending offers for this request
+    const { error: rejectOthersError } = await supabase
+      .from("offers")
+      .update({ status: "rejected" })
+      .eq("request_id", offerData.request_id)
+      .eq("status", "pending")
+      .neq("id", offerId);
+
+    if (rejectOthersError) throw rejectOthersError;
+
+    // Step 6: Close the request
+    const { error: closeRequestError } = await supabase
+      .from("requests")
+      .update({ status: "closed" })
+      .eq("id", offerData.request_id);
+
+    if (closeRequestError) throw closeRequestError;
+
+    // Step 7: Create order
+    const { data: orderData, error: createOrderError } = await supabase
+      .from("orders")
+      .insert({
+        buyer_id: requestData.buyer_id,
+        seller_id: offerData.seller_id,
+        request_id: requestData.id,
+        title: requestData.title,
+        description: offerData.description,
+        quantity: requestData.quantity,
+        agreed_price: offerData.price,
+        delivery_location: requestData.delivery_location,
+        status: "pending",
+      })
+      .select()
+      .single();
+
+    if (createOrderError) throw createOrderError;
+    if (!orderData) throw new Error("Failed to create order");
+
+    // Step 8: Create conversation if doesn't exist
+    const { data: existingConversation } = await supabase
+      .from("conversations")
+      .select("*")
+      .or(`and(participant_1_id.eq.${requestData.buyer_id},participant_2_id.eq.${offerData.seller_id}),and(participant_1_id.eq.${offerData.seller_id},participant_2_id.eq.${requestData.buyer_id})`)
+      .single();
+
+    if (!existingConversation) {
+      await supabase
+        .from("conversations")
+        .insert({
+          participant_1_id: requestData.buyer_id,
+          participant_2_id: offerData.seller_id,
+          request_id: requestData.id,
+        });
+    }
+
+    // Step 9: Send notification to seller
+    await supabase
+      .from("notifications")
+      .insert({
+        user_id: offerData.seller_id,
+        type: "offer_accepted",
+        title: "Offer Accepted",
+        message: `Your offer was accepted for "${requestData.title}"`,
+        link: `/seller/orders/${orderData.id}`,
+      });
+
+    return orderData;
+  } catch (error) {
+    throw new Error((error as Error).message || "Failed to accept offer");
+  }
+}
+
+export async function rejectOffer(offerId: string, userId: string) {
+  const supabase = await createClient();
+
+  try {
+    // Step 1: Validate offer exists and is pending
+    const { data: offerData, error: offerError } = await supabase
+      .from("offers")
+      .select("*")
+      .eq("id", offerId)
+      .single();
+
+    if (offerError || !offerData) throw new Error("Offer not found");
+    if (offerData.status !== "pending") throw new Error("Offer is no longer pending");
+
+    // Step 2: Validate request exists and is open
+    const { data: requestData, error: requestError } = await supabase
+      .from("requests")
+      .select("*")
+      .eq("id", offerData.request_id)
+      .single();
+
+    if (requestError || !requestData) throw new Error("Request not found");
+    if (requestData.status !== "open") throw new Error("Request is no longer open");
+
+    // Step 3: Validate user is the buyer of this request
+    if (userId && requestData.buyer_id !== userId) {
+      throw new Error("You are not authorized to reject this offer");
+    }
+
+    // Step 4: Update offer to 'rejected'
+    const { error: updateError } = await supabase
+      .from("offers")
+      .update({ status: "rejected" })
+      .eq("id", offerId);
+
+    if (updateError) throw updateError;
+
+    // Step 5: Send notification to seller
+    await supabase
+      .from("notifications")
+      .insert({
+        user_id: offerData.seller_id,
+        type: "offer_rejected",
+        title: "Offer Rejected",
+        message: `Your offer for "${requestData.title}" was rejected by the buyer`,
+        link: `/seller/requests/${requestData.id}`,
+      });
+
+    return true;
+  } catch (error) {
+    throw new Error((error as Error).message || "Failed to reject offer");
+  }
 }

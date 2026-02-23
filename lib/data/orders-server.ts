@@ -9,7 +9,7 @@ export async function getBuyerOrders(buyerId: string) {
     .select("*")
     .eq("buyer_id", buyerId)
     .order("created_at", { ascending: false });
-  
+
   if (error) throw error;
   return data || [];
 }
@@ -21,7 +21,7 @@ export async function getSellerOrders(sellerId: string) {
     .select("*")
     .eq("seller_id", sellerId)
     .order("created_at", { ascending: false });
-  
+
   if (error) throw error;
   return data || [];
 }
@@ -33,19 +33,39 @@ export async function getOrderById(id: string) {
     .select("*")
     .eq("id", id)
     .single();
-  
+
   if (error) throw error;
   return data;
 }
 
 export async function updateOrderStatus(id: string, newStatus: string) {
   const supabase = await createClient();
-  const { error } = await supabase
+  const { error, data: order } = await supabase
     .from("orders")
     .update({ status: newStatus })
-    .eq("id", id);
-  
+    .eq("id", id)
+    .select("buyer_id, title")
+    .single();
+
   if (error) throw error;
+
+  // Notify buyer about the status update
+  if (order) {
+    let message = `Your order for "${order.title}" has been updated to ${newStatus}`;
+    if (newStatus === "shipped") {
+      message = `Great news! Your order "${order.title}" has been shipped.`;
+    } else if (newStatus === "delivered") {
+      message = `Your order "${order.title}" has been delivered!`;
+    }
+
+    await supabase.from("notifications").insert({
+      user_id: order.buyer_id,
+      type: "order_status_updated",
+      title: "Order Update",
+      message: message,
+      link: `/buyer/orders/${id}`,
+    });
+  }
 }
 
 export async function createOrder(payload: {
@@ -60,9 +80,7 @@ export async function createOrder(payload: {
   status?: string;
 }) {
   const supabase = await createClient();
-  const { error } = await supabase
-    .from("orders")
-    .insert(payload);
-  
+  const { error } = await supabase.from("orders").insert(payload);
+
   if (error) throw error;
 }

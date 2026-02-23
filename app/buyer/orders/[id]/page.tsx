@@ -3,15 +3,24 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { User } from "@supabase/supabase-js"; // Added proper type import
 import { createClient } from "@/lib/supabase/client";
 import { getProfileById } from "@/lib/data/profiles";
 import { getOrderById } from "@/lib/data/orders";
 import { createConversation } from "@/lib/data/conversations";
+import { getReviewByOrderId } from "@/lib/data/reviews";
+import { ReviewModal } from "@/components/reviews/ReviewModal";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, MessageSquare } from "lucide-react";
-import type { Profile, Order } from "@/lib/types";
+import { ArrowLeft, MessageSquare, Loader2, Star } from "lucide-react";
+import type { Profile, Order, Review } from "@/lib/types";
 
 const statusColors: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-800",
@@ -19,17 +28,29 @@ const statusColors: Record<string, string> = {
   shipped: "bg-purple-100 text-purple-800",
   delivered: "bg-green-100 text-green-800",
   cancelled: "bg-red-100 text-red-800",
-}
+};
+
+// Helper for formatting currency
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat("en-ET", {
+    style: "currency",
+    currency: "ETB",
+    minimumFractionDigits: 0,
+  }).format(amount);
+};
 
 export default function OrderDetailPage() {
   const params = useParams();
   const router = useRouter();
   const orderId = params.id as string;
 
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null); // Replaced <any>
   const [order, setOrder] = useState<Order | null>(null);
   const [seller, setSeller] = useState<Profile | null>(null);
+  const [review, setReview] = useState<Review | null>(null);
+  const [isReviewOpen, setIsReviewOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isMessaging, setIsMessaging] = useState(false); // Added messaging loading state
 
   useEffect(() => {
     const fetchData = async () => {
@@ -52,14 +73,19 @@ export default function OrderDetailPage() {
         }
         setOrder(orderData);
 
-        const sellerData = await getProfileById(orderData.seller_id);
-        setSeller(sellerData);
+        if (orderData.seller_id) {
+          const sellerData = await getProfileById(orderData.seller_id);
+          setSeller(sellerData);
+        }
+
+        const reviewData = await getReviewByOrderId(orderId);
+        setReview(reviewData);
       } catch (error) {
         console.error("Error fetching order:", error);
         router.push("/buyer/orders");
+      } finally {
+        setLoading(false); // Moved to finally block
       }
-
-      setLoading(false);
     };
 
     fetchData();
@@ -68,25 +94,34 @@ export default function OrderDetailPage() {
   const handleMessageSeller = async () => {
     if (!user || !seller || !order) return;
 
+    setIsMessaging(true);
     try {
       const conversation = await createConversation(
         user.id,
         seller.id,
-        order.listing_id || undefined
+        order.listing_id || undefined,
       );
       router.push(`/messages?conversation=${conversation.id}`);
     } catch (error) {
       console.error("Error creating conversation:", error);
+      setIsMessaging(false); // Reset on error
     }
   };
 
-  if (loading || !order) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <Loader2 className="animate-spin text-primary w-8 h-8" />
       </div>
     );
   }
+
+  if (!order) return null; // Fallback if order is missing after loading
+
+  // Timeline helper logic
+  const isStatusReached = (targetStatus: string[]) =>
+    targetStatus.includes(order.status);
+  const isCancelled = order.status === "cancelled";
 
   return (
     <div className="min-h-screen bg-background">
@@ -105,25 +140,47 @@ export default function OrderDetailPage() {
                 <div className="flex justify-between items-start">
                   <div>
                     <CardTitle className="text-2xl">{order.title}</CardTitle>
-                    <CardDescription>Order ID: {order.id.slice(0, 12)}</CardDescription>
+                    <CardDescription className="uppercase tracking-wider">
+                      Order ID: {order.id.slice(0, 12)}
+                    </CardDescription>
                   </div>
-                  <Badge className={statusColors[order.status]}>{order.status}</Badge>
+                  <Badge
+                    className={
+                      statusColors[order.status] || "bg-gray-100 text-gray-800"
+                    }
+                  >
+                    {order.status.charAt(0).toUpperCase() +
+                      order.status.slice(1)}
+                  </Badge>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <p className="text-sm text-muted-foreground">Description</p>
-                  <p>{order.description}</p>
+                  <p className="text-sm font-medium text-muted-foreground mb-1">
+                    Description
+                  </p>
+                  <p className="text-sm leading-relaxed">
+                    {order.description || "No description provided."}
+                  </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4 bg-muted/30 p-4 rounded-lg">
                   <div>
-                    <p className="text-sm text-muted-foreground">Quantity</p>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Quantity
+                    </p>
                     <p className="text-lg font-semibold">{order.quantity}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Delivery Location</p>
-                    <p className="text-lg font-semibold">{order.delivery_location || "Not specified"}</p>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Delivery Location
+                    </p>
+                    <p
+                      className="text-lg font-semibold truncate"
+                      title={order.delivery_location || undefined}
+                    >
+                      {order.delivery_location || "Not specified"}
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -131,71 +188,224 @@ export default function OrderDetailPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Timeline</CardTitle>
+                <CardTitle>Order Timeline</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-0">
+                {/* Step 1: Created */}
                 <div className="flex gap-4">
                   <div className="flex flex-col items-center gap-2">
-                    <div className="w-3 h-3 bg-primary rounded-full"></div>
-                    <div className="w-0.5 h-12 bg-border"></div>
+                    <div className="w-3 h-3 bg-primary rounded-full ring-4 ring-primary/20"></div>
+                    <div className="w-0.5 h-10 bg-primary"></div>
                   </div>
-                  <div>
-                    <p className="font-semibold">Order Created</p>
+                  <div className="pb-6">
+                    <p className="font-medium">Order Created</p>
                     <p className="text-sm text-muted-foreground">
-                      {new Date(order.created_at).toLocaleDateString()}
+                      {new Date(order.created_at).toLocaleDateString(
+                        undefined,
+                        {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        },
+                      )}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex gap-4">
-                  <div className="flex flex-col items-center gap-2">
-                    <div
-                      className={`w-3 h-3 rounded-full ${
-                        order.status !== "pending" ? "bg-primary" : "bg-border"
-                      }`}
-                    ></div>
-                    {(order.status === "shipped" || order.status === "delivered") && (
-                      <div className="w-0.5 h-12 bg-border"></div>
-                    )}
+                {isCancelled ? (
+                  /* Cancelled State */
+                  <div className="flex gap-4">
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="w-3 h-3 bg-red-500 rounded-full ring-4 ring-red-500/20"></div>
+                    </div>
+                    <div>
+                      <p className="font-medium text-red-600">
+                        Order Cancelled
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        This order will not be fulfilled.
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-semibold">Accepted by Seller</p>
-                    <p className="text-sm text-muted-foreground">
-                      {order.status === "pending" ? "Awaiting response" : "Accepted"}
-                    </p>
-                  </div>
-                </div>
+                ) : (
+                  <>
+                    {/* Step 2: Accepted */}
+                    <div className="flex gap-4">
+                      <div className="flex flex-col items-center gap-2">
+                        <div
+                          className={`w-3 h-3 rounded-full ${
+                            isStatusReached([
+                              "accepted",
+                              "shipped",
+                              "delivered",
+                            ])
+                              ? "bg-primary ring-4 ring-primary/20"
+                              : "bg-border"
+                          }`}
+                        ></div>
+                        <div
+                          className={`w-0.5 h-10 ${
+                            isStatusReached([
+                              "accepted",
+                              "shipped",
+                              "delivered",
+                            ])
+                              ? "bg-primary"
+                              : "bg-border"
+                          }`}
+                        ></div>
+                      </div>
+                      <div className="pb-6">
+                        <p
+                          className={`font-medium ${!isStatusReached(["accepted", "shipped", "delivered"]) && "text-muted-foreground"}`}
+                        >
+                          Accepted by Seller
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 3: Shipped */}
+                    <div className="flex gap-4">
+                      <div className="flex flex-col items-center gap-2">
+                        <div
+                          className={`w-3 h-3 rounded-full ${
+                            isStatusReached(["shipped", "delivered"])
+                              ? "bg-primary ring-4 ring-primary/20"
+                              : "bg-border"
+                          }`}
+                        ></div>
+                        <div
+                          className={`w-0.5 h-10 ${
+                            isStatusReached(["shipped", "delivered"])
+                              ? "bg-primary"
+                              : "bg-border"
+                          }`}
+                        ></div>
+                      </div>
+                      <div className="pb-6">
+                        <p
+                          className={`font-medium ${!isStatusReached(["shipped", "delivered"]) && "text-muted-foreground"}`}
+                        >
+                          Shipped
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 4: Delivered */}
+                    <div className="flex gap-4">
+                      <div className="flex flex-col items-center gap-2">
+                        <div
+                          className={`w-3 h-3 rounded-full ${
+                            isStatusReached(["delivered"])
+                              ? "bg-green-500 ring-4 ring-green-500/20"
+                              : "bg-border"
+                          }`}
+                        ></div>
+                      </div>
+                      <div>
+                        <p
+                          className={`font-medium ${!isStatusReached(["delivered"]) && "text-muted-foreground"}`}
+                        >
+                          Delivered
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
+
+            {/* Review Section */}
+            {order.status === "delivered" && !review && order.listing_id && (
+              <Card className="bg-primary/5 border-primary/20">
+                <CardHeader>
+                  <CardTitle>How was your experience?</CardTitle>
+                  <CardDescription>
+                    Your feedback helps other buyers make good decisions.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button onClick={() => setIsReviewOpen(true)}>
+                    Leave a Review
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {review && (
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div className="space-y-1">
+                    <CardTitle>Your Review</CardTitle>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsReviewOpen(true)}
+                  >
+                    Edit Review
+                  </Button>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center gap-1 text-yellow-500">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`w-4 h-4 ${i < review.rating ? "fill-current" : "text-muted-foreground stroke-muted-foreground"}`}
+                      />
+                    ))}
+                  </div>
+                  {review.comment && (
+                    <p className="text-sm">{review.comment}</p>
+                  )}
+                  {review.seller_response && (
+                    <div className="rounded-md bg-muted p-3 text-sm border-l-2 border-primary">
+                      <p className="font-semibold text-xs mb-1">
+                        Seller Response:
+                      </p>
+                      <p className="text-muted-foreground">
+                        {review.seller_response}
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
           </div>
 
-          {/* Summary */}
+          {/* Summary Sidebar */}
           <div className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>Order Summary</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Item</span>
-                    <span>{order.title}</span>
+                    <span className="font-medium text-right max-w-[150px] truncate">
+                      {order.title}
+                    </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Qty</span>
-                    <span>{order.quantity}</span>
+                    <span className="text-muted-foreground">Quantity</span>
+                    <span className="font-medium">{order.quantity}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Unit Price</span>
-                    <span>{order.agreed_price} ETB</span>
+                    <span className="font-medium">
+                      {formatCurrency(order.agreed_price || 0)}
+                    </span>
                   </div>
                 </div>
 
                 <div className="border-t pt-4">
-                  <div className="flex justify-between font-semibold text-lg">
+                  <div className="flex justify-between font-bold text-lg">
                     <span>Total</span>
                     <span className="text-primary">
-                      {(order.agreed_price * order.quantity).toLocaleString()} ETB
+                      {formatCurrency(
+                        (order.agreed_price || 0) * (order.quantity || 1),
+                      )}
                     </span>
                   </div>
                 </div>
@@ -207,28 +417,56 @@ export default function OrderDetailPage() {
                 <CardHeader>
                   <CardTitle>Seller</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="space-y-4">
                   <div>
-                    <p className="font-semibold">{seller.first_name || "Seller"}</p>
-                    <p className="text-sm text-muted-foreground">{seller.email}</p>
+                    <p className="font-semibold text-lg">
+                      {seller.first_name || "Seller"} {seller.last_name || ""}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {seller.email}
+                    </p>
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Rating</p>
-                    <p className="text-lg font-semibold">⭐ {seller.rating || "N/A"}</p>
-                  </div>
-                  <Button 
-                    variant="outline" 
+
+                  {seller.rating && (
+                    <div className="flex items-center gap-1">
+                      <span className="text-yellow-500">⭐</span>
+                      <span className="font-semibold">{seller.rating}</span>
+                    </div>
+                  )}
+
+                  <Button
+                    variant="outline"
                     className="w-full mt-2"
                     onClick={handleMessageSeller}
+                    disabled={isMessaging}
                   >
-                    <MessageSquare className="w-4 h-4 mr-2" />
-                    Message Seller
+                    {isMessaging ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <MessageSquare className="w-4 h-4 mr-2" />
+                    )}
+                    {isMessaging ? "Starting Chat..." : "Message Seller"}
                   </Button>
                 </CardContent>
               </Card>
             )}
           </div>
         </div>
+
+        {order.listing_id && user && (
+          <ReviewModal
+            isOpen={isReviewOpen}
+            onClose={() => setIsReviewOpen(false)}
+            productId={order.listing_id}
+            orderId={order.id}
+            buyerId={user.id}
+            existingReview={review}
+            onSuccess={async () => {
+              const reviewData = await getReviewByOrderId(orderId);
+              setReview(reviewData);
+            }}
+          />
+        )}
       </main>
     </div>
   );

@@ -31,6 +31,9 @@ import {
 import { useToast } from "@/lib/hooks/use-toast";
 import { LoadingState } from "@/components/features/LoadingState";
 import Link from "next/link";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SellerReviewsTab } from "@/components/reviews/SellerReviewsTab";
+import { SellerQATab } from "@/components/comments/SellerQATab";
 
 export default function EditProductPage() {
   const router = useRouter();
@@ -162,207 +165,233 @@ export default function EditProductPage() {
           </p>
         </div>
 
-        <Card className="border-border shadow-none rounded-lg">
-          <CardHeader className="pb-6 pt-8 px-8">
-            <CardTitle className="text-2xl font-serif font-bold text-foreground">
-              Product Details
-            </CardTitle>
-            <CardDescription className="text-base text-muted-foreground">
-              Make changes to your product listing
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="px-8 pb-8">
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-              {/* Title */}
-              <div className="space-y-2">
-                <Label
-                  htmlFor="title"
-                  className="text-xs font-medium uppercase tracking-wider text-muted-foreground"
-                >
-                  Product Title *
-                </Label>
-                <Input
-                  id="title"
-                  {...register("title")}
-                  placeholder="e.g., MacBook Pro M4 16-inch"
-                  className="border-border focus-visible:ring-0 focus-visible:border-foreground h-12"
-                />
-                {errors.title && (
-                  <p className="text-sm text-destructive mt-1">
-                    {errors.title.message}
-                  </p>
-                )}
-              </div>
+        <Tabs defaultValue="edit" className="w-full">
+          <TabsList className="grid w-full max-w-[500px] grid-cols-3 mb-8">
+            <TabsTrigger value="edit">Edit Details</TabsTrigger>
+            <TabsTrigger value="reviews">Reviews</TabsTrigger>
+            <TabsTrigger value="qa">Q&A</TabsTrigger>
+          </TabsList>
 
-              {/* Description */}
-              <div className="space-y-2">
-                <Label
-                  htmlFor="description"
-                  className="text-xs font-medium uppercase tracking-wider text-muted-foreground"
-                >
-                  Description *
-                </Label>
-                <Textarea
-                  id="description"
-                  {...register("description")}
-                  placeholder="Describe your product in detail..."
-                  rows={5}
-                  className="border-border focus-visible:ring-0 focus-visible:border-foreground resize-none"
-                />
-                {errors.description && (
-                  <p className="text-sm text-destructive mt-1">
-                    {errors.description.message}
-                  </p>
-                )}
-              </div>
+          <TabsContent value="edit">
+            <Card className="border-border shadow-none rounded-lg">
+              <CardHeader className="pb-6 pt-8 px-8">
+                <CardTitle className="text-2xl font-serif font-bold text-foreground">
+                  Product Details
+                </CardTitle>
+                <CardDescription className="text-base text-muted-foreground">
+                  Make changes to your product listing
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="px-8 pb-8">
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+                  {/* Title */}
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="title"
+                      className="text-xs font-medium uppercase tracking-wider text-muted-foreground"
+                    >
+                      Product Title *
+                    </Label>
+                    <Input
+                      id="title"
+                      {...register("title")}
+                      placeholder="e.g., MacBook Pro M4 16-inch"
+                      className="border-border focus-visible:ring-0 focus-visible:border-foreground h-12"
+                    />
+                    {errors.title && (
+                      <p className="text-sm text-destructive mt-1">
+                        {errors.title.message}
+                      </p>
+                    )}
+                  </div>
 
-              {/* Category */}
-              <div className="space-y-2">
-                <Label
-                  htmlFor="category"
-                  className="text-xs font-medium uppercase tracking-wider text-muted-foreground"
-                >
-                  Category *
-                </Label>
-                <Select
-                  value={category}
-                  onValueChange={(value) => setValue("category", value as any)}
-                >
-                  <SelectTrigger className="border-border focus:ring-0 focus:border-foreground h-12">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CATEGORIES.map((cat) => (
-                      <SelectItem key={cat} value={cat}>
-                        {cat}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.category && (
-                  <p className="text-sm text-destructive mt-1">
-                    {errors.category.message}
-                  </p>
-                )}
-              </div>
+                  {/* Description */}
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="description"
+                      className="text-xs font-medium uppercase tracking-wider text-muted-foreground"
+                    >
+                      Description *
+                    </Label>
+                    <Textarea
+                      id="description"
+                      {...register("description")}
+                      placeholder="Describe your product in detail..."
+                      rows={5}
+                      className="border-border focus-visible:ring-0 focus-visible:border-foreground resize-none"
+                    />
+                    {errors.description && (
+                      <p className="text-sm text-destructive mt-1">
+                        {errors.description.message}
+                      </p>
+                    )}
+                  </div>
 
-              {/* Price, Inventory, and Status */}
-              <div className="grid grid-cols-3 gap-6">
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="price"
-                    className="text-xs font-medium uppercase tracking-wider text-muted-foreground"
-                  >
-                    Price (ETB) *
-                  </Label>
-                  <Input
-                    id="price"
-                    type="number"
-                    step="0.01"
-                    {...register("price", { valueAsNumber: true })}
-                    placeholder="0.00"
-                    className="border-border focus-visible:ring-0 focus-visible:border-foreground h-12"
-                  />
-                  {errors.price && (
-                    <p className="text-sm text-destructive mt-1">
-                      {errors.price.message}
+                  {/* Category */}
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="category"
+                      className="text-xs font-medium uppercase tracking-wider text-muted-foreground"
+                    >
+                      Category *
+                    </Label>
+                    <Select
+                      value={category}
+                      onValueChange={(value) =>
+                        setValue("category", value as any)
+                      }
+                    >
+                      <SelectTrigger className="border-border focus:ring-0 focus:border-foreground h-12">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CATEGORIES.map((cat) => (
+                          <SelectItem key={cat} value={cat}>
+                            {cat}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {errors.category && (
+                      <p className="text-sm text-destructive mt-1">
+                        {errors.category.message}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Price, Inventory, and Status */}
+                  <div className="grid grid-cols-3 gap-6">
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="price"
+                        className="text-xs font-medium uppercase tracking-wider text-muted-foreground"
+                      >
+                        Price (ETB) *
+                      </Label>
+                      <Input
+                        id="price"
+                        type="number"
+                        step="0.01"
+                        {...register("price", { valueAsNumber: true })}
+                        placeholder="0.00"
+                        className="border-border focus-visible:ring-0 focus-visible:border-foreground h-12"
+                      />
+                      {errors.price && (
+                        <p className="text-sm text-destructive mt-1">
+                          {errors.price.message}
+                        </p>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="inventory_quantity"
+                        className="text-xs font-medium uppercase tracking-wider text-muted-foreground"
+                      >
+                        Inventory
+                      </Label>
+                      <Input
+                        id="inventory_quantity"
+                        type="number"
+                        {...register("inventory_quantity", {
+                          valueAsNumber: true,
+                        })}
+                        placeholder="0"
+                        className="border-border focus-visible:ring-0 focus-visible:border-foreground h-12"
+                      />
+                      {errors.inventory_quantity && (
+                        <p className="text-sm text-destructive mt-1">
+                          {errors.inventory_quantity.message}
+                        </p>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="status"
+                        className="text-xs font-medium uppercase tracking-wider text-muted-foreground"
+                      >
+                        Status *
+                      </Label>
+                      <Select
+                        value={status}
+                        onValueChange={(value) =>
+                          setValue("status", value as any)
+                        }
+                      >
+                        <SelectTrigger className="border-border focus:ring-0 focus:border-foreground h-12">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="active">Active</SelectItem>
+                          <SelectItem value="inactive">Inactive</SelectItem>
+                          <SelectItem value="sold">Sold</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {errors.status && (
+                        <p className="text-sm text-destructive mt-1">
+                          {errors.status.message}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Image URL */}
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="image_url"
+                      className="text-xs font-medium uppercase tracking-wider text-muted-foreground"
+                    >
+                      Image URL (optional)
+                    </Label>
+                    <Input
+                      id="image_url"
+                      {...register("image_url")}
+                      placeholder="https://example.com/image.jpg"
+                      className="border-border focus-visible:ring-0 focus-visible:border-foreground h-12"
+                    />
+                    {errors.image_url && (
+                      <p className="text-sm text-destructive mt-1">
+                        {errors.image_url.message}
+                      </p>
+                    )}
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Provide a direct link to your product image
                     </p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="inventory_quantity"
-                    className="text-xs font-medium uppercase tracking-wider text-muted-foreground"
-                  >
-                    Inventory
-                  </Label>
-                  <Input
-                    id="inventory_quantity"
-                    type="number"
-                    {...register("inventory_quantity", { valueAsNumber: true })}
-                    placeholder="0"
-                    className="border-border focus-visible:ring-0 focus-visible:border-foreground h-12"
-                  />
-                  {errors.inventory_quantity && (
-                    <p className="text-sm text-destructive mt-1">
-                      {errors.inventory_quantity.message}
-                    </p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="status"
-                    className="text-xs font-medium uppercase tracking-wider text-muted-foreground"
-                  >
-                    Status *
-                  </Label>
-                  <Select
-                    value={status}
-                    onValueChange={(value) => setValue("status", value as any)}
-                  >
-                    <SelectTrigger className="border-border focus:ring-0 focus:border-foreground h-12">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
-                      <SelectItem value="sold">Sold</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {errors.status && (
-                    <p className="text-sm text-destructive mt-1">
-                      {errors.status.message}
-                    </p>
-                  )}
-                </div>
-              </div>
+                  </div>
 
-              {/* Image URL */}
-              <div className="space-y-2">
-                <Label
-                  htmlFor="image_url"
-                  className="text-xs font-medium uppercase tracking-wider text-muted-foreground"
-                >
-                  Image URL (optional)
-                </Label>
-                <Input
-                  id="image_url"
-                  {...register("image_url")}
-                  placeholder="https://example.com/image.jpg"
-                  className="border-border focus-visible:ring-0 focus-visible:border-foreground h-12"
-                />
-                {errors.image_url && (
-                  <p className="text-sm text-destructive mt-1">
-                    {errors.image_url.message}
-                  </p>
-                )}
-                <p className="text-xs text-muted-foreground mt-1">
-                  Provide a direct link to your product image
-                </p>
-              </div>
+                  {/* Actions */}
+                  <div className="flex gap-4 pt-4 border-t border-border">
+                    <Button
+                      type="submit"
+                      disabled={submitting}
+                      className="bg-foreground text-background hover:bg-foreground/90 shadow-none h-12 px-8"
+                    >
+                      {submitting ? "Saving..." : "Save Changes"}
+                    </Button>
+                    <Link href={ROUTES.SELLER_PRODUCTS}>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="border-border hover:bg-secondary hover:text-secondary-foreground h-12 px-8"
+                      >
+                        Cancel
+                      </Button>
+                    </Link>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-              {/* Actions */}
-              <div className="flex gap-4 pt-4 border-t border-border">
-                <Button
-                  type="submit"
-                  disabled={submitting}
-                  className="bg-foreground text-background hover:bg-foreground/90 shadow-none h-12 px-8"
-                >
-                  {submitting ? "Saving..." : "Save Changes"}
-                </Button>
-                <Link href={ROUTES.SELLER_PRODUCTS}>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="border-border hover:bg-secondary hover:text-secondary-foreground h-12 px-8"
-                  >
-                    Cancel
-                  </Button>
-                </Link>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+          <TabsContent value="reviews">
+            {product && <SellerReviewsTab productId={product.id} />}
+          </TabsContent>
+
+          <TabsContent value="qa">
+            {product && user && (
+              <SellerQATab productId={product.id} sellerId={user.id} />
+            )}
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );

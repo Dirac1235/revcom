@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useMemo, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useProducts } from '@/lib/hooks/useProducts';
 import { ProductCard } from '@/components/features/ProductCard';
@@ -17,7 +17,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { CATEGORIES } from '@/lib/constants/categories';
-import { Package, Filter, Grid, List } from 'lucide-react';
+import { Package, Filter, Grid, List, ChevronLeft, ChevronRight } from 'lucide-react';
+
+const PER_PAGE = 12;
 
 function ProductsContent() {
   const searchParams = useSearchParams();
@@ -26,6 +28,7 @@ function ProductsContent() {
   const [category, setCategory] = useState(searchParams.get('category') || '');
   const [search, setSearch] = useState(searchParams.get('q') || '');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [page, setPage] = useState(1);
 
   const { products, loading, error } = useProducts({
     category: category || undefined,
@@ -33,8 +36,15 @@ function ProductsContent() {
     status: 'active',
   });
 
+  const totalPages = Math.max(1, Math.ceil(products.length / PER_PAGE));
+  const paginatedProducts = useMemo(
+    () => products.slice((page - 1) * PER_PAGE, page * PER_PAGE),
+    [products, page],
+  );
+
   const handleSearch = (query: string) => {
     setSearch(query);
+    setPage(1);
     const params = new URLSearchParams();
     if (query) params.set('q', query);
     if (category) params.set('category', category);
@@ -43,16 +53,32 @@ function ProductsContent() {
 
   const handleCategoryChange = (value: string) => {
     setCategory(value === 'all' ? '' : value);
+    setPage(1);
     const params = new URLSearchParams();
     if (search) params.set('q', search);
     if (value !== 'all') params.set('category', value);
     router.push(`/products?${params.toString()}`);
   };
 
+  const pageNumbers = useMemo(() => {
+    const pages: (number | "...")[] = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      if (page > 3) pages.push("...");
+      for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) {
+        pages.push(i);
+      }
+      if (page < totalPages - 2) pages.push("...");
+      pages.push(totalPages);
+    }
+    return pages;
+  }, [page, totalPages]);
+
   return (
     <div className="min-h-screen bg-background">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Header */}
         <div className="mb-12">
           <h1 className="text-4xl font-serif font-bold text-foreground mb-3">
             Browse Products
@@ -62,7 +88,6 @@ function ProductsContent() {
           </p>
         </div>
 
-        {/* Filters */}
         <div className="mb-8 flex flex-col md:flex-row gap-4">
           <div className="flex-1">
             <SearchBar
@@ -107,7 +132,6 @@ function ProductsContent() {
           </div>
         </div>
 
-        {/* Active Filters */}
         {(category || search) && (
           <div className="mb-8 flex flex-wrap gap-2 items-center">
             <span className="text-sm text-muted-foreground mr-2">Active filters:</span>
@@ -126,20 +150,18 @@ function ProductsContent() {
                 className="cursor-pointer hover:bg-destructive hover:text-destructive-foreground transition-colors px-3 py-1"
                 onClick={() => handleSearch('')}
               >
-                "{search}" <span className="ml-2 opacity-50">✕</span>
+                &quot;{search}&quot; <span className="ml-2 opacity-50">✕</span>
               </Badge>
             )}
           </div>
         )}
 
-        {/* Results Count */}
         {!loading && (
           <div className="mb-6 text-sm font-medium text-muted-foreground uppercase tracking-wider">
             {products.length} {products.length === 1 ? 'product' : 'products'} found
           </div>
         )}
 
-        {/* Products Grid/List */}
         {loading ? (
           <LoadingState count={8} type="card" />
         ) : error ? (
@@ -147,11 +169,53 @@ function ProductsContent() {
             Error loading products. Please try again.
           </div>
         ) : products.length > 0 ? (
-          <div className={viewMode === 'grid' ? 'grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8' : 'space-y-6'}>
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+          <>
+            <div className={viewMode === 'grid' ? 'grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8' : 'space-y-6'}>
+              {paginatedProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+
+            {totalPages > 1 && (
+              <div className="mt-12 flex items-center justify-center gap-1.5">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-9 w-9 border-border/50"
+                  disabled={page === 1}
+                  onClick={() => setPage(page - 1)}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                {pageNumbers.map((p, i) =>
+                  p === "..." ? (
+                    <span key={`dots-${i}`} className="px-2 text-sm text-muted-foreground">
+                      ...
+                    </span>
+                  ) : (
+                    <Button
+                      key={p}
+                      variant={page === p ? "default" : "outline"}
+                      size="icon"
+                      className={`h-9 w-9 text-sm ${page === p ? "shadow-none" : "border-border/50"}`}
+                      onClick={() => setPage(p as number)}
+                    >
+                      {p}
+                    </Button>
+                  ),
+                )}
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-9 w-9 border-border/50"
+                  disabled={page === totalPages}
+                  onClick={() => setPage(page + 1)}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
+          </>
         ) : (
           <EmptyState
             icon={Package}

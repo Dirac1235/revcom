@@ -34,7 +34,7 @@ export function EmptyState({
         <>
           {actionHref ? (
             <Link href={actionHref}>
-              <Button variant="outline" className="border-foreground/20 hover:bg-foreground hover:text-background">
+              <Button variant="outline" className="border-foreground/20 hover:bg-primary hover:text-primary-foreground">
                 {actionLabel}
               </Button>
             </Link>
@@ -42,7 +42,7 @@ export function EmptyState({
             <Button
               onClick={onAction}
               variant="outline"
-              className="border-foreground/20 hover:bg-foreground hover:text-background"
+              className="border-foreground/20 hover:bg-primary hover:text-primary-foreground"
             >
               {actionLabel}
             </Button>

@@ -72,7 +72,7 @@ export default async function BuyerListingsPage() {
                   </p>
                   <div className="flex justify-between items-center mb-6">
                     <p className="text-lg font-bold text-foreground">
-                      Budget: ${listing.budget_min} - ${listing.budget_max}
+                      Budget: {listing.budget_min?.toLocaleString()} - {listing.budget_max?.toLocaleString()} ETB
                     </p>
                     <p className="text-xs text-muted-foreground uppercase tracking-wider">
                       Posted {new Date(listing.created_at).toLocaleDateString()}

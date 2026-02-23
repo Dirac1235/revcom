@@ -15,13 +15,31 @@ import { useRequests } from "@/lib/hooks/useRequests";
 import { getListingsCount } from "@/lib/data/listings-server";
 import { getRequestsCount } from "@/lib/data/requests-server";
 import { ROUTES } from "@/lib/constants/routes";
-import { Package, FileText, ArrowRight, Send } from "lucide-react";
+import {
+  Package,
+  FileText,
+  ArrowRight,
+  Send,
+  Smartphone,
+  ShoppingBag,
+  Home,
+  Wrench,
+  Heart,
+  Briefcase,
+  BookOpen,
+  Car,
+  Truck,
+  Shield,
+  Star,
+  type LucideIcon,
+} from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 
 export default function HomePage() {
   const router = useRouter();
   const { user, profile } = useAuth();
 
-  const { products, loading: productsLoading } = useProducts({ limit: 8 });
+  const { products, loading: productsLoading } = useProducts({ limit: 8, status: "active" });
   const { requests, loading: requestsLoading } = useRequests({ limit: 8 });
   const [stats, setStats] = useState({
     products: 0,
@@ -32,15 +50,24 @@ export default function HomePage() {
 
   useEffect(() => {
     const fetchStats = async () => {
-      const [productsCount, requestsCount] = await Promise.all([
-        getListingsCount({ status: "active" }),
-        getRequestsCount({ status: "open" }),
-      ]);
+      const supabase = createClient();
+      const [productsCount, requestsCount, sellersRes, ordersRes] =
+        await Promise.all([
+          getListingsCount({ status: "active" }),
+          getRequestsCount({ status: "open" }),
+          supabase
+            .from("profiles")
+            .select("id", { count: "exact", head: true })
+            .in("user_type", ["seller", "both"]),
+          supabase
+            .from("orders")
+            .select("id", { count: "exact", head: true }),
+        ]);
       setStats({
         products: productsCount,
         requests: requestsCount,
-        sellers: 450, // TODO: Fetch from profiles count
-        orders: 2340, // TODO: Fetch from orders count
+        sellers: sellersRes.count || 0,
+        orders: ordersRes.count || 0,
       });
     };
     fetchStats();
@@ -50,13 +77,15 @@ export default function HomePage() {
     router.push(`/products?q=${encodeURIComponent(query)}`);
   };
 
-  const categories = [
-    { name: "Construction Materials", products: 890, requests: 67 },
-    { name: "Textiles & Fabrics", products: 1200, requests: 89 },
-    { name: "Electronics & Tech", products: 450, requests: 23 },
-    { name: "Agriculture & Food", products: 670, requests: 102 },
-    { name: "Industrial Equipment", products: 340, requests: 34 },
-    { name: "Logistics & Services", products: 120, requests: 56 },
+  const featuredCategories: { name: string; icon: LucideIcon }[] = [
+    { name: "Electronics", icon: Smartphone },
+    { name: "Clothing", icon: ShoppingBag },
+    { name: "Home & Garden", icon: Home },
+    { name: "Industrial Equipment", icon: Wrench },
+    { name: "Health & Beauty", icon: Heart },
+    { name: "Automotive", icon: Car },
+    { name: "Books", icon: BookOpen },
+    { name: "Services", icon: Briefcase },
   ];
 
   return (
@@ -238,7 +267,7 @@ export default function HomePage() {
             </div>
 
             {/* Horizontal Divider */}
-            <div className="w-full h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+            <div className="w-full h-px bg-linear-to-r from-transparent via-primary/20 to-transparent" />
 
             {/* Seller Flow - Horizontal */}
             <div className="relative">
@@ -288,31 +317,20 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {categories.map((category, i) => (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {featuredCategories.map((cat, i) => (
               <Link
                 key={i}
-                href={`/products?category=${encodeURIComponent(category.name)}`}
+                href={`/products?category=${encodeURIComponent(cat.name)}`}
                 className="group"
               >
-                <div className="bg-card border border-foreground/8 rounded-xl p-6 hover:border-primary/20 transition-all hover:shadow-sm h-full">
-                  <h3 className="font-serif font-bold text-foreground mb-3 group-hover:text-primary transition-colors">
-                    {category.name}
-                  </h3>
-                  <div className="flex items-center gap-4 text-xs font-sans">
-                    <span className="text-foreground/50">
-                      <span className="font-semibold text-foreground/70">
-                        {category.products}
-                      </span>{" "}
-                      products
-                    </span>
-                    <span className="text-primary/50">
-                      <span className="font-semibold text-primary/70">
-                        {category.requests}
-                      </span>{" "}
-                      requests
-                    </span>
+                <div className="bg-card border border-foreground/8 rounded-xl p-5 hover:border-primary/30 hover:shadow-sm transition-all h-full flex flex-col items-center text-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-primary/8 border border-primary/15 flex items-center justify-center group-hover:bg-primary/15 group-hover:border-primary/30 transition-all">
+                    <cat.icon className="w-5 h-5 text-primary" />
                   </div>
+                  <h3 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
+                    {cat.name}
+                  </h3>
                 </div>
               </Link>
             ))}

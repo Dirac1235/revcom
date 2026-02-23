@@ -75,7 +75,11 @@ export default function CheckoutPage() {
       setUser(authUser);
 
       try {
-        const profileData = await getProfileById(authUser.id);
+        const [profileData, productData] = await Promise.all([
+          getProfileById(authUser.id),
+          productId ? getListingById(productId) : null,
+        ]);
+
         setProfile(profileData);
 
         if (profileData && profileData.user_type === "seller") {
@@ -95,22 +99,19 @@ export default function CheckoutPage() {
           }));
         }
 
-        if (productId) {
-          const productData = await getListingById(productId);
-          if (productData) {
-            setProduct(productData);
-            
-            if (productData.inventory_quantity === 0) {
-              setIsOutOfStock(true);
-            }
+        if (productData) {
+          setProduct(productData);
 
-            const qty = parseInt(quantityParam || "1");
-            const maxQty = productData.inventory_quantity || 1;
-            setQuantity(Math.min(Math.max(1, qty), maxQty));
-
-            const sellerData = await getProfileById(productData.seller_id);
-            setSeller(sellerData);
+          if (productData.inventory_quantity === 0) {
+            setIsOutOfStock(true);
           }
+
+          const qty = parseInt(quantityParam || "1");
+          const maxQty = productData.inventory_quantity || 1;
+          setQuantity(Math.min(Math.max(1, qty), maxQty));
+
+          const sellerData = await getProfileById(productData.seller_id);
+          setSeller(sellerData);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -243,8 +244,7 @@ export default function CheckoutPage() {
         description: "Your order has been successfully placed",
       });
 
-      router.push(`/orders/${order.id}/confirmation`);
-      router.refresh();
+      window.location.href = `/orders/${order.id}/confirmation`;
     } catch (error: any) {
       console.error("[Checkout] Error creating order:", error);
       toast({
