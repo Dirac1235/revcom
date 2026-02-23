@@ -135,7 +135,7 @@ export default function SellerProductsPage() {
             </p>
           </div>
           <Link href={ROUTES.SELLER_PRODUCT_CREATE}>
-            <Button className="bg-foreground text-background hover:bg-foreground/90 shadow-none">
+            <Button className="bg-primary text-primary-foreground hover:bg-foreground/90 shadow-none">
               <Plus className="w-4 h-4 mr-2" />
               Add Product
             </Button>

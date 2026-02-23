@@ -339,7 +339,7 @@ export default function CreateProductPage() {
                 <Button
                   type="submit"
                   disabled={submitting}
-                  className="bg-foreground text-background hover:bg-foreground/90 shadow-none h-11 px-8"
+                  className="bg-primary text-primary-foreground hover:bg-foreground/90 shadow-none h-11 px-8"
                 >
                   {submitting ? (
                     <>

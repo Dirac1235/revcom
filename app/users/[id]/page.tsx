@@ -162,7 +162,7 @@ export default function PublicProfilePage() {
         <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
           <div className="md:col-span-2 space-y-6 lg:space-y-8">
             <div
-              className="rounded-xl border border-border/30 bg-linear-to-br from-background to-secondary/5 backdrop-blur-sm p-6 sm:p-8 shadow-sm animate-fadeIn"
+              className="rounded-xl border border-border/30 bg-linear-to-br from-background to-secondary/5 backdrop-blur-sm p-6 sm:p-8  animate-fadeIn"
               style={{ animationDelay: "0.1s" }}
             >
               <div className="flex items-start gap-5 sm:gap-6">
@@ -353,7 +353,7 @@ export default function PublicProfilePage() {
 
           <div className="space-y-5 lg:space-y-6 md:sticky md:top-6 md:h-fit">
             <div
-              className="rounded-xl border border-border/30 bg-linear-to-br from-background to-secondary/5 backdrop-blur-sm p-4 space-y-4 shadow-sm hover:shadow-md transition-all duration-300 animate-fadeIn"
+              className="rounded-xl border border-border/30 bg-linear-to-br from-background to-secondary/5 backdrop-blur-sm p-4 space-y-4  hover:shadow-sm transition-all duration-300 animate-fadeIn"
               style={{ animationDelay: "0.15s" }}
             >
               <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -408,7 +408,7 @@ export default function PublicProfilePage() {
             </div>
 
             <div
-              className="rounded-xl border border-border/30 bg-linear-to-br from-background to-secondary/5 backdrop-blur-sm p-4 space-y-2 shadow-sm hover:shadow-md transition-all duration-300 animate-fadeIn"
+              className="rounded-xl border border-border/30 bg-linear-to-br from-background to-secondary/5 backdrop-blur-sm p-4 space-y-2  hover:shadow-sn transition-all duration-300 animate-fadeIn"
               style={{ animationDelay: "0.2s" }}
             >
               {isOwnProfile ? (
@@ -443,7 +443,7 @@ export default function PublicProfilePage() {
 
             {isSeller && (
               <div
-                className="rounded-xl border border-border/30 bg-linear-to-br from-background to-secondary/5 backdrop-blur-sm p-4 space-y-2.5 shadow-sm hover:shadow-md transition-all duration-300 animate-fadeIn"
+                className="rounded-xl border border-border/30 bg-linear-to-br from-background to-secondary/5 backdrop-blur-sm p-4 space-y-2.5  hover:shadow-sm transition-all duration-300 animate-fadeIn"
                 style={{ animationDelay: "0.25s" }}
               >
                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
