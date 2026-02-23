@@ -157,45 +157,27 @@ export async function addSellerResponse(
 ): Promise<{ data: Review | null; error: PostgrestError | null }> {
   const supabase = createClient();
 
-  const { data, error } = await supabase
-    .from("reviews")
-    .update({
-      seller_response: response,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", reviewId)
-    .select()
-    .single();
+  const { data, error } = await supabase.rpc("update_seller_response", {
+    p_review_id: reviewId,
+    p_response: response,
+  });
 
   if (error) {
     console.error("Error adding seller response to review:", error);
     return { data: null, error };
   }
 
-  return { data, error: null };
+  return { data: data as Review, error: null };
 }
 
 export async function markReviewHelpful(reviewId: string): Promise<boolean> {
   const supabase = createClient();
 
-  // We should call a stored procedure or use raw sql to increment if possible,
-  // but for simplicity with supabase JS, we might have to read then update,
-  // or use RPC. We can use RPC if available.
-  // Alternatively, just a simple fetch and increment:
-  const { data: review, error: fetchError } = await supabase
-    .from("reviews")
-    .select("helpful_count")
-    .eq("id", reviewId)
-    .single();
+  const { error } = await supabase.rpc("increment_helpful_count", {
+    p_review_id: reviewId,
+  });
 
-  if (fetchError || !review) return false;
-
-  const { error: updateError } = await supabase
-    .from("reviews")
-    .update({ helpful_count: review.helpful_count + 1 })
-    .eq("id", reviewId);
-
-  return !updateError;
+  return !error;
 }
 
 export type RatingBreakdown = {

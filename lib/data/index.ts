@@ -8,6 +8,7 @@ export * from './listings';
 export * from './conversations';
 export * from './dashboard';
 export * from './offers';
+export * from './reviews';
 
 // Server-side exports (for use in server components)
 // Import from specific files: import { getProfileById } from '@/lib/data/profiles-server';

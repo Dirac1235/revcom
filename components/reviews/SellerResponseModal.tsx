@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -33,10 +33,9 @@ export function SellerResponseModal({
   const [response, setResponse] = useState(review?.seller_response || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Update response state when review changes
-  useState(() => {
-    if (review?.seller_response) setResponse(review.seller_response);
-  });
+  useEffect(() => {
+    setResponse(review?.seller_response || "");
+  }, [review]);
 
   const handleSubmit = async () => {
     if (!review) return;

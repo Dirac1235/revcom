@@ -15,6 +15,7 @@ import { createConversation } from "@/lib/data/conversations";
 import { getProfileById } from "@/lib/data/profiles";
 import { useToast } from "@/lib/hooks/use-toast";
 import { ProductReviews } from "@/components/reviews/ProductReviews";
+import { ProductQA } from "@/components/comments/ProductQA";
 import type { Profile } from "@/lib/types";
 import {
   Package,
@@ -636,6 +637,13 @@ export default function ProductDetailPage() {
           currentUserId={user?.id}
           averageRating={product.average_rating || 0}
           totalReviews={product.review_count || 0}
+        />
+
+        {/* Product Q&A Section */}
+        <ProductQA
+          productId={productId}
+          currentUserId={user?.id}
+          sellerId={product.seller_id}
         />
       </main>
 

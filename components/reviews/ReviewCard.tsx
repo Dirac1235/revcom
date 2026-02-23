@@ -50,16 +50,13 @@ export function ReviewCard({
 
   const isOwner = currentUserId === review.buyer_id;
   const hasComment = !!review.comment;
-  const isAnonymous = (review as any).is_anonymous;
 
-  const buyerName = isAnonymous
-    ? "Anonymous Buyer"
-    : review.buyer
-      ? `${review.buyer.first_name || ""} ${review.buyer.last_name || ""}`.trim() ||
-        "User"
-      : "Anonymous Buyer";
+  const buyerName = review.buyer
+    ? `${review.buyer.first_name || ""} ${review.buyer.last_name || ""}`.trim() ||
+      "User"
+    : "Anonymous Buyer";
 
-  const avatarUrl = isAnonymous ? undefined : review.buyer?.avatar_url;
+  const avatarUrl = review.buyer?.avatar_url;
 
   return (
     <Card className="mb-4">

@@ -155,6 +155,22 @@ export interface ProductWithSeller extends Product {
   seller?: Profile;
 }
 
+export interface ProductQuestion {
+  id: string;
+  product_id: string;
+  author_id: string;
+  content: string;
+  is_seller_answer: boolean;
+  parent_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProductQuestionWithAuthor extends ProductQuestion {
+  author?: Profile;
+  answers?: ProductQuestionWithAuthor[];
+}
+
 export interface OrderWithDetails extends Order {
   buyer?: Profile;
   seller?: Profile;

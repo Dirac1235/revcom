@@ -33,6 +33,7 @@ import { LoadingState } from "@/components/features/LoadingState";
 import Link from "next/link";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SellerReviewsTab } from "@/components/reviews/SellerReviewsTab";
+import { SellerQATab } from "@/components/comments/SellerQATab";
 
 export default function EditProductPage() {
   const router = useRouter();
@@ -165,9 +166,10 @@ export default function EditProductPage() {
         </div>
 
         <Tabs defaultValue="edit" className="w-full">
-          <TabsList className="grid w-[400px] grid-cols-2 mb-8">
+          <TabsList className="grid w-full max-w-[500px] grid-cols-3 mb-8">
             <TabsTrigger value="edit">Edit Details</TabsTrigger>
             <TabsTrigger value="reviews">Reviews</TabsTrigger>
+            <TabsTrigger value="qa">Q&A</TabsTrigger>
           </TabsList>
 
           <TabsContent value="edit">
@@ -382,6 +384,12 @@ export default function EditProductPage() {
 
           <TabsContent value="reviews">
             {product && <SellerReviewsTab productId={product.id} />}
+          </TabsContent>
+
+          <TabsContent value="qa">
+            {product && user && (
+              <SellerQATab productId={product.id} sellerId={user.id} />
+            )}
           </TabsContent>
         </Tabs>
       </main>

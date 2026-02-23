@@ -79,3 +79,16 @@ export const searchFilterSchema = z.object({
 });
 
 export type SearchFilterData = z.infer<typeof searchFilterSchema>;
+
+export const reviewSchema = z.object({
+  rating: z.number().int().min(1, 'Rating must be at least 1').max(5, 'Rating must be at most 5'),
+  comment: z.string().max(1000, 'Comment must be less than 1000 characters').optional(),
+});
+
+export type ReviewFormData = z.infer<typeof reviewSchema>;
+
+export const questionSchema = z.object({
+  content: z.string().min(5, 'Question must be at least 5 characters').max(500, 'Question must be less than 500 characters'),
+});
+
+export type QuestionFormData = z.infer<typeof questionSchema>;
