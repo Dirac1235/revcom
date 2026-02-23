@@ -3,9 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { createOffer } from "@/lib/data/offers-server";
-import { createConversation } from "@/lib/data/conversations-server";
-import { createNotification } from "@/lib/data/notifications-server";
+import { submitOfferAction } from "@/lib/data/offers-server";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -140,9 +138,11 @@ export default function MakeOfferForm({
           ? formData.custom_timeline
           : formData.delivery_timeline;
 
-      await createOffer({
+      await submitOfferAction({
         seller_id: userId,
         request_id: requestId,
+        buyer_id: request.buyer_id,
+        request_title: request.title,
         price: parseFloat(formData.price),
         description: formData.description,
         delivery_timeline: timeline,
@@ -151,16 +151,6 @@ export default function MakeOfferForm({
           : parseFloat(formData.delivery_cost || "0"),
         payment_terms: formData.payment_terms || undefined,
         status: "pending",
-      });
-
-      await createConversation(userId, request.buyer_id, undefined, requestId);
-
-      await createNotification({
-        user_id: request.buyer_id,
-        type: "new_offer",
-        title: "New Offer Received",
-        message: `You have a new offer for "${request.title}"`,
-        link: `/buyer/requests/${requestId}`,
       });
 
       toast({

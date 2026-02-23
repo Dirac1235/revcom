@@ -106,9 +106,90 @@ export async function createOffer(payload: {
     })
     .select()
     .single();
-  
+
   if (error) throw error;
   return data;
+}
+
+/** Single server action for submitting an offer so one Supabase client (and auth session) is used for offer + conversation + notification. Fixes 42501 when Server Action context loses cookies. */
+export async function submitOfferAction(payload: {
+  seller_id: string;
+  request_id: string;
+  buyer_id: string;
+  request_title: string;
+  price: number;
+  description: string;
+  delivery_timeline: string;
+  delivery_cost?: number;
+  payment_terms?: string;
+  attachments?: string[];
+  status?: string;
+}) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    throw new Error("Not authenticated. Please sign in again.");
+  }
+  if (user.id !== payload.seller_id) {
+    throw new Error("You can only submit offers as yourself.");
+  }
+
+  const { data: offer, error: offerError } = await supabase
+    .from("offers")
+    .insert({
+      seller_id: payload.seller_id,
+      request_id: payload.request_id,
+      price: payload.price,
+      description: payload.description,
+      delivery_timeline: payload.delivery_timeline,
+      delivery_cost: payload.delivery_cost ?? 0,
+      payment_terms: payload.payment_terms ?? null,
+      attachments: payload.attachments ?? null,
+      status: payload.status ?? "pending",
+    })
+    .select()
+    .single();
+
+  if (offerError) {
+    throw new Error(offerError.message || "Failed to create offer");
+  }
+
+  const { data: existingConv } = await supabase
+    .from("conversations")
+    .select("*")
+    .or(
+      `and(participant_1_id.eq.${payload.seller_id},participant_2_id.eq.${payload.buyer_id}),and(participant_1_id.eq.${payload.buyer_id},participant_2_id.eq.${payload.seller_id})`,
+    )
+    .maybeSingle();
+
+  if (!existingConv) {
+    const { error: convError } = await supabase.from("conversations").insert({
+      participant_1_id: payload.seller_id,
+      participant_2_id: payload.buyer_id,
+      listing_id: null,
+      request_id: payload.request_id,
+    });
+    if (convError) {
+      throw new Error(convError.message || "Failed to create conversation");
+    }
+  }
+
+  const { error: notifError } = await supabase.from("notifications").insert({
+    user_id: payload.buyer_id,
+    type: "new_offer",
+    title: "New Offer Received",
+    message: `You have a new offer for "${payload.request_title}"`,
+    link: `/buyer/requests/${payload.request_id}`,
+  });
+  if (notifError) {
+    throw new Error(notifError.message || "Failed to send notification");
+  }
+
+  return { offer };
 }
 
 export async function updateOffer(id: string, updates: Partial<{
