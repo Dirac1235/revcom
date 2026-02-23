@@ -112,9 +112,8 @@ export async function GET(request: NextRequest) {
       console.log("[Auth Callback] Profile upserted successfully");
     }
 
-    // Successful authentication - redirect to home
-    console.log("[Auth Callback] Redirecting to home...");
-    return NextResponse.redirect(new URL("/", request.url));
+    console.log("[Auth Callback] Redirecting to dashboard...");
+    return NextResponse.redirect(new URL("/dashboard", request.url));
 
   } catch (error) {
     console.error("[Auth Callback] Unexpected error:", error);

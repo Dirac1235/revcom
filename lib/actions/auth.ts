@@ -5,18 +5,22 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { ROUTES } from "@/lib/constants/routes";
 
-const getVerificationRedirectUrl = () => {
+const getBaseUrl = () => {
   const hostedUrl =
     process.env.NEXT_PUBLIC_SITE_URL ||
     (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "");
 
-  const base = hostedUrl || "http://localhost:3000";
-  return `${base}${ROUTES.SIGNUP_SUCCESS}`;
+  return hostedUrl || "http://localhost:3000";
+};
+
+const getVerificationRedirectUrl = () => {
+  return `${getBaseUrl()}/api/auth/callback`;
 };
 
 export async function login(formData: FormData) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
+  const redirectTo = formData.get("redirect") as string | null;
 
   const supabase = await createClient();
 
@@ -61,7 +65,12 @@ export async function login(formData: FormData) {
   }
 
   revalidatePath("/", "layout");
-  redirect(ROUTES.HOME);
+
+  const destination =
+    redirectTo && redirectTo.startsWith("/") && !redirectTo.startsWith("//")
+      ? redirectTo
+      : ROUTES.DASHBOARD;
+  redirect(destination);
 }
 
 export async function signup(formData: FormData) {
@@ -131,15 +140,10 @@ export async function signOut() {
 export async function signInWithGoogle() {
   const supabase = await createClient();
   
-  const hostedUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "");
-  const base = hostedUrl || "http://localhost:3000";
-  
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${base}/api/auth/callback`,
+      redirectTo: `${getBaseUrl()}/api/auth/callback`,
       queryParams: {
         access_type: "offline",
         prompt: "consent",

@@ -29,23 +29,24 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Redirect to login if accessing protected routes without authentication
-  if (
-    !user &&
-    (request.nextUrl.pathname.startsWith("/buyer") ||
-      request.nextUrl.pathname.startsWith("/seller") ||
-      request.nextUrl.pathname.startsWith("/dashboard") ||
-      request.nextUrl.pathname.startsWith("/messages"))
-  ) {
+  const pathname = request.nextUrl.pathname
+
+  const protectedPrefixes = ["/buyer", "/seller", "/dashboard", "/messages", "/notifications", "/profile", "/checkout"]
+  const isProtected = protectedPrefixes.some((prefix) => pathname.startsWith(prefix))
+
+  if (!user && isProtected) {
     const url = request.nextUrl.clone()
     url.pathname = "/auth/login"
+    const redirectTo = pathname + request.nextUrl.search
+    if (redirectTo !== "/") {
+      url.searchParams.set("redirect", redirectTo)
+    }
     return NextResponse.redirect(url)
   }
 
-  // Redirect to home if already logged in and accessing auth pages
-  if (user && request.nextUrl.pathname.startsWith("/auth")) {
+  if (user && pathname.startsWith("/auth") && !pathname.startsWith("/api/auth")) {
     const url = request.nextUrl.clone()
-    url.pathname = "/"
+    url.pathname = "/dashboard"
     return NextResponse.redirect(url)
   }
 

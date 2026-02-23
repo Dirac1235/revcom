@@ -119,18 +119,18 @@ export function AuthProvider({
   const signOut = useCallback(async () => {
     try {
       setLoading(true);
-      const { signOut } = await import("@/lib/actions/auth");
-      await signOut();
+      await supabase.auth.signOut();
       setUser(null);
       setProfile(null);
       setSession(null);
+      router.push("/auth/login");
       router.refresh();
     } catch (error) {
       console.error("[AuthProvider] Error signing out:", error);
     } finally {
       setLoading(false);
     }
-  }, [router]);
+  }, [router, supabase]);
 
   const refreshProfile = useCallback(async () => {
     if (!user) return;
