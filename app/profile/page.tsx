@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, FormEvent } from "react";
 import { updateProfile } from "@/lib/data/profiles";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,21 +14,30 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Star, Loader2, CheckCircle2 } from "lucide-react";
-import DashboardNav from "@/components/dashboard-nav";
 import { useAuth } from "@/components/providers/AuthProvider";
 
 export default function ProfilePage() {
-  const router = useRouter();
   const { user, profile: authProfile, refreshProfile } = useAuth();
   
-  const [firstName, setFirstName] = useState(authProfile?.first_name || "");
-  const [lastName, setLastName] = useState(authProfile?.last_name || "");
-  const [bio, setBio] = useState(authProfile?.bio || "");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [bio, setBio] = useState("");
+  
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
 
-  const handleSave = async () => {
+  // Sync state when authProfile loads asynchronously
+  useEffect(() => {
+    if (authProfile) {
+      setFirstName(authProfile.first_name || "");
+      setLastName(authProfile.last_name || "");
+      setBio(authProfile.bio || "");
+    }
+  }, [authProfile]);
+
+  const handleSave = async (e: FormEvent) => {
+    e.preventDefault(); // Prevent default form submission
     if (!user) return;
     
     setSaving(true);
@@ -46,15 +54,17 @@ export default function ProfilePage() {
       await refreshProfile();
       setSaved(true);
     } catch (updateError: any) {
-      setError(updateError.message);
+      setError(updateError.message || "An error occurred while saving.");
     } finally {
       setSaving(false);
-      setTimeout(() => setSaved(false), 3000);
+      // Clean up the timeout to prevent state updates on unmounted components
+      const timer = setTimeout(() => setSaved(false), 3000);
+      return () => clearTimeout(timer);
     }
   };
 
   if (!user) {
-    return null;
+    return null; // Or consider returning a loading skeleton/spinner here
   }
 
   return (
@@ -76,7 +86,8 @@ export default function ProfilePage() {
               <CardDescription>Update your personal details</CardDescription>
             </CardHeader>
             <CardContent className="px-6 pb-6">
-              <div className="grid gap-6">
+              {/* Wrapped in a form for better accessibility and "Enter" key submission */}
+              <form onSubmit={handleSave} className="grid gap-6">
                 <div className="grid gap-2">
                   <Label htmlFor="email" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Email</Label>
                   <Input
@@ -84,7 +95,7 @@ export default function ProfilePage() {
                     type="email"
                     value={authProfile?.email || user.email || ""}
                     disabled
-                    className="bg-secondary/20 border-transparent"
+                    className="bg-secondary/20 border-transparent cursor-not-allowed"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -95,6 +106,7 @@ export default function ProfilePage() {
                       placeholder="Your first name"
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
+                      disabled={saving}
                       className="border-border focus-visible:ring-0 focus-visible:border-foreground"
                     />
                   </div>
@@ -105,6 +117,7 @@ export default function ProfilePage() {
                       placeholder="Your last name"
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
+                      disabled={saving}
                       className="border-border focus-visible:ring-0 focus-visible:border-foreground"
                     />
                   </div>
@@ -116,16 +129,17 @@ export default function ProfilePage() {
                     placeholder="Tell us about yourself"
                     value={bio}
                     onChange={(e) => setBio(e.target.value)}
+                    disabled={saving}
                     className="min-h-32 border-border focus-visible:ring-0 focus-visible:border-foreground resize-none"
                   />
                 </div>
                 
                 {error && (
-                  <p className="text-sm text-red-500">{error}</p>
+                  <p className="text-sm text-red-500 font-medium">{error}</p>
                 )}
                 
                 <Button 
-                  onClick={handleSave} 
+                  type="submit"
                   disabled={saving}
                   className="w-full sm:w-auto bg-foreground text-background hover:bg-foreground/90 shadow-none"
                 >
@@ -143,7 +157,7 @@ export default function ProfilePage() {
                     "Save Changes"
                   )}
                 </Button>
-              </div>
+              </form>
             </CardContent>
           </Card>
 

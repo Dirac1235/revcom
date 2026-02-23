@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { StarRating } from "./StarRating";
 import {
@@ -44,8 +43,14 @@ export function ReviewModal({
 }: ReviewModalProps) {
   const [rating, setRating] = useState(existingReview?.rating || 0);
   const [comment, setComment] = useState(existingReview?.comment || "");
-  const [isAnonymous, setIsAnonymous] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setRating(existingReview?.rating || 0);
+      setComment(existingReview?.comment || "");
+    }
+  }, [isOpen, existingReview]);
 
   const handleSubmit = async () => {
     if (rating === 0) {
@@ -126,23 +131,6 @@ export function ReviewModal({
             </div>
           </div>
 
-          {!existingReview && (
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="anonymous"
-                checked={isAnonymous}
-                onCheckedChange={(c: boolean | "indeterminate") =>
-                  setIsAnonymous(!!c)
-                }
-              />
-              <label
-                htmlFor="anonymous"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                Post anonymously
-              </label>
-            </div>
-          )}
         </div>
 
         <DialogFooter>

@@ -46,14 +46,16 @@ export function SellerReviewsTab({ productId }: { productId: string }) {
 
   return (
     <div className="space-y-6">
-      {reviews.map((review) => (
-        <ReviewCard
-          key={review.id}
-          review={review}
-          isSellerView
-          onRespond={() => setSelectedReview(review)}
-        />
-      ))}
+      {reviews
+        .sort((a, b) => (a.seller_response ? 1 : 0) - (b.seller_response ? 1 : 0))
+        .map((review) => (
+          <ReviewCard
+            key={review.id}
+            review={review}
+            isSellerView
+            onRespond={() => setSelectedReview(review)}
+          />
+        ))}
 
       {selectedReview && (
         <SellerResponseModal

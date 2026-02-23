@@ -35,6 +35,7 @@ interface ReviewCardProps {
   onDelete?: (reviewId: string) => void;
   onHelpful?: (reviewId: string) => void;
   onRespond?: (review: ReviewWithDetails) => void;
+  helpfulVoted?: boolean;
 }
 
 export function ReviewCard({
@@ -45,6 +46,7 @@ export function ReviewCard({
   onDelete,
   onHelpful,
   onRespond,
+  helpfulVoted = false,
 }: ReviewCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -122,7 +124,7 @@ export function ReviewCard({
               {isSellerView && onRespond && (
                 <DropdownMenuItem onClick={() => onRespond(review)}>
                   <Reply className="mr-2 h-4 w-4" />
-                  <span>Respond</span>
+                  <span>{review.seller_response ? "Edit Response" : "Respond"}</span>
                 </DropdownMenuItem>
               )}
             </DropdownMenuContent>
@@ -168,11 +170,12 @@ export function ReviewCard({
         <Button
           variant="outline"
           size="sm"
-          className="text-muted-foreground hover:text-foreground h-8"
+          className={`h-8 ${helpfulVoted ? "text-primary border-primary/30" : "text-muted-foreground hover:text-foreground"}`}
           onClick={() => onHelpful?.(review.id)}
+          disabled={helpfulVoted}
         >
-          <ThumbsUp className="h-4 w-4 mr-2" />
-          Helpful ({review.helpful_count || 0})
+          <ThumbsUp className={`h-4 w-4 mr-2 ${helpfulVoted ? "fill-primary" : ""}`} />
+          {helpfulVoted ? "Marked Helpful" : "Helpful"} ({review.helpful_count || 0})
         </Button>
       </CardFooter>
     </Card>

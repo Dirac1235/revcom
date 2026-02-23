@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { getReviewsByBuyerId, deleteReview } from "@/lib/data/reviews";
 import { ROUTES } from "@/lib/constants/routes";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -59,6 +60,9 @@ export default function BuyerReviewsPage() {
     const success = await deleteReview(reviewId, user.id);
     if (success) {
       setReviews((prev) => prev.filter((r) => r.id !== reviewId));
+      toast.success("Review deleted successfully.");
+    } else {
+      toast.error("Failed to delete review.");
     }
   };
 

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Product } from '@/lib/types';
 import { ROUTES } from '@/lib/constants/routes';
-import { Package, Eye, ArrowUpRight } from 'lucide-react';
+import { Package, Eye, ArrowUpRight, Star } from 'lucide-react';
 
 interface ProductCardProps {
   product: Product;
@@ -77,11 +77,30 @@ export function ProductCard({ product, showSeller = false }: ProductCardProps) {
           </p>
         )}
 
+        {(product.average_rating ?? 0) > 0 && (
+          <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-0.5">
+              {[...Array(5)].map((_, i) => (
+                <Star
+                  key={i}
+                  className={`h-3 w-3 ${i < Math.round(product.average_rating!) ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground/30 fill-transparent"}`}
+                />
+              ))}
+            </div>
+            <span className="text-xs font-medium text-foreground">
+              {Number(product.average_rating).toFixed(1)}
+            </span>
+            <span className="text-xs text-muted-foreground">
+              ({product.review_count})
+            </span>
+          </div>
+        )}
+
         <div className="h-px bg-border/50" />
 
         <div className="mt-auto flex items-center justify-between gap-3">
           <p className="text-xl font-bold leading-none tracking-tight text-foreground">
-            ${product.price.toLocaleString()}
+            {product.price.toLocaleString()} ETB
           </p>
 
           <Button

@@ -65,9 +65,19 @@ export function ProductReviews({
     fetchReviewsData();
   }, [productId]);
 
+  const [votedReviews, setVotedReviews] = useState<Set<string>>(() => {
+    if (typeof window === "undefined") return new Set();
+    try {
+      const stored = localStorage.getItem("revcom_helpful_votes");
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch {
+      return new Set();
+    }
+  });
+
   const handleHelpful = async (reviewId: string) => {
-    // If not logged in, we could ignore or track in localStorage
-    // For simplicity, just call API and optimistically update
+    if (votedReviews.has(reviewId)) return;
+
     const success = await markReviewHelpful(reviewId);
     if (success) {
       setReviews((prev) =>
@@ -77,6 +87,15 @@ export function ProductReviews({
             : r,
         ),
       );
+      const updated = new Set(votedReviews);
+      updated.add(reviewId);
+      setVotedReviews(updated);
+      try {
+        localStorage.setItem(
+          "revcom_helpful_votes",
+          JSON.stringify([...updated]),
+        );
+      } catch {}
     }
   };
 
@@ -132,49 +151,48 @@ export function ProductReviews({
           <RatingBreakdown breakdown={breakdown} totalReviews={totalReviews} />
         </div>
 
-        <div className="col-span-1 md:col-span-2 space-y-4 border-l pl-8">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="w-full sm:w-[180px]">
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="recent">Most Recent</SelectItem>
-                  <SelectItem value="highest">Highest Rating</SelectItem>
-                  <SelectItem value="lowest">Lowest Rating</SelectItem>
-                  <SelectItem value="helpful">Most Helpful</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="w-full sm:w-[180px]">
-              <Select value={filterRating} onValueChange={setFilterRating}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Filter by stars" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Stars</SelectItem>
-                  <SelectItem value="5">5 Stars Only</SelectItem>
-                  <SelectItem value="4">4 Stars Only</SelectItem>
-                  <SelectItem value="3">3 Stars Only</SelectItem>
-                  <SelectItem value="2">2 Stars Only</SelectItem>
-                  <SelectItem value="1">1 Star Only</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-center space-x-2 lg:ml-auto">
-              <Checkbox
-                id="verified"
-                checked={filterVerified}
-                onCheckedChange={(c: boolean | "indeterminate") =>
-                  setFilterVerified(!!c)
-                }
-              />
-              <label htmlFor="verified" className="text-sm font-medium">
-                Verified Purchases
-              </label>
-            </div>
-          </div>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <div className="w-full sm:w-[180px]">
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger>
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="recent">Most Recent</SelectItem>
+              <SelectItem value="highest">Highest Rating</SelectItem>
+              <SelectItem value="lowest">Lowest Rating</SelectItem>
+              <SelectItem value="helpful">Most Helpful</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="w-full sm:w-[180px]">
+          <Select value={filterRating} onValueChange={setFilterRating}>
+            <SelectTrigger>
+              <SelectValue placeholder="Filter by stars" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Stars</SelectItem>
+              <SelectItem value="5">5 Stars Only</SelectItem>
+              <SelectItem value="4">4 Stars Only</SelectItem>
+              <SelectItem value="3">3 Stars Only</SelectItem>
+              <SelectItem value="2">2 Stars Only</SelectItem>
+              <SelectItem value="1">1 Star Only</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center space-x-2 sm:ml-auto">
+          <Checkbox
+            id="verified"
+            checked={filterVerified}
+            onCheckedChange={(c: boolean | "indeterminate") =>
+              setFilterVerified(!!c)
+            }
+          />
+          <label htmlFor="verified" className="text-sm font-medium">
+            Verified Purchases
+          </label>
         </div>
       </div>
 
@@ -196,6 +214,7 @@ export function ProductReviews({
               review={review}
               currentUserId={currentUserId}
               onHelpful={handleHelpful}
+              helpfulVoted={votedReviews.has(review.id)}
             />
           ))
         )}
