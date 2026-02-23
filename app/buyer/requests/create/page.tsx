@@ -170,6 +170,7 @@ export default function CreateRequestPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!user) return
     const min = parseFloat(formData.budget_min)
     const max = parseFloat(formData.budget_max)
     if (min >= max) {
