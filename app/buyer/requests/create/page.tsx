@@ -5,6 +5,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 
+import { useAuth } from "@/components/providers/AuthProvider"
 import { createRequest } from "@/lib/data/requests"
 import { getProfileById } from "@/lib/data/profiles"
 import { Button } from "@/components/ui/button"
@@ -20,13 +21,11 @@ import {
 } from "@/components/ui/select"
 import {
   Loader2,
-  Tag,
   Wallet,
   MapPin,
   ChevronRight,
   ArrowLeft,
   FileText,
-  ShoppingBag,
 } from "lucide-react"
 
 // ─── Data ────────────────────────────────────────────────────────────────────
@@ -124,8 +123,8 @@ const inputCls =
 
 export default function CreateRequestPage() {
   const router = useRouter()
+  const { user, loading: authLoading, isReady } = useAuth()
 
-  const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [customLocation, setCustomLocation] = useState("")
   const [showCustomLocation, setShowCustomLocation] = useState(false)
@@ -146,16 +145,13 @@ export default function CreateRequestPage() {
   const [budgetError, setBudgetError] = useState("")
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const { createClient } = await import("@/lib/supabase/client")
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { router.push("/auth/login"); return }
-      setUser(user)
-      try { await getProfileById(user.id) } catch {}
+    if (!isReady) return
+    if (!user) {
+      router.push("/auth/login")
+      return
     }
-    fetchUser()
-  }, [router])
+    getProfileById(user.id).catch(() => {})
+  }, [isReady, user, router])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -198,6 +194,17 @@ export default function CreateRequestPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  if (!isReady || authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">Loading…</p>
+        </div>
+      </div>
+    )
   }
 
   if (!user) return null

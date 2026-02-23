@@ -345,7 +345,7 @@ export default function CreateProductPage() {
                 <Button
                   type="submit"
                   disabled={submitting}
-                  className="w-full sm:w-auto h-12 px-8 text-base font-semibold bg-foreground text-background hover:bg-foreground/80 rounded-xl shadow-none"
+                  className="w-full sm:w-auto h-12 px-8 text-base font-semibold bg-primary text-primary-foreground hover:bg-primary/80 rounded-xl shadow-none"
                 >
                   {submitting ? (
                     <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Creating…</>
