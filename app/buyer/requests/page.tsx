@@ -127,14 +127,17 @@ function SummaryStats({ requests }: { requests: any[] }) {
 function RequestCard({ request }: { request: any }) {
   const offerCount = request.offers?.[0]?.count ?? 0;
   const config = STATUS_CONFIG[request.status] ?? STATUS_CONFIG.closed;
+  const detailUrl = `/buyer/requests/${request.id}`;
+
   return (
-    <Card className="border border-border/50 shadow-sm hover:shadow-md transition-shadow duration-300">
-      {/* Accent left border */}
-      <div className={`absolute left-0 top-0 bottom-0 w-1 ${config.border}`} />
+    <Card className="group relative overflow-hidden border border-border/50 shadow-sm hover:shadow-md transition-all duration-300">
+      {/* 1. The Accent Border */}
+      <div className={`absolute left-0 top-0 bottom-0 w-1 z-20 ${config.border}`} />
       
       <CardContent className="p-4 pl-6">
-        <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
-          {/* Left: Content */}
+        <div className="flex flex-col gap-4">
+          
+          {/* Top Row: Content */}
           <div className="flex-1 min-w-0 space-y-2">
             <div className="flex items-center gap-2 flex-wrap">
               <StatusBadge status={request.status} />
@@ -151,44 +154,68 @@ function RequestCard({ request }: { request: any }) {
                 </span>
               </div>
             </div>
+
             <div>
-              <h3 className="text-lg font-semibold text-foreground line-clamp-1">
-                {request.title}
-              </h3>
+              {/* 2. The Main Stretched Link: This makes the whole card clickable */}
+              <Link href={detailUrl} className="focus:outline-none">
+                <span className="absolute inset-0 z-10" aria-hidden="true" />
+                <h3 className="text-lg font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
+                  {request.title}
+                </h3>
+              </Link>
               {request.description && (
-                <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
+                <p className="text-sm text-muted-foreground line-clamp-1 mt-0.5">
                   {request.description}
                 </p>
               )}
             </div>
-            {(request.budget_min || request.budget_max) && (
-              <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-secondary/50 text-xs font-medium text-secondary-foreground">
-                <Banknote className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-                {request.budget_min?.toLocaleString()} – {request.budget_max?.toLocaleString()} ETB
-              </div>
-            )}
           </div>
-          {/* Right: Actions & Offers */}
-          <div className="flex flex-col items-start sm:items-end gap-2 w-full sm:w-auto shrink-0 border-t sm:border-t-0 sm:border-l border-border pt-2 sm:pt-0 sm:pl-4">
-            <div className="bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded-md w-full sm:w-auto text-center border border-blue-100 dark:border-blue-900/30 flex items-center justify-center gap-1">
-              <MessageSquare className="w-3 h-3 text-blue-600" />
-              <span className="text-sm font-semibold text-blue-700 dark:text-blue-400">{offerCount} Offers</span>
+
+          {/* Bottom Row: Offers & Actions (All on one line) */}
+          <div className="flex items-center justify-between gap-3 pt-3 border-t border-border/50">
+            
+            {/* Offer Badge */}
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/30">
+              <MessageSquare className="w-3.5 h-3.5 text-blue-600" />
+              <span className="text-xs font-bold text-blue-700 dark:text-blue-400">
+                {offerCount} <span className="hidden xs:inline">Offers</span>
+              </span>
             </div>
-            <div className="flex gap-2 w-full">
-              <Link href={`/buyer/requests/${request.id}/edit`} className="flex-1 sm:flex-none">
-                <Button variant="outline" size="sm" className="w-full">
+
+            <div className="flex items-center gap-2 shrink-0">
+              {/* 3. The Edit Button: Higher Z-index to stay clickable */}
+              {(request.budget_min || request.budget_max) && (
+                <div className="hidden sm:inline-flex items-center gap-1 mr-2 text-xs font-medium text-muted-foreground">
+                  <Banknote className="w-3 h-3" />
+                  {request.budget_min?.toLocaleString()} ETB
+                </div>
+              )}
+
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="relative z-20 h-8 px-3 text-xs" 
+                asChild
+              >
+                <Link href={`${detailUrl}/edit`}>
                   <Edit className="w-3 h-3 mr-1" />
                   Edit
-                </Button>
-              </Link>
-              <Link href={`/buyer/requests/${request.id}`} className="flex-1 sm:flex-none">
-                <Button size="sm" className="w-full">
+                </Link>
+              </Button>
+
+              <Button 
+                size="sm" 
+                className="relative z-20 h-8 px-3 text-xs" 
+                asChild
+              >
+                <Link href={detailUrl}>
                   Review
                   <ArrowRight className="w-3 h-3 ml-1" />
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             </div>
           </div>
+
         </div>
       </CardContent>
     </Card>
@@ -279,7 +306,7 @@ export default async function BuyerRequestsPage({
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-foreground">
+              <h1 className="text-3xl font-bold font-serif text-foreground">
                 Request Command Center
               </h1>
               <p className="text-muted-foreground mt-1 text-base max-w-xl">

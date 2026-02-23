@@ -440,12 +440,7 @@ export function Navbar() {
                               >
                                 Add Product
                               </MenuLink>
-                              <MenuLink
-                                href={ROUTES.SELLER_EXPLORE}
-                                icon={<FileText className="h-3.5 w-3.5" />}
-                              >
-                                Browse Requests
-                              </MenuLink>
+                  
                               <MenuLink
                                 href={ROUTES.SELLER_ORDERS}
                                 icon={<ShoppingBag className="h-3.5 w-3.5" />}
