@@ -426,9 +426,11 @@ export default function ProductDetailPage() {
                 )}
                 <div className="flex-1 min-w-0">
                   <h4 className="font-semibold text-foreground text-sm truncate">
-                    {seller
-                      ? `${seller.first_name} ${seller.last_name}`
-                      : "Seller"}
+                    <Link href={`/users/${product.seller_id}`} className="hover:underline">
+                      {seller
+                        ? `${seller.first_name} ${seller.last_name}`
+                        : "Seller"}
+                    </Link>
                   </h4>
                   <div className="flex items-center gap-1 mt-1">
                     <div className="flex items-center gap-0.5">

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import {
   ThumbsUp,
@@ -73,9 +74,9 @@ export function ReviewCard({
           </Avatar>
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="font-semibold text-sm leading-none">
+              <Link href={`/users/${review.buyer_id}`} className="font-semibold text-sm leading-none hover:underline">
                 {buyerName}
-              </span>
+              </Link>
               {review.verified_purchase && (
                 <Badge
                   variant="secondary"

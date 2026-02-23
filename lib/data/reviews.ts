@@ -240,3 +240,38 @@ export async function getProductRatingBreakdown(
 
   return breakdown;
 }
+
+export async function getReviewsBySellerId(
+  sellerId: string,
+): Promise<ReviewWithDetails[]> {
+  const supabase = createClient();
+
+  const { data: products } = await supabase
+    .from("listings")
+    .select("id")
+    .eq("seller_id", sellerId);
+
+  if (!products || products.length === 0) return [];
+
+  const productIds = products.map((p) => p.id);
+
+  const { data, error } = await supabase
+    .from("reviews")
+    .select(
+      `
+      *,
+      buyer:profiles!buyer_id(*),
+      product:listings!product_id(*)
+    `,
+    )
+    .in("product_id", productIds)
+    .order("created_at", { ascending: false })
+    .limit(10);
+
+  if (error) {
+    console.error("Error fetching seller reviews:", error);
+    return [];
+  }
+
+  return (data || []) as ReviewWithDetails[];
+}

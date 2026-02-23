@@ -45,6 +45,7 @@ export const ROUTES = {
   DASHBOARD: "/dashboard",
   EXPLORE: "/explore",
   CHECKOUT: "/checkout",
+  PUBLIC_PROFILE: (id: string) => `/users/${id}`,
 } as const;
 
 export type Route = (typeof ROUTES)[keyof typeof ROUTES];
