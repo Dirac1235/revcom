@@ -29,6 +29,7 @@ import {
   LayoutGrid,
   Search,
   ChevronDown,
+  Star,
 } from "lucide-react";
 
 const NAV_LINKS = [
@@ -410,6 +411,12 @@ export function Navbar() {
                               >
                                 My Orders
                               </MenuLink>
+                              <MenuLink
+                                href={ROUTES.BUYER_REVIEWS}
+                                icon={<Star className="h-3.5 w-3.5" />}
+                              >
+                                My Reviews
+                              </MenuLink>
                             </div>
                           </>
                         )}
@@ -604,6 +611,12 @@ export function Navbar() {
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         My Orders
+                      </MobileNavItem>
+                      <MobileNavItem
+                        href={ROUTES.BUYER_REVIEWS}
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        My Reviews
                       </MobileNavItem>
                     </MobileSection>
                   )}

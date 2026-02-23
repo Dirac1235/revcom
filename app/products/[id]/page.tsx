@@ -14,6 +14,7 @@ import { updateListing } from "@/lib/data/listings";
 import { createConversation } from "@/lib/data/conversations";
 import { getProfileById } from "@/lib/data/profiles";
 import { useToast } from "@/lib/hooks/use-toast";
+import { ProductReviews } from "@/components/reviews/ProductReviews";
 import type { Profile } from "@/lib/types";
 import {
   Package,
@@ -139,9 +140,7 @@ export default function ProductDetailPage() {
       router.push(ROUTES.LOGIN);
       return;
     }
-    router.push(
-      `/checkout?product_id=${productId}&quantity=${quantity}`
-    );
+    router.push(`/checkout?product_id=${productId}&quantity=${quantity}`);
   };
 
   const isOwnProduct = user?.id === product?.seller_id;
@@ -630,6 +629,14 @@ export default function ProductDetailPage() {
             </div>
           </div>
         </div>
+
+        {/* Product Reviews Section */}
+        <ProductReviews
+          productId={productId}
+          currentUserId={user?.id}
+          averageRating={product.average_rating || 0}
+          totalReviews={product.review_count || 0}
+        />
       </main>
 
       <style jsx>{`

@@ -9,7 +9,7 @@ export interface User {
 export interface Profile {
   id: string;
   email: string;
-  user_type: 'buyer' | 'seller' | 'both';
+  user_type: "buyer" | "seller" | "both";
   first_name: string | null;
   last_name: string | null;
   avatar_url: string | null;
@@ -31,7 +31,7 @@ export interface Request {
   quantity: number | null;
   deadline: string | null;
   delivery_location: string | null;
-  status: 'open' | 'closed' | 'completed';
+  status: "open" | "closed" | "completed";
   created_at: string;
   updated_at: string;
 }
@@ -43,12 +43,14 @@ export interface Product {
   description: string;
   category: string;
   price: number;
-  status: 'active' | 'inactive' | 'sold';
+  status: "active" | "inactive" | "sold";
   image_url: string | null;
   images?: string[];
   inventory_quantity?: number;
   specifications?: Record<string, any>;
   views?: number;
+  average_rating?: number;
+  review_count?: number;
   created_at: string;
   updated_at: string;
 }
@@ -68,7 +70,7 @@ export interface Order {
   delivery_notes: string | null;
   order_notes: string | null;
   payment_method: string | null;
-  status: 'pending' | 'accepted' | 'shipped' | 'delivered' | 'cancelled';
+  status: "pending" | "accepted" | "shipped" | "delivered" | "cancelled";
   created_at: string;
   updated_at: string;
 }
@@ -102,12 +104,21 @@ export interface Message {
 
 export interface Review {
   id: string;
-  reviewer_id: string;
-  reviewee_id: string;
-  listing_id: string | null;
+  product_id: string;
+  buyer_id: string;
+  order_id: string;
   rating: number;
   comment: string | null;
+  helpful_count: number;
+  verified_purchase: boolean;
+  seller_response: string | null;
   created_at: string;
+  updated_at: string;
+}
+
+export interface ReviewWithDetails extends Review {
+  buyer?: Profile;
+  product?: Product;
 }
 
 export interface Offer {
@@ -120,7 +131,7 @@ export interface Offer {
   delivery_cost: number;
   payment_terms: string | null;
   attachments: string[] | null;
-  status: 'pending' | 'accepted' | 'rejected' | 'withdrawn';
+  status: "pending" | "accepted" | "rejected" | "withdrawn";
   created_at: string;
   updated_at: string;
 }

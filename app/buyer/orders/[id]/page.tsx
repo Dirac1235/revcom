@@ -8,6 +8,8 @@ import { createClient } from "@/lib/supabase/client";
 import { getProfileById } from "@/lib/data/profiles";
 import { getOrderById } from "@/lib/data/orders";
 import { createConversation } from "@/lib/data/conversations";
+import { getReviewByOrderId } from "@/lib/data/reviews";
+import { ReviewModal } from "@/components/reviews/ReviewModal";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -17,8 +19,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, MessageSquare, Loader2 } from "lucide-react";
-import type { Profile, Order } from "@/lib/types";
+import { ArrowLeft, MessageSquare, Loader2, Star } from "lucide-react";
+import type { Profile, Order, Review } from "@/lib/types";
 
 const statusColors: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-800",
@@ -45,6 +47,8 @@ export default function OrderDetailPage() {
   const [user, setUser] = useState<User | null>(null); // Replaced <any>
   const [order, setOrder] = useState<Order | null>(null);
   const [seller, setSeller] = useState<Profile | null>(null);
+  const [review, setReview] = useState<Review | null>(null);
+  const [isReviewOpen, setIsReviewOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isMessaging, setIsMessaging] = useState(false); // Added messaging loading state
 
@@ -73,6 +77,9 @@ export default function OrderDetailPage() {
           const sellerData = await getProfileById(orderData.seller_id);
           setSeller(sellerData);
         }
+
+        const reviewData = await getReviewByOrderId(orderId);
+        setReview(reviewData);
       } catch (error) {
         console.error("Error fetching order:", error);
         router.push("/buyer/orders");
@@ -307,6 +314,63 @@ export default function OrderDetailPage() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Review Section */}
+            {order.status === "delivered" && !review && order.listing_id && (
+              <Card className="bg-primary/5 border-primary/20">
+                <CardHeader>
+                  <CardTitle>How was your experience?</CardTitle>
+                  <CardDescription>
+                    Your feedback helps other buyers make good decisions.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button onClick={() => setIsReviewOpen(true)}>
+                    Leave a Review
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {review && (
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div className="space-y-1">
+                    <CardTitle>Your Review</CardTitle>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsReviewOpen(true)}
+                  >
+                    Edit Review
+                  </Button>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center gap-1 text-yellow-500">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`w-4 h-4 ${i < review.rating ? "fill-current" : "text-muted-foreground stroke-muted-foreground"}`}
+                      />
+                    ))}
+                  </div>
+                  {review.comment && (
+                    <p className="text-sm">{review.comment}</p>
+                  )}
+                  {review.seller_response && (
+                    <div className="rounded-md bg-muted p-3 text-sm border-l-2 border-primary">
+                      <p className="font-semibold text-xs mb-1">
+                        Seller Response:
+                      </p>
+                      <p className="text-muted-foreground">
+                        {review.seller_response}
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Summary Sidebar */}
@@ -388,6 +452,21 @@ export default function OrderDetailPage() {
             )}
           </div>
         </div>
+
+        {order.listing_id && user && (
+          <ReviewModal
+            isOpen={isReviewOpen}
+            onClose={() => setIsReviewOpen(false)}
+            productId={order.listing_id}
+            orderId={order.id}
+            buyerId={user.id}
+            existingReview={review}
+            onSuccess={async () => {
+              const reviewData = await getReviewByOrderId(orderId);
+              setReview(reviewData);
+            }}
+          />
+        )}
       </main>
     </div>
   );
