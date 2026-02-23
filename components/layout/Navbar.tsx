@@ -30,6 +30,7 @@ import {
   Search,
   ChevronDown,
   Star,
+  HandCoins,
 } from "lucide-react";
 
 const NAV_LINKS = [
@@ -446,6 +447,12 @@ export function Navbar() {
                                 icon={<ShoppingBag className="h-3.5 w-3.5" />}
                               >
                                 Incoming Orders
+                              </MenuLink>
+                              <MenuLink
+                                href={ROUTES.SELLER_OFFERS}
+                                icon={<HandCoins className="h-3.5 w-3.5" />}
+                              >
+                                My Offers
                               </MenuLink>
                             </div>
                           </>
