@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -22,14 +21,11 @@ import {
   Package,
   User,
   Calendar,
-  Tag,
   Star,
   CheckCircle,
   Clock,
   MapPin,
   Send,
-  ThumbsUp,
-  ThumbsDown,
   AlertCircle,
   TrendingUp,
   Eye,
@@ -172,19 +168,6 @@ export default async function RequestDetailPage({
         return "destructive";
       default:
         return "outline";
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "open":
-        return "bg-emerald-50 text-emerald-700 border-emerald-200";
-      case "negotiating":
-        return "bg-amber-50 text-amber-700 border-amber-200";
-      case "closed":
-        return "bg-red-50 text-red-700 border-red-200";
-      default:
-        return "bg-secondary text-secondary-foreground";
     }
   };
 
