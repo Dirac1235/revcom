@@ -200,7 +200,6 @@ function ListingsContent() {
                     key={l.id}
                     request={l}
                     userId={user?.id ?? null}
-                    userType={isSeller ? 'seller' : null}
                   />
                 ))}
               </div>
