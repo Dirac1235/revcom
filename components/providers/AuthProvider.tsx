@@ -5,6 +5,7 @@ import type { User, Session } from "@supabase/supabase-js";
 import type { Profile } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { signOutSessionOnly } from "@/lib/actions/auth";
 
 interface AuthContextType {
   user: User | null;
@@ -117,20 +118,29 @@ export function AuthProvider({
   }, []);
 
   const signOut = useCallback(async () => {
+    setLoading(true);
+    const SIGN_OUT_TIMEOUT_MS = 5000;
+
     try {
-      setLoading(true);
-      await supabase.auth.signOut();
+      // Use server sign-out only (createClient from supabase/server). Do not use
+      // supabase/client here — it can hang or fail in production (cookies/session).
+      await Promise.race([
+        signOutSessionOnly(),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("signOut timeout")), SIGN_OUT_TIMEOUT_MS)
+        ),
+      ]);
+    } catch (err) {
+      console.error("[AuthProvider] Error signing out:", err);
+    } finally {
       setUser(null);
       setProfile(null);
       setSession(null);
+      setLoading(false);
       router.push("/auth/login");
       router.refresh();
-    } catch (error) {
-      console.error("[AuthProvider] Error signing out:", error);
-    } finally {
-      setLoading(false);
     }
-  }, [router, supabase]);
+  }, [router]);
 
   const refreshProfile = useCallback(async () => {
     if (!user) return;

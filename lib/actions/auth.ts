@@ -139,6 +139,13 @@ export async function signOut() {
   redirect(ROUTES.LOGIN);
 }
 
+/** Clears session on server only (no redirect). Use from client so reload shows user signed out. */
+export async function signOutSessionOnly() {
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+  revalidatePath("/", "layout");
+}
+
 export async function signInWithGoogle() {
   const supabase = await createClient();
   
