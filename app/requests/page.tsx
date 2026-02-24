@@ -84,7 +84,7 @@ function ListingsContent() {
     const params = new URLSearchParams();
     if (query.trim()) params.set("search", query.trim());
     if (category && category !== "all") params.set("category", category);
-    router.push(`/listings?${params.toString()}`);
+    router.push(`/requests?${params.toString()}`);
   };
 
   const handleCategoryChange = (value: string) => {
@@ -93,14 +93,14 @@ function ListingsContent() {
     const params = new URLSearchParams();
     if (query.trim()) params.set("search", query.trim());
     if (value && value !== "all") params.set("category", value);
-    router.push(`/listings?${params.toString()}`);
+    router.push(`/requests?${params.toString()}`);
   };
 
   const clearFilters = () => {
     setQuery("");
     setCategory("all");
     setPage(1);
-    router.push("/listings");
+    router.push("/requests");
   };
 
   return (

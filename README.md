@@ -131,7 +131,7 @@ RevCom is a business-to-business marketplace that enables:
 - Contact seller functionality
 - Related products
 
-#### `/listings` (Buyer Requests)
+#### `/requests` (Buyer Requests)
 **Purpose**: Browse all buyer requests
 
 **Functions**:
@@ -139,7 +139,7 @@ RevCom is a business-to-business marketplace that enables:
 - Filter by category
 - Search functionality
 
-#### `/listings/[id]`
+#### `/requests/[id]`
 **Purpose**: Individual request detail page
 
 **Functions**:

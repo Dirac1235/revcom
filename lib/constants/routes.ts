@@ -5,8 +5,8 @@ export const ROUTES = {
   HOME: "/",
   PRODUCTS: "/products",
   PRODUCT_DETAIL: (id: string) => `/products/${id}`,
-  LISTINGS: "/listings",
-  LISTING_DETAIL: (id: string) => `/listings/${id}`,
+  REQUESTS: "/requests",
+  REQUESTS_DETAIL: (id: string) => `/requests/${id}`,
 
   // Auth routes
   LOGIN: "/auth/login",

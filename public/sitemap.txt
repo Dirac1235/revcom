@@ -1,7 +1,7 @@
 # Sitemap
 https://revcom.et
 https://revcom.et/products
-https://revcom.et/listings
+https://revcom.et/requests
 https://revcom.et/seller/explore
 https://revcom.et/seller/products
 https://revcom.et/seller/products/create

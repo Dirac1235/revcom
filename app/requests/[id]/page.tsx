@@ -40,6 +40,7 @@ import {
   Award,
   FileText,
 } from "lucide-react";
+import OfferCard from "@/components/offer-card";
 
 export default async function RequestDetailPage({
   params,
@@ -76,27 +77,56 @@ export default async function RequestDetailPage({
   if (offers && offers.length > 0) {
     const sellerIds = [...new Set(offers.map((o) => o.seller_id))];
     console.log("Fetching profiles for sellerIds:", sellerIds);
-    
-    const { data: profiles, error: profilesError } = await supabase
-      .from("profiles")
-      .select("id, first_name, last_name, email, avatar_url, rating, total_reviews, location, verified")
-      .in("id", sellerIds);
+
+    let profiles = null;
+    let profilesError = null;
+
+    // Try with .in() first
+    if (sellerIds.length > 0) {
+      const result = await supabase
+        .from("profiles")
+        .select(
+          "id, first_name, last_name, email, avatar_url, rating, total_reviews, phone_number",
+        )
+        .in("id", sellerIds);
+      profiles = result.data;
+      profilesError = result.error;
+    }
 
     console.log("Profiles fetched:", profiles);
-    console.log("Profiles error:", profilesError);
+    console.log("Profiles error message:", profilesError?.message);
+    console.log("Profiles error details:", profilesError);
 
-    if (profiles) {
+    if (profiles && profiles.length > 0) {
       profiles.forEach((profile) => {
         sellerProfiles[profile.id] = profile;
       });
+    } else {
+      // Fallback: fetch each profile individually
+      console.log("Trying individual profile fetch fallback...");
+      for (const sellerId of sellerIds) {
+        const { data: singleProfile } = await supabase
+          .from("profiles")
+          .select(
+            "id, first_name, last_name, email, avatar_url, rating, total_reviews, phone_number",
+          )
+          .eq("id", sellerId)
+          .single();
+
+        if (singleProfile) {
+          sellerProfiles[sellerId] = singleProfile;
+        }
+      }
+      console.log("Fallback profiles result:", sellerProfiles);
     }
   }
 
   // Attach profiles to offers
-  const offersWithProfiles = offers?.map((offer) => ({
-    ...offer,
-    profiles: sellerProfiles[offer.seller_id] || null,
-  })) || [];
+  const offersWithProfiles =
+    offers?.map((offer) => ({
+      ...offer,
+      profiles: sellerProfiles[offer.seller_id] || null,
+    })) || [];
 
   const {
     data: { user },
@@ -120,7 +150,9 @@ export default async function RequestDetailPage({
 
   const isBuyer = user?.id === request.buyer_id;
   const isSeller = user && !isBuyer;
-  const sellerHasOffer = offersWithProfiles.some((o) => o.seller_id === user?.id);
+  const sellerHasOffer = offersWithProfiles.some(
+    (o) => o.seller_id === user?.id,
+  );
   const offersCount = offersWithProfiles.length || 0;
   const deadlineDate = request.deadline ? new Date(request.deadline) : null;
   const isDeadlinePassed = deadlineDate && deadlineDate < new Date();
@@ -160,7 +192,10 @@ export default async function RequestDetailPage({
   const acceptedOffer = offersWithProfiles.find((o) => o.status === "accepted");
   const averageOfferPrice =
     offersWithProfiles.length > 0
-      ? Math.round(offersWithProfiles.reduce((sum, o) => sum + o.price, 0) / offersWithProfiles.length)
+      ? Math.round(
+          offersWithProfiles.reduce((sum, o) => sum + o.price, 0) /
+            offersWithProfiles.length,
+        )
       : null;
 
   return (
@@ -168,7 +203,7 @@ export default async function RequestDetailPage({
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Back Button */}
         <Link
-          href="/listings"
+          href="/requests"
           className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors text-sm font-medium"
         >
           <ChevronLeft className="w-4 h-4" />
@@ -812,268 +847,15 @@ export default async function RequestDetailPage({
           </div>
         </div>
 
-        {/* OFFERS SECTION */}
-        {offersCount > 0 && (
-          <div
-            className="mt-12 pt-8 border-t border-border/30 animate-fadeIn"
-            style={{ animationDelay: "0.4s" }}
-          >
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-foreground">
-                {isBuyer
-                  ? `Offers Received (${offersCount})`
-                  : `Offers (${offersCount})`}
-              </h2>
-              {averageOfferPrice && (
-                <Badge variant="secondary" className="text-xs">
-                  Avg: {averageOfferPrice.toLocaleString()} ETB
-                </Badge>
-              )}
-            </div>
-
-            <div className="space-y-4">
-              {offersWithProfiles.map((offer, idx) => {
-                const userHasSubmittedOffer = user?.id === offer.seller_id;
-                const offerStatusVariant =
-                  offer.status === "pending"
-                    ? "secondary"
-                    : offer.status === "accepted"
-                      ? "default"
-                      : ("destructive" as const);
-
-                return (
-                  <Card
-                    key={offer.id}
-                    className={`border-border/30 shadow-sm hover:shadow-md transition-all duration-300 ${offer.status === "accepted" ? "border-emerald-200 bg-emerald-50/30" : ""}`}
-                  >
-                    <CardContent className="pt-6">
-                      <Tabs defaultValue="details" className="w-full">
-                        <TabsList className="mb-4 grid w-full grid-cols-2">
-                          <TabsTrigger value="details">Details</TabsTrigger>
-                          <TabsTrigger value="actions">Actions</TabsTrigger>
-                        </TabsList>
-
-                        <TabsContent value="details" className="space-y-4">
-                          {/* Seller Info */}
-                          <div>
-                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                              Seller #{idx + 1}
-                            </p>
-                            <div className="flex items-start gap-4">
-                              <Avatar className="w-14 h-14 ring-2 ring-primary/20">
-                                <AvatarImage src={offer.profiles?.avatar_url} />
-                                <AvatarFallback className="bg-secondary/20">
-                                  <User className="w-6 h-6 text-muted-foreground" />
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="flex-1 min-w-0">
-                                <h4 className="font-semibold text-foreground text-sm truncate">
-                                  {`${offer.profiles?.first_name} ${offer.profiles?.last_name}`.trim()}
-                                </h4>
-                                <div className="flex items-center gap-1 mt-1 flex-wrap">
-                                  <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                                  <span className="font-semibold text-foreground text-xs">
-                                    {offer.profiles?.rating || "N/A"}
-                                  </span>
-                                  <span className="text-xs text-muted-foreground">
-                                    ({offer.profiles?.total_reviews || 0}{" "}
-                                    reviews)
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-2 mt-2 flex-wrap">
-                                  {offer.profiles?.verified && (
-                                    <Badge
-                                      variant="secondary"
-                                      className="text-xs"
-                                    >
-                                      <CheckCircle className="w-3 h-3 mr-1" />
-                                      Verified
-                                    </Badge>
-                                  )}
-                                  {userHasSubmittedOffer && (
-                                    <Badge
-                                      variant="secondary"
-                                      className="text-xs bg-primary/10 text-primary"
-                                    >
-                                      Your Offer
-                                    </Badge>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-
-                          <Separator />
-
-                          {/* Price & Status */}
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                                Offered Price
-                              </p>
-                              <div>
-                                <p className="text-3xl font-bold text-foreground">
-                                  {(offer.price / 1000).toFixed(1)}K
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  ETB
-                                </p>
-                              </div>
-                            </div>
-                            <div>
-                              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                                Status
-                              </p>
-                              <Badge
-                                variant={offerStatusVariant}
-                                className={`text-xs font-semibold
-                                ${
-                                  offer.status === "pending"
-                                    ? "bg-amber-100 text-amber-800 hover:bg-amber-100"
-                                    : offer.status === "accepted"
-                                      ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-100"
-                                      : "bg-red-100 text-red-800 hover:bg-red-100"
-                                }`}
-                              >
-                                {offer.status === "pending"
-                                  ? "Pending"
-                                  : offer.status === "accepted"
-                                    ? "Accepted"
-                                    : "Rejected"}
-                              </Badge>
-                            </div>
-                          </div>
-
-                          {/* Price Analysis */}
-                          <div className="p-3 rounded-lg bg-secondary/30">
-                            <p className="text-xs text-muted-foreground mb-2">
-                              Price vs Budget
-                            </p>
-                            <div className="space-y-1 text-xs">
-                              {offer.price < request.budget_min && (
-                                <p className="text-emerald-600 font-semibold">
-                                  ✓ Below budget minimum
-                                </p>
-                              )}
-                              {offer.price > request.budget_max && (
-                                <p className="text-red-600 font-semibold">
-                                  ✗ Exceeds budget maximum
-                                </p>
-                              )}
-                              {offer.price >= request.budget_min &&
-                                offer.price <= request.budget_max && (
-                                  <p className="text-blue-600 font-semibold">
-                                    ✓ Within budget range
-                                  </p>
-                                )}
-                              <p className="text-muted-foreground mt-1">
-                                Variance:{" "}
-                                {(
-                                  ((offer.price - averageOfferPrice!) /
-                                    averageOfferPrice!) *
-                                  100
-                                ).toFixed(1)}
-                                % vs avg
-                              </p>
-                            </div>
-                          </div>
-
-                          {/* Offer Message */}
-                          {offer.message && (
-                            <>
-                              <Separator />
-                              <div>
-                                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                                  Seller's Note
-                                </p>
-                                <p className="text-sm text-foreground/80 leading-relaxed bg-secondary/20 p-3 rounded-lg">
-                                  {offer.message}
-                                </p>
-                              </div>
-                            </>
-                          )}
-                        </TabsContent>
-
-                        <TabsContent value="actions" className="space-y-3">
-                          {isBuyer ? (
-                            offer.status === "pending" ? (
-                              <>
-                                <Link
-                                  href={`/requests/${id}/offers/${offer.id}/accept`}
-                                  className="w-full"
-                                >
-                                  <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white h-10 font-semibold">
-                                    <ThumbsUp className="w-4 h-4 mr-2" />
-                                    Accept Offer
-                                  </Button>
-                                </Link>
-                                <Link
-                                  href={`/requests/${id}/offers/${offer.id}/reject`}
-                                  className="w-full"
-                                >
-                                  <Button
-                                    variant="outline"
-                                    className="w-full border-red-200 hover:bg-red-50 text-red-700 h-10 font-semibold"
-                                  >
-                                    <ThumbsDown className="w-4 h-4 mr-2" />
-                                    Decline Offer
-                                  </Button>
-                                </Link>
-                              </>
-                            ) : offer.status === "accepted" ? (
-                              <div className="p-4 rounded-lg bg-emerald-50 border border-emerald-200">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <CheckCircle className="w-5 h-5 text-emerald-600" />
-                                  <p className="text-sm font-semibold text-emerald-800">
-                                    Offer Accepted
-                                  </p>
-                                </div>
-                                <p className="text-xs text-emerald-700 mb-3">
-                                  Proceed to finalize the order with the seller.
-                                </p>
-                                <Link
-                                  href={`/messages?offer_id=${offer.id}&to=${offer.seller_id}`}
-                                  className="w-full"
-                                >
-                                  <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white h-10 font-semibold text-sm">
-                                    <MessageSquare className="w-4 h-4 mr-2" />
-                                    Message Seller
-                                  </Button>
-                                </Link>
-                              </div>
-                            ) : (
-                              <Link
-                                href={`/messages?offer_id=${offer.id}&to=${offer.seller_id}`}
-                                className="w-full"
-                              >
-                                <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-10 font-semibold">
-                                  <MessageSquare className="w-4 h-4 mr-2" />
-                                  Message Seller
-                                </Button>
-                              </Link>
-                            )
-                          ) : (
-                            <Link
-                              href={`/messages?offer_id=${offer.id}&to=${offer.seller_id}`}
-                              className="w-full"
-                            >
-                              <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-10 font-semibold">
-                                <MessageSquare className="w-4 h-4 mr-2" />
-                                {userHasSubmittedOffer
-                                  ? "View My Offer"
-                                  : "Message Seller"}
-                              </Button>
-                            </Link>
-                          )}
-                        </TabsContent>
-                      </Tabs>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </div>
-        )}
+        <OfferCard
+          offersCount={offersCount}
+          averageOfferPrice={averageOfferPrice}
+          offersWithProfiles={offersWithProfiles}
+          user={user}
+          isBuyer={isBuyer}
+          id={id}
+          request={request}
+        />
 
         {/* Empty State for Sellers */}
         {isSeller && offersCount === 0 && (

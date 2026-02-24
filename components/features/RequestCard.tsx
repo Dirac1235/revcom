@@ -132,7 +132,7 @@ export function RequestCard({ request, userId, userType, showActions = true }: R
                 className="w-full h-11 group/btn relative overflow-hidden rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                 asChild
               >
-                <Link href={ROUTES.LISTING_DETAIL(request.id)}>
+                <Link href={ROUTES.REQUESTS_DETAIL(request.id)}>
                   <span className="relative z-10 flex items-center gap-2 font-semibold">
                     View Details
                     <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1" />

@@ -348,7 +348,7 @@ export default function HomePage() {
                 Recent Buyer Requests
               </h2>
             </div>
-            <Link href={ROUTES.LISTINGS}>
+            <Link href={ROUTES.REQUESTS}>
               <Button
                 variant="ghost"
                 className="text-foreground/60 hover:text-foreground gap-2 group"

@@ -1,8 +1,7 @@
 import { createClient } from "@/lib/supabase/client";
 import { getBuyerRequests } from "./requests";
 import { getBuyerOrders, getSellerOrders } from "./orders";
-import { getListings } from "./listings";
-import { getProfileById } from "./profiles";
+
 
 export async function getBuyerDashboardData(userId: string) {
   const supabase = createClient();

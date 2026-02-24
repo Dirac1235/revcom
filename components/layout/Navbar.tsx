@@ -36,7 +36,7 @@ import {
 const NAV_LINKS = [
   { label: "Home", href: ROUTES.HOME, exact: true },
   { label: "Products", href: ROUTES.PRODUCTS, exact: false },
-  { label: "Requests", href: ROUTES.LISTINGS, exact: false },
+  { label: "Requests", href: ROUTES.REQUESTS, exact: false },
 ];
 
 export function Navbar() {

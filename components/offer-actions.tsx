@@ -40,75 +40,6 @@ export function OfferActions({ offer, requestId, requestStatus }: OfferActionsPr
 
   const isPending = offer.status === "pending" && requestStatus === "open";
 
-  const handleAccept = async () => {
-    setLoading(true);
-    try {
-      const order = await acceptOffer(offer.id, "");
-      toast({
-        title: "Order Created!",
-        description: "Seller has been notified. Redirecting to your order...",
-      });
-      setAcceptModalOpen(false);
-      router.push(`/buyer/orders`);
-    } catch (error) {
-      console.error("Error accepting offer:", error);
-      const errorMessage = (error as Error).message || "Failed to accept offer";
-      
-      if (errorMessage.includes("no longer pending")) {
-        toast({
-          title: "Offer No Longer Available",
-          description: "This offer has already been processed.",
-          variant: "destructive",
-        });
-      } else if (errorMessage.includes("no longer open")) {
-        toast({
-          title: "Request Already Closed",
-          description: "This request already has an accepted offer.",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: errorMessage || "Failed to accept offer. Please try again.",
-          variant: "destructive",
-        });
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleReject = async () => {
-    setLoading(true);
-    try {
-      await rejectOffer(offer.id, "");
-      toast({
-        title: "Offer Rejected",
-        description: "The seller has been notified.",
-      });
-      setRejectModalOpen(false);
-      router.refresh();
-    } catch (error) {
-      console.error("Error rejecting offer:", error);
-      const errorMessage = (error as Error).message || "Failed to reject offer";
-      
-      if (errorMessage.includes("no longer pending")) {
-        toast({
-          title: "Offer No Longer Available",
-          description: "This offer has already been processed.",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: errorMessage || "Failed to reject offer. Please try again.",
-          variant: "destructive",
-        });
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Already accepted offer - show View Order button
   if (offer.status === "accepted") {
@@ -140,7 +71,7 @@ export function OfferActions({ offer, requestId, requestStatus }: OfferActionsPr
         <Button 
           onClick={() => setAcceptModalOpen(true)}
           disabled={loading}
-          className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+          className="flex-1 bg-primary hover:bg-primary/90"
         >
           <Check className="w-4 h-4 mr-2" />
           Accept

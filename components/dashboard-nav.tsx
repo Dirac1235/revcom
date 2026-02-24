@@ -166,7 +166,7 @@ export default function DashboardNav({ user, profile }: any) {
 
           {/* Listings */}
           <Button asChild variant="ghost" size="sm" className="gap-2">
-            <Link href="/listings">
+            <Link href="/requests">
               <ShoppingBag className="w-4 h-4" />
               Browse
             </Link>

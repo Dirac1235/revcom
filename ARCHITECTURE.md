@@ -243,11 +243,10 @@ revcom/
 │   │   ├── offers/               # View offers sent
 │   │   └── explore/              # Browse buyer requests
 │   ├── products/                 # Public product browsing
-│   │   └── [id]/                 # Product detail page
-│   ├── listings/                 # Public listing browsing
-│   │   └── [id]/                 # Listing detail page
-│   ├── requests/
-│   │   └── [id]/make-offer/      # Seller makes an offer on a request
+│   │   └── [id]/                 # Product detail page              
+│   ├── requests/                 # Public requests browsing
+│   │   └── [id]                  # Request detail page
+|   |    └──/make-offer/          # Seller makes an offer on a request
 │   ├── orders/
 │   │   └── [id]/confirmation/    # Order confirmation page
 │   ├── messages/                 # Real-time messaging

@@ -9,7 +9,7 @@ Disallow: /seller/
 
 # Allow public pages
 Allow: /products
-Allow: /listings
+Allow: /requests
 Allow: /
 
 Sitemap: https://revcom.et/sitemap.txt

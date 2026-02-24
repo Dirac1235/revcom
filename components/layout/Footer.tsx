@@ -77,7 +77,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href={ROUTES.LISTINGS}
+                  href={ROUTES.REQUESTS}
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Buyer Requests
