@@ -35,6 +35,7 @@ import {
   Truck,
   Award,
   FileText,
+  ArrowUpRight,
 } from "lucide-react";
 import OfferCard from "@/components/offer-card";
 
@@ -187,17 +188,17 @@ export default async function RequestDetailPage({
         {/* Back Button */}
         <Link
           href="/requests"
-          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors text-sm font-medium"
+          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors text-sm font-medium group"
         >
-          <ChevronLeft className="w-4 h-4" />
+          <ChevronLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
           Back to Requests
         </Link>
 
         {/* Two-Column Layout */}
-        <div className="grid lg:grid-cols-2 gap-6 lg:gap-8">
-          {/* LEFT COLUMN (65%) - Request Details */}
+        <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
+          {/* LEFT COLUMN - Request Details */}
           <div
-            className="lg:col-span-2.5 space-y-6 animate-fadeIn"
+            className="lg:col-span-2 space-y-6 animate-fadeIn"
             style={{ animationDelay: "0.1s" }}
           >
             {/* Header Section */}
@@ -206,25 +207,24 @@ export default async function RequestDetailPage({
                 <div className="flex items-center gap-2 flex-wrap">
                   <Badge
                     variant="secondary"
-                    className="text-xs font-semibold uppercase tracking-wider px-3 py-1"
+                    className="text-xs font-semibold uppercase tracking-wider px-3 py-1.5 bg-primary/10 text-primary border-primary/20"
                   >
                     {request.category}
                   </Badge>
                   {request.urgent && (
-                    <Badge className="bg-red-100 text-red-700 hover:bg-red-100 text-xs font-semibold">
-                      <Zap className="w-3 h-3 mr-1" />
+                    <Badge className="bg-red-100 text-red-700 hover:bg-red-100 text-xs font-semibold gap-1">
+                      <Zap className="w-3 h-3" />
                       Urgent
                     </Badge>
                   )}
                 </div>
                 <Badge
-                  variant={getStatusVariant(request.status)}
-                  className={`text-xs font-semibold uppercase tracking-wider px-3 py-1 w-fit ${
+                  className={`text-xs font-semibold uppercase tracking-wider px-3 py-1.5 w-fit ${
                     request.status === "open"
-                      ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-100"
+                      ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
                       : request.status === "negotiating"
-                        ? "bg-amber-100 text-amber-800 hover:bg-amber-100"
-                        : "bg-red-100 text-red-800 hover:bg-red-100"
+                        ? "bg-amber-500/10 text-amber-600 border border-amber-500/20"
+                        : "bg-slate-500/10 text-slate-600 border border-slate-500/20"
                   }`}
                 >
                   {request.status}
@@ -263,7 +263,7 @@ export default async function RequestDetailPage({
                       })}
                     </span>
                     {daysUntilDeadline && daysUntilDeadline > 0 && (
-                      <span className="text-xs">
+                      <span className="text-xs ml-1">
                         ({daysUntilDeadline} days left)
                       </span>
                     )}
@@ -277,14 +277,14 @@ export default async function RequestDetailPage({
               className="grid grid-cols-3 gap-3 animate-fadeIn"
               style={{ animationDelay: "0.15s" }}
             >
-              <Card className="border-border/30 shadow-sm">
-                <CardContent className="pt-4">
+              <Card className="border-border/30 shadow-sm hover:shadow-md transition-all duration-300 bg-gradient-to-br from-card to-card/80">
+                <CardContent className="pt-5 pb-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-1">
+                      <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-2">
                         Responses
                       </p>
-                      <p className="text-2xl font-bold text-foreground">
+                      <p className="text-3xl font-bold text-foreground">
                         {offersCount}
                       </p>
                     </div>
@@ -292,14 +292,14 @@ export default async function RequestDetailPage({
                   </div>
                 </CardContent>
               </Card>
-              <Card className="border-border/30 shadow-sm">
-                <CardContent className="pt-4">
+              <Card className="border-border/30 shadow-sm hover:shadow-md transition-all duration-300 bg-gradient-to-br from-card to-card/80">
+                <CardContent className="pt-5 pb-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-1">
+                      <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-2">
                         Views
                       </p>
-                      <p className="text-2xl font-bold text-foreground">
+                      <p className="text-3xl font-bold text-foreground">
                         {request.views || 0}
                       </p>
                     </div>
@@ -307,17 +307,17 @@ export default async function RequestDetailPage({
                   </div>
                 </CardContent>
               </Card>
-              <Card className="border-border/30 shadow-sm">
-                <CardContent className="pt-4">
+              <Card className="border-border/30 shadow-sm hover:shadow-md transition-all duration-300 bg-gradient-to-br from-card to-card/80">
+                <CardContent className="pt-5 pb-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-1">
+                      <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-2">
                         Avg Price
                       </p>
                       <p className="text-2xl font-bold text-foreground">
                         {averageOfferPrice
-                          ? averageOfferPrice.toLocaleString()
-                          : "N/A"}
+                          ? (averageOfferPrice / 1000).toFixed(0) + "K"
+                          : "—"}
                       </p>
                     </div>
                     <TrendingUp className="w-8 h-8 text-primary/20" />
@@ -328,37 +328,37 @@ export default async function RequestDetailPage({
 
             {/* Description */}
             <Card
-              className="border-border/30 shadow-sm animate-fadeIn"
+              className="border-border/30 shadow-sm animate-fadeIn bg-gradient-to-br from-card to-card/80"
               style={{ animationDelay: "0.2s" }}
             >
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <FileText className="w-4 h-4" />
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg flex items-center gap-2 font-bold">
+                  <FileText className="w-5 h-5 text-primary" />
                   Request Details
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <p className="text-foreground/80 leading-relaxed text-sm whitespace-pre-wrap">
+                <p className="text-foreground/85 leading-relaxed text-sm whitespace-pre-wrap">
                   {request.description}
                 </p>
 
                 {request.specifications && (
                   <>
-                    <Separator />
+                    <Separator className="my-4" />
                     <div>
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+                      <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4">
                         Key Requirements
                       </p>
-                      <ul className="space-y-2">
+                      <ul className="space-y-2.5">
                         {typeof request.specifications === "object" &&
                           Object.entries(request.specifications).map(
                             ([key, value]) => (
                               <li
                                 key={key}
-                                className="flex items-start gap-2 text-sm"
+                                className="flex items-start gap-3 text-sm"
                               >
-                                <span className="text-primary font-bold mt-1">
-                                  •
+                                <span className="text-primary font-bold mt-0.5 shrink-0">
+                                  ✓
                                 </span>
                                 <span className="text-foreground/80">
                                   <span className="font-semibold text-foreground capitalize">
@@ -381,13 +381,13 @@ export default async function RequestDetailPage({
               className="grid sm:grid-cols-2 gap-4 animate-fadeIn"
               style={{ animationDelay: "0.25s" }}
             >
-              <Card className="border-border/30 shadow-sm hover:shadow-md transition-all duration-300">
+              <Card className="border-border/30 shadow-sm hover:shadow-md transition-all duration-300 bg-gradient-to-br from-card to-card/80">
                 <CardContent className="pt-6">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="p-2.5 rounded-lg bg-primary/10">
                       <DollarSign className="w-5 h-5 text-primary" />
                     </div>
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                       Budget Range
                     </p>
                   </div>
@@ -398,25 +398,25 @@ export default async function RequestDetailPage({
                   </p>
                   <p className="text-xs text-muted-foreground">ETB</p>
                   {acceptedOffer && (
-                    <div className="mt-3 pt-3 border-t border-border/30">
-                      <p className="text-xs text-muted-foreground mb-1">
+                    <div className="mt-4 pt-4 border-t border-border/30">
+                      <p className="text-xs text-muted-foreground font-semibold mb-2">
                         Accepted Price
                       </p>
-                      <p className="text-xl font-bold text-emerald-600">
-                        {acceptedOffer.price.toLocaleString()} ETB
+                      <p className="text-2xl font-bold text-emerald-600">
+                        {(acceptedOffer.price / 1000).toFixed(0)}K ETB
                       </p>
                     </div>
                   )}
                 </CardContent>
               </Card>
 
-              <Card className="border-border/30 shadow-sm hover:shadow-md transition-all duration-300">
+              <Card className="border-border/30 shadow-sm hover:shadow-md transition-all duration-300 bg-gradient-to-br from-card to-card/80">
                 <CardContent className="pt-6">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="p-2.5 rounded-lg bg-primary/10">
                       <Package className="w-5 h-5 text-primary" />
                     </div>
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                       Quantity
                     </p>
                   </div>
@@ -425,12 +425,12 @@ export default async function RequestDetailPage({
                   </p>
                   <p className="text-xs text-muted-foreground">units needed</p>
                   {request.unit_type && (
-                    <div className="mt-3 pt-3 border-t border-border/30">
-                      <p className="text-xs text-muted-foreground">
-                        Type:{" "}
-                        <span className="text-foreground font-semibold">
-                          {request.unit_type}
-                        </span>
+                    <div className="mt-4 pt-4 border-t border-border/30">
+                      <p className="text-xs text-muted-foreground font-semibold mb-1">
+                        Type
+                      </p>
+                      <p className="text-sm font-bold text-foreground">
+                        {request.unit_type}
                       </p>
                     </div>
                   )}
@@ -438,23 +438,23 @@ export default async function RequestDetailPage({
               </Card>
 
               {request.location && (
-                <Card className="sm:col-span-2 border-border/30 shadow-sm hover:shadow-md transition-all duration-300">
+                <Card className="sm:col-span-2 border-border/30 shadow-sm hover:shadow-md transition-all duration-300 bg-gradient-to-br from-card to-card/80">
                   <CardContent className="pt-6">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="p-2.5 rounded-lg bg-primary/10">
                         <MapPin className="w-5 h-5 text-primary" />
                       </div>
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                         Delivery Location
                       </p>
                     </div>
-                    <p className="text-lg font-semibold text-foreground mb-2">
+                    <p className="text-lg font-bold text-foreground mb-3">
                       {request.location}
                     </p>
                     {request.delivery_method && (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Truck className="w-4 h-4" />
-                        <span>{request.delivery_method}</span>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground bg-secondary/30 rounded-lg p-3">
+                        <Truck className="w-4 h-4 text-primary" />
+                        <span className="font-medium">{request.delivery_method}</span>
                       </div>
                     )}
                   </CardContent>
@@ -464,72 +464,74 @@ export default async function RequestDetailPage({
 
             {/* Additional Info Tabs */}
             <Card
-              className="border-border/30 shadow-sm animate-fadeIn"
+              className="border-border/30 shadow-sm animate-fadeIn bg-gradient-to-br from-card to-card/80"
               style={{ animationDelay: "0.3s" }}
             >
               <CardContent className="pt-6">
                 <Tabs defaultValue="overview" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3 mb-6">
-                    <TabsTrigger value="overview" className="text-xs">
+                  <TabsList className="grid w-full grid-cols-3 mb-6 bg-secondary/40 p-1 rounded-lg">
+                    <TabsTrigger value="overview" className="text-xs font-semibold">
                       Overview
                     </TabsTrigger>
-                    <TabsTrigger value="timeline" className="text-xs">
+                    <TabsTrigger value="timeline" className="text-xs font-semibold">
                       Timeline
                     </TabsTrigger>
-                    <TabsTrigger value="details" className="text-xs">
+                    <TabsTrigger value="details" className="text-xs font-semibold">
                       Details
                     </TabsTrigger>
                   </TabsList>
 
-                  <TabsContent value="overview" className="space-y-4">
-                    <div className="space-y-3">
+                  <TabsContent value="overview" className="space-y-3 mt-4">
+                    <div className="space-y-2">
                       {request.payment_terms && (
-                        <div className="flex justify-between items-center p-3 rounded-lg bg-secondary/30">
-                          <span className="text-sm font-medium text-muted-foreground">
+                        <div className="flex justify-between items-center p-3 rounded-lg bg-secondary/30 hover:bg-secondary/40 transition-colors">
+                          <span className="text-sm font-semibold text-muted-foreground">
                             Payment Terms
                           </span>
-                          <span className="text-sm font-semibold text-foreground">
+                          <span className="text-sm font-bold text-foreground">
                             {request.payment_terms}
                           </span>
                         </div>
                       )}
                       {request.quality_requirements && (
-                        <div className="flex justify-between items-center p-3 rounded-lg bg-secondary/30">
-                          <span className="text-sm font-medium text-muted-foreground">
+                        <div className="flex justify-between items-center p-3 rounded-lg bg-secondary/30 hover:bg-secondary/40 transition-colors">
+                          <span className="text-sm font-semibold text-muted-foreground">
                             Quality Standards
                           </span>
-                          <span className="text-sm font-semibold text-foreground">
+                          <span className="text-sm font-bold text-foreground">
                             {request.quality_requirements}
                           </span>
                         </div>
                       )}
-                      <div className="flex justify-between items-center p-3 rounded-lg bg-secondary/30">
-                        <span className="text-sm font-medium text-muted-foreground">
+                      <div className="flex justify-between items-center p-3 rounded-lg bg-secondary/30 hover:bg-secondary/40 transition-colors">
+                        <span className="text-sm font-semibold text-muted-foreground">
                           Total Responses
                         </span>
-                        <span className="text-sm font-semibold text-foreground">
+                        <span className="text-sm font-bold text-foreground">
                           {offersCount}
                         </span>
                       </div>
                     </div>
                   </TabsContent>
 
-                  <TabsContent value="timeline" className="space-y-3">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-3">
-                        <div className="w-2 h-2 rounded-full bg-primary"></div>
+                  <TabsContent value="timeline" className="space-y-3 mt-4">
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/30">
+                        <div className="w-2 h-2 rounded-full bg-primary shrink-0"></div>
                         <span className="text-sm text-muted-foreground">
                           Posted on{" "}
-                          {new Date(request.created_at).toLocaleDateString()}
+                          <span className="font-semibold text-foreground">
+                            {new Date(request.created_at).toLocaleDateString()}
+                          </span>
                         </span>
                       </div>
                       {deadlineDate && (
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/30">
                           <div
-                            className={`w-2 h-2 rounded-full ${isDeadlinePassed ? "bg-red-600" : "bg-amber-500"}`}
+                            className={`w-2 h-2 rounded-full shrink-0 ${isDeadlinePassed ? "bg-red-600" : "bg-amber-500"}`}
                           ></div>
                           <span
-                            className={`text-sm ${isDeadlinePassed ? "text-red-600" : "text-amber-600"}`}
+                            className={`text-sm font-semibold ${isDeadlinePassed ? "text-red-600" : "text-amber-600"}`}
                           >
                             Deadline: {deadlineDate.toLocaleDateString()}{" "}
                             {isDeadlinePassed ? "(Passed)" : "(Active)"}
@@ -537,9 +539,9 @@ export default async function RequestDetailPage({
                         </div>
                       )}
                       {acceptedOffer && (
-                        <div className="flex items-center gap-3">
-                          <div className="w-2 h-2 rounded-full bg-emerald-600"></div>
-                          <span className="text-sm text-emerald-600">
+                        <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/30">
+                          <div className="w-2 h-2 rounded-full bg-emerald-600 shrink-0"></div>
+                          <span className="text-sm text-emerald-600 font-semibold">
                             Offer accepted on{" "}
                             {new Date(
                               acceptedOffer.created_at,
@@ -550,30 +552,30 @@ export default async function RequestDetailPage({
                     </div>
                   </TabsContent>
 
-                  <TabsContent value="details" className="space-y-3">
+                  <TabsContent value="details" className="space-y-2 mt-4">
                     <div className="space-y-2 text-sm">
-                      <div className="flex justify-between p-2 rounded">
-                        <span className="text-muted-foreground">
+                      <div className="flex justify-between p-3 rounded-lg bg-secondary/30">
+                        <span className="text-muted-foreground font-semibold">
                           Budget Ceiling
                         </span>
-                        <span className="font-semibold text-foreground">
+                        <span className="font-bold text-foreground">
                           {request.budget_max?.toLocaleString()} ETB
                         </span>
                       </div>
-                      <div className="flex justify-between p-2 rounded bg-secondary/30">
-                        <span className="text-muted-foreground">
+                      <div className="flex justify-between p-3 rounded-lg bg-secondary/30">
+                        <span className="text-muted-foreground font-semibold">
                           Budget Floor
                         </span>
-                        <span className="font-semibold text-foreground">
+                        <span className="font-bold text-foreground">
                           {request.budget_min?.toLocaleString()} ETB
                         </span>
                       </div>
                       {averageOfferPrice && (
-                        <div className="flex justify-between p-2 rounded">
-                          <span className="text-muted-foreground">
+                        <div className="flex justify-between p-3 rounded-lg bg-primary/5 border border-primary/20">
+                          <span className="text-muted-foreground font-semibold">
                             Average Offer Price
                           </span>
-                          <span className="font-semibold text-foreground">
+                          <span className="font-bold text-primary">
                             {averageOfferPrice.toLocaleString()} ETB
                           </span>
                         </div>
@@ -585,108 +587,113 @@ export default async function RequestDetailPage({
             </Card>
           </div>
 
-          {/* RIGHT COLUMN (35%) - Buyer Info & Actions */}
+          {/* RIGHT COLUMN - Buyer Info & Actions */}
           <div
-            className="lg:col-span-1.5 space-y-5 animate-fadeIn"
+            className="lg:col-span-1 space-y-5 animate-fadeIn"
             style={{ animationDelay: "0.2s" }}
           >
-            {/* Buyer Info Card */}
-            <Card className="border-border/30 shadow-sm hover:shadow-md transition-all duration-300">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <User className="w-4 h-4" />
-                  Buyer Profile
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <Avatar className="w-16 h-16 ring-2 ring-primary/20">
-                    <AvatarImage
-                      src={request.profiles?.avatar_url}
-                      alt={buyerName}
-                    />
-                    <AvatarFallback className="bg-primary/10 text-primary font-bold">
-                      {buyerName
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")
-                        .toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-foreground text-sm truncate">
-                      {buyerName}
-                    </h4>
-                    <div className="flex items-center gap-1 mt-2 flex-wrap">
-                      <div className="flex items-center gap-0.5">
-                        <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                        <span className="font-semibold text-foreground text-xs">
-                          {request.profiles?.rating || "N/A"}
+            {/* Buyer Info Card - Clickable Profile */}
+            <Link href={`/users/${request.buyer_id}`} className="block group">
+              <Card className="border-border/30 shadow-sm hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-card to-card/80 cursor-pointer hover:border-primary/30 h-full">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <User className="w-4 h-4" />
+                    Buyer Profile
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <Avatar className="w-16 h-16 ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all">
+                      <AvatarImage
+                        src={request.profiles?.avatar_url}
+                        alt={buyerName}
+                      />
+                      <AvatarFallback className="bg-primary/10 text-primary font-bold">
+                        {buyerName
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")
+                          .toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-bold text-foreground text-sm truncate group-hover:text-primary transition-colors">
+                        {buyerName}
+                      </h4>
+                      <div className="flex items-center gap-1 mt-2 flex-wrap">
+                        <div className="flex items-center gap-0.5">
+                          <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+                          <span className="font-bold text-foreground text-xs">
+                            {request.profiles?.rating || "N/A"}
+                          </span>
+                        </div>
+                        <span className="text-xs text-muted-foreground">
+                          ({request.profiles?.total_reviews || 0} reviews)
                         </span>
                       </div>
-                      <span className="text-xs text-muted-foreground">
-                        ({request.profiles?.total_reviews || 0} reviews)
+                    </div>
+                    <ArrowUpRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-all mt-1 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-3">
+                    {request.profiles?.location && (
+                      <div className="flex items-start gap-2">
+                        <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                        <div>
+                          <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider">
+                            Location
+                          </p>
+                          <p className="text-sm text-foreground font-medium">
+                            {request.profiles.location}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2 text-emerald-600">
+                      <CheckCircle className="w-4 h-4 shrink-0" />
+                      <span className="text-xs font-semibold">
+                        Verified Buyer
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-blue-600">
+                      <Award className="w-4 h-4 shrink-0" />
+                      <span className="text-xs font-semibold">
+                        Trusted Member
                       </span>
                     </div>
                   </div>
-                </div>
 
-                <Separator />
+                  <Separator />
 
-                <div className="space-y-3">
-                  {request.profiles?.location && (
-                    <div className="flex items-start gap-2">
-                      <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
-                      <div>
-                        <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
-                          Location
-                        </p>
-                        <p className="text-sm text-foreground font-medium">
-                          {request.profiles.location}
-                        </p>
-                      </div>
+                  <div className="space-y-2 text-xs">
+                    <div className="flex justify-between p-2 rounded-lg bg-secondary/30">
+                      <span className="text-muted-foreground font-semibold">
+                        Completion Rate
+                      </span>
+                      <span className="font-bold text-foreground">92%</span>
                     </div>
-                  )}
-                  <div className="flex items-center gap-2 text-emerald-600">
-                    <CheckCircle className="w-4 h-4" />
-                    <span className="text-xs font-semibold">
-                      Verified Buyer
-                    </span>
+                    <div className="flex justify-between p-2 rounded-lg bg-secondary/30">
+                      <span className="text-muted-foreground font-semibold">
+                        Response Time
+                      </span>
+                      <span className="font-bold text-foreground">
+                        2 hours
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 text-blue-600">
-                    <Award className="w-4 h-4" />
-                    <span className="text-xs font-semibold">
-                      Trusted Member
-                    </span>
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-2 text-xs">
-                  <div className="flex justify-between p-2 rounded-lg bg-secondary/30">
-                    <span className="text-muted-foreground">
-                      Completion Rate
-                    </span>
-                    <span className="font-semibold text-foreground">92%</span>
-                  </div>
-                  <div className="flex justify-between p-2 rounded-lg bg-secondary/30">
-                    <span className="text-muted-foreground">Response Time</span>
-                    <span className="font-semibold text-foreground">
-                      2 hours
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </Link>
 
             {/* Action Buttons */}
             <Card
-              className="border-border/30 shadow-sm animate-fadeIn"
+              className="border-border/30 shadow-sm animate-fadeIn bg-gradient-to-br from-card to-card/80"
               style={{ animationDelay: "0.25s" }}
             >
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm">Actions</CardTitle>
+                <CardTitle className="text-sm font-bold">Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {user ? (
@@ -694,29 +701,32 @@ export default async function RequestDetailPage({
                     <>
                       <Link
                         href={`/buyer/requests/${id}/edit`}
-                        className="w-full"
+                        className="w-full block"
                       >
-                        <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-10 text-sm font-semibold">
-                          <Send className="w-4 h-4 mr-1.5" />
+                        <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-11 text-sm font-semibold shadow-md hover:shadow-lg transition-all gap-2">
+                          <Send className="w-4 h-4" />
                           Edit Request
                         </Button>
                       </Link>
-                      <Link href={`/requests/${id}`} className="w-full">
+                      <Link
+                        href={`/messages?request_id=${id}`}
+                        className="w-full block"
+                      >
                         <Button
                           variant="outline"
-                          className="w-full h-10 text-sm font-semibold"
+                          className="w-full h-11 text-sm font-semibold border-primary/20 hover:bg-primary/5 transition-all gap-2"
                         >
-                          <Eye className="w-4 h-4 mr-1.5" />
-                          Preview Page
+                          <MessageSquare className="w-4 h-4" />
+                          Messages
                         </Button>
                       </Link>
                     </>
                   ) : isSeller ? (
                     <>
                       {sellerHasOffer ? (
-                        <Alert className="border-amber-200 bg-amber-50 py-3">
+                        <Alert className="border-amber-200 bg-amber-50/50 py-3">
                           <AlertCircle className="h-4 w-4 text-amber-700" />
-                          <AlertTitle className="text-amber-800 text-xs">
+                          <AlertTitle className="text-amber-800 text-xs font-bold">
                             Already Submitted
                           </AlertTitle>
                           <AlertDescription className="text-amber-700 text-xs mt-1">
@@ -727,32 +737,32 @@ export default async function RequestDetailPage({
                       ) : (
                         <Link
                           href={`/requests/${id}/make-offer`}
-                          className="w-full"
+                          className="w-full block"
                         >
-                          <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-10 text-sm font-semibold">
-                            <Send className="w-4 h-4 mr-1.5" />
+                          <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-11 text-sm font-semibold shadow-md hover:shadow-lg transition-all gap-2">
+                            <Send className="w-4 h-4" />
                             Send Offer
                           </Button>
                         </Link>
                       )}
                       <Link
                         href={`/messages?request_id=${id}&to=${request.buyer_id}`}
-                        className="w-full"
+                        className="w-full block"
                       >
                         <Button
                           variant="outline"
-                          className="w-full h-10 text-sm font-semibold"
+                          className="w-full h-11 text-sm font-semibold border-primary/20 hover:bg-primary/5 transition-all gap-2"
                         >
-                          <MessageSquare className="w-4 h-4 mr-1.5" />
+                          <MessageSquare className="w-4 h-4" />
                           Message Buyer
                         </Button>
                       </Link>
                     </>
                   ) : null
                 ) : (
-                  <Link href="/auth/sign-up" className="w-full">
-                    <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-10 text-sm font-semibold">
-                      <Send className="w-4 h-4 mr-1.5" />
+                  <Link href="/auth/sign-up" className="w-full block">
+                    <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-11 text-sm font-semibold shadow-md hover:shadow-lg transition-all gap-2">
+                      <Send className="w-4 h-4" />
                       Sign Up to Respond
                     </Button>
                   </Link>
@@ -763,31 +773,31 @@ export default async function RequestDetailPage({
             {/* Offers Count Card */}
             {isSeller && !sellerHasOffer && offersCount > 0 && (
               <Card
-                className="border-border/30 shadow-sm animate-fadeIn"
+                className="border-border/30 shadow-sm animate-fadeIn bg-gradient-to-br from-amber-50/50 to-amber-50/20 dark:from-amber-950/20 dark:to-amber-950/10"
                 style={{ animationDelay: "0.3s" }}
               >
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between mb-3">
-                    <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
-                      Competition
+                    <p className="text-xs text-amber-700 dark:text-amber-300 font-bold uppercase tracking-wider">
+                      Competition Alert
                     </p>
-                    <TrendingUp className="w-4 h-4 text-amber-500" />
+                    <TrendingUp className="w-4 h-4 text-amber-600" />
                   </div>
-                  <p className="text-3xl font-bold text-foreground mb-1">
+                  <p className="text-3xl font-bold text-amber-900 dark:text-amber-100 mb-1">
                     {offersCount}
                   </p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-amber-700 dark:text-amber-300 font-medium mb-4">
                     seller{offersCount !== 1 ? "s have" : " has"} responded
                   </p>
                   {averageOfferPrice && (
                     <>
                       <Separator className="my-3" />
                       <div className="text-xs">
-                        <p className="text-muted-foreground mb-1">
+                        <p className="text-amber-700 dark:text-amber-300 mb-2 font-semibold">
                           Avg Offer Price
                         </p>
-                        <p className="text-lg font-bold text-foreground">
-                          {averageOfferPrice.toLocaleString()} ETB
+                        <p className="text-xl font-bold text-amber-900 dark:text-amber-100">
+                          {(averageOfferPrice / 1000).toFixed(0)}K ETB
                         </p>
                       </div>
                     </>
@@ -798,29 +808,29 @@ export default async function RequestDetailPage({
 
             {/* Trust Badges */}
             <Card
-              className="border-border/30 shadow-sm animate-fadeIn"
+              className="border-border/30 shadow-sm animate-fadeIn bg-gradient-to-br from-card to-card/80"
               style={{ animationDelay: "0.35s" }}
             >
               <CardContent className="pt-6">
-                <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-4">
+                <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider mb-4">
                   Trust & Security
                 </p>
                 <div className="space-y-3">
-                  <div className="flex items-center gap-3 p-2 rounded-lg bg-secondary/30">
-                    <Shield className="w-5 h-5 text-emerald-600" />
-                    <span className="text-xs font-medium text-foreground">
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/30 hover:bg-secondary/40 transition-colors">
+                    <Shield className="w-5 h-5 text-emerald-600 shrink-0" />
+                    <span className="text-xs font-semibold text-foreground">
                       Secure Platform
                     </span>
                   </div>
-                  <div className="flex items-center gap-3 p-2 rounded-lg bg-secondary/30">
-                    <CheckCircle className="w-5 h-5 text-emerald-600" />
-                    <span className="text-xs font-medium text-foreground">
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/30 hover:bg-secondary/40 transition-colors">
+                    <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0" />
+                    <span className="text-xs font-semibold text-foreground">
                       Verified Users
                     </span>
                   </div>
-                  <div className="flex items-center gap-3 p-2 rounded-lg bg-secondary/30">
-                    <Award className="w-5 h-5 text-emerald-600" />
-                    <span className="text-xs font-medium text-foreground">
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/30 hover:bg-secondary/40 transition-colors">
+                    <Award className="w-5 h-5 text-emerald-600 shrink-0" />
+                    <span className="text-xs font-semibold text-foreground">
                       Buyer Protection
                     </span>
                   </div>
@@ -846,10 +856,10 @@ export default async function RequestDetailPage({
             className="mt-12 text-center py-8 animate-fadeIn"
             style={{ animationDelay: "0.4s" }}
           >
-            <Card className="border-border/30 border-dashed">
+            <Card className="border-border/30 border-dashed bg-gradient-to-br from-primary/5 to-primary/2">
               <CardContent className="pt-8 pb-8">
                 <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-foreground mb-2">
+                <h3 className="text-lg font-bold text-foreground mb-2">
                   No Offers Yet
                 </h3>
                 <p className="text-muted-foreground text-sm mb-6 max-w-sm mx-auto">
@@ -857,8 +867,8 @@ export default async function RequestDetailPage({
                   stand out with a competitive offer.
                 </p>
                 <Link href={`/requests/${id}/make-offer`}>
-                  <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                    <Send className="w-4 h-4 mr-2" />
+                  <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg transition-all gap-2">
+                    <Send className="w-4 h-4" />
                     Submit Your Offer Now
                   </Button>
                 </Link>

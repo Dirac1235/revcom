@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Select,
   SelectContent,
@@ -25,7 +26,8 @@ import {
   MapPin,
   ChevronRight,
   ArrowLeft,
-  FileText,
+  Zap,
+  CheckCircle,
 } from "lucide-react"
 
 // ─── Data ────────────────────────────────────────────────────────────────────
@@ -67,49 +69,29 @@ function FloatingField({
   children,
   hint,
   error,
+  required,
 }: {
   id: string
   label: string
   children: React.ReactNode
   hint?: string
   error?: string
+  required?: boolean
 }) {
   return (
     <div className="space-y-2">
-      <div className="relative group">
-        <label
-          htmlFor={id}
-          className="absolute -top-2.5 left-3.5 z-10 bg-background px-1 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground/80 transition-colors group-focus-within:text-foreground pointer-events-none"
-        >
-          {label}
-        </label>
-        {children}
-      </div>
-      {error && <p className="text-sm text-destructive pl-1">{error}</p>}
+      <label
+        htmlFor={id}
+        className="block text-sm font-semibold text-foreground flex items-center gap-1"
+      >
+        {label}
+        {required && <span className="text-destructive">*</span>}
+      </label>
+      <div className="relative">{children}</div>
+      {error && <p className="text-xs text-destructive font-medium">{error}</p>}
       {!error && hint && (
-        <p className="text-xs text-muted-foreground/70 pl-1">{hint}</p>
+        <p className="text-xs text-muted-foreground">{hint}</p>
       )}
-    </div>
-  )
-}
-
-// ─── Section heading ──────────────────────────────────────────────────────────
-
-function SectionHeading({
-  icon: Icon,
-  title,
-}: {
-  icon: React.ElementType
-  title: string
-}) {
-  return (
-    <div className="flex items-center gap-3 mb-7">
-      <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shrink-0">
-        <Icon className="w-4 h-4 text-background" />
-      </div>
-      <h2 className="text-base font-semibold text-foreground leading-none">
-        {title}
-      </h2>
     </div>
   )
 }
@@ -117,7 +99,35 @@ function SectionHeading({
 // ─── Shared input className ───────────────────────────────────────────────────
 
 const inputCls =
-  "h-12 text-base rounded-xl border-border/60 bg-transparent focus-visible:ring-0 focus-visible:border-foreground placeholder:text-muted-foreground/35"
+  "h-11 text-sm rounded-lg border border-border/60 bg-card/50 hover:border-border/80 focus-visible:ring-0 focus-visible:border-primary transition-colors placeholder:text-muted-foreground/40"
+
+// ─── Section card ─────────────────────────────────────────────────────────────
+
+function SectionCard({
+  title,
+  description,
+  children,
+}: {
+  title: string
+  description?: string
+  children: React.ReactNode
+}) {
+  return (
+    <Card className="border-border/40 bg-gradient-to-br from-card/80 to-card/40 shadow-sm hover:shadow-md transition-all">
+      <CardHeader className="pb-4">
+        <div>
+          <CardTitle className="text-lg font-bold text-foreground">
+            {title}
+          </CardTitle>
+          {description && (
+            <p className="text-xs text-muted-foreground mt-1">{description}</p>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-5">{children}</CardContent>
+    </Card>
+  )
+}
 
 // ─── Page ────────────────────────────────────────────────────────────────────
 
@@ -214,268 +224,283 @@ export default function CreateRequestPage() {
   const deadlineLabel = deadlineOptions.find((d) => d.value === formData.deadline)?.label
   const locationLabel = formData.location === "Other" ? customLocation : formData.location
 
+  const isFormValid =
+    formData.title &&
+    formData.category &&
+    formData.description &&
+    formData.budget_min &&
+    formData.budget_max &&
+    formData.location &&
+    !budgetError
+
   return (
-    <div className="min-h-screen bg-background">
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+    <div className="min-h-screen bg-gradient-to-b from-background via-background to-primary/5">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
 
         {/* ── Page header ── */}
-        <div className="mb-10">
+        <div className="mb-12">
           <Link href="/buyer/requests">
             <Button
               variant="ghost"
-              className="text-muted-foreground hover:text-foreground pl-0 hover:bg-transparent text-sm mb-5 -ml-1"
+              className="text-muted-foreground hover:text-foreground pl-0 hover:bg-transparent text-sm mb-6 -ml-3 group"
             >
-              <ArrowLeft className="w-4 h-4 mr-2" />
+              <ArrowLeft className="w-4 h-4 mr-2 transition-transform group-hover:-translate-x-1" />
               Back to Requests
             </Button>
           </Link>
-          <h1 className="text-3xl sm:text-4xl font-bold text-foreground font-serif tracking-tight">
-            New Request
-          </h1>
-          <p className="text-base text-muted-foreground mt-2">
-            Tell sellers exactly what you need and receive tailored offers.
-          </p>
+          <div>
+            <h1 className="text-4xl sm:text-5xl font-bold text-foreground font-serif tracking-tight mb-3">
+              Post a Request
+            </h1>
+            <p className="text-base text-muted-foreground max-w-2xl">
+              Describe exactly what you're looking for. Get multiple offers from verified sellers and choose the best one.
+            </p>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit}>
-          <div className="grid lg:grid-cols-3 gap-8 lg:gap-10 items-start">
+          <div className="grid lg:grid-cols-3 gap-8">
 
             {/* ══════════════════════════════════════
                 LEFT — form sections
             ══════════════════════════════════════ */}
-            <div className="lg:col-span-2 space-y-12">
+            <div className="lg:col-span-2 space-y-6">
 
               {/* ── Basic Information ── */}
-              <section>
-                <SectionHeading icon={FileText} title="Basic Information" />
-                <div className="space-y-6">
+              <SectionCard
+                title="What do you need?"
+                description="Be clear and specific so sellers understand your requirements"
+              >
+                <FloatingField
+                  id="title"
+                  label="Request title"
+                  hint="E.g., 200 units of industrial cotton fabric"
+                  required
+                >
+                  <div className="relative">
+                    <Input
+                      id="title"
+                      name="title"
+                      value={formData.title}
+                      onChange={handleChange}
+                      placeholder="Be specific — this is what sellers see first"
+                      maxLength={100}
+                      required
+                      minLength={10}
+                      className={`${inputCls} pr-12`}
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-muted-foreground/50 tabular-nums">
+                      {formData.title.length}/100
+                    </span>
+                  </div>
+                </FloatingField>
 
-                  <FloatingField
-                    id="title"
-                    label="What are you looking for? *"
-                    hint="Be specific — this is what sellers will see first"
-                  >
-                    <div className="relative">
-                      <Input
-                        id="title"
-                        name="title"
-                        value={formData.title}
-                        onChange={handleChange}
-                        placeholder="e.g., 200 units of industrial cotton fabric"
-                        maxLength={100}
-                        required
-                        minLength={10}
-                        className={`${inputCls} pr-16`}
-                      />
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-muted-foreground/40 tabular-nums pointer-events-none">
-                        {formData.title.length}/100
-                      </span>
-                    </div>
-                  </FloatingField>
+                <FloatingField
+                  id="category"
+                  label="Category"
+                  hint="Select the category that best matches"
+                  required
+                >
+                  <Select value={formData.category} onValueChange={handleSelect("category")} required>
+                    <SelectTrigger id="category" className={`${inputCls} w-full`}>
+                      <SelectValue placeholder="Choose a category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((cat) => (
+                        <SelectItem key={cat} value={cat}>
+                          {cat}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FloatingField>
 
-                  <FloatingField
-                    id="category"
-                    label="Category *"
-                    hint="Select the category that best matches your need"
-                  >
-                    <Select value={formData.category} onValueChange={handleSelect("category")} required>
-                      <SelectTrigger id="category" className={`${inputCls} w-full`}>
-                        <SelectValue placeholder="Select a category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((cat) => (
-                          <SelectItem key={cat} value={cat} className="text-base py-2.5">
-                            {cat}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FloatingField>
-
-                  <FloatingField
-                    id="description"
-                    label="Detailed Requirements *"
-                    hint="The more detail you provide, the better offers you'll receive"
-                  >
-                    <div className="relative">
-                      <Textarea
-                        id="description"
-                        name="description"
-                        value={formData.description}
-                        onChange={handleChange}
-                        placeholder={`Describe exactly what you need:\n• Specifications and quality standards\n• Any special requirements\n• Intended use (helps sellers understand your needs)`}
-                        rows={6}
-                        maxLength={2000}
-                        required
-                        minLength={20}
-                        className="text-base rounded-xl border-border/60 bg-transparent focus-visible:ring-0 focus-visible:border-foreground placeholder:text-muted-foreground/35 resize-none pb-8 pt-5"
-                      />
-                      <span className="absolute bottom-3 right-4 text-xs text-muted-foreground/40 tabular-nums pointer-events-none">
-                        {charCount}/2000
-                      </span>
-                    </div>
-                  </FloatingField>
-                </div>
-              </section>
+                <FloatingField
+                  id="description"
+                  label="Detailed description"
+                  hint="Include specifications, quality standards, and any special requirements"
+                  required
+                >
+                  <div className="relative">
+                    <Textarea
+                      id="description"
+                      name="description"
+                      value={formData.description}
+                      onChange={handleChange}
+                      placeholder={`Describe what you need in detail:\n• Size, weight, material specifications\n• Quality standards and certifications required\n• Intended use or application\n• Any special requirements or preferences`}
+                      rows={6}
+                      maxLength={2000}
+                      required
+                      minLength={20}
+                      className={`${inputCls} resize-none pb-10`}
+                    />
+                    <span className="absolute bottom-3 right-4 text-xs text-muted-foreground/50 tabular-nums">
+                      {charCount}/2000
+                    </span>
+                  </div>
+                </FloatingField>
+              </SectionCard>
 
               {/* ── Quantity & Budget ── */}
-              <section>
-                <SectionHeading icon={Wallet} title="Quantity & Budget" />
-                <div className="space-y-6">
-
-                  <div className="grid grid-cols-2 gap-5">
-                    <FloatingField id="quantity" label="Quantity" hint="How many units?">
-                      <Input
-                        id="quantity"
-                        name="quantity"
-                        type="number"
-                        min="1"
-                        value={formData.quantity}
-                        onChange={handleChange}
-                        placeholder="e.g., 200"
-                        className={inputCls}
-                      />
-                    </FloatingField>
-                    <FloatingField id="unit" label="Unit" hint="pieces, kg, meters…">
-                      <Input
-                        id="unit"
-                        name="unit"
-                        value={formData.unit}
-                        onChange={handleChange}
-                        placeholder="e.g., kg"
-                        className={inputCls}
-                      />
-                    </FloatingField>
-                  </div>
-
-                  {/* Budget range */}
-                  <div className="space-y-2">
-                    <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground/60 pl-1">
-                      Budget Range (ETB) *
-                    </p>
-                    <div className="flex items-center gap-4">
-                      <div className="relative flex-1">
-                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-muted-foreground/50 font-medium pointer-events-none">
-                          ETB
-                        </span>
-                        <Input
-                          id="budget_min"
-                          name="budget_min"
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          value={formData.budget_min}
-                          onChange={handleChange}
-                          placeholder="50,000"
-                          required
-                          className={`${inputCls} pl-14`}
-                        />
-                      </div>
-                      <span className="text-base text-muted-foreground/50 font-medium shrink-0">to</span>
-                      <div className="relative flex-1">
-                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-muted-foreground/50 font-medium pointer-events-none">
-                          ETB
-                        </span>
-                        <Input
-                          id="budget_max"
-                          name="budget_max"
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          value={formData.budget_max}
-                          onChange={handleChange}
-                          placeholder="80,000"
-                          required
-                          className={`${inputCls} pl-14`}
-                        />
-                      </div>
-                    </div>
-                    {budgetError ? (
-                      <p className="text-sm text-destructive font-medium pl-1">{budgetError}</p>
-                    ) : (
-                      <p className="text-xs text-muted-foreground/70 pl-1">
-                        Provide a realistic range — you can still negotiate within it
-                      </p>
-                    )}
-                  </div>
+              <SectionCard
+                title="Quantity & Budget"
+                description="Help sellers understand your volume and price expectations"
+              >
+                <div className="grid grid-cols-2 gap-5">
+                  <FloatingField id="quantity" label="Quantity" hint="How many units?">
+                    <Input
+                      id="quantity"
+                      name="quantity"
+                      type="number"
+                      min="1"
+                      value={formData.quantity}
+                      onChange={handleChange}
+                      placeholder="E.g., 200"
+                      className={inputCls}
+                    />
+                  </FloatingField>
+                  <FloatingField id="unit" label="Unit" hint="kg, pieces, meters, etc.">
+                    <Input
+                      id="unit"
+                      name="unit"
+                      value={formData.unit}
+                      onChange={handleChange}
+                      placeholder="E.g., kg"
+                      className={inputCls}
+                    />
+                  </FloatingField>
                 </div>
-              </section>
+
+                {/* Budget range */}
+                <FloatingField
+                  id="budget_min"
+                  label="Budget range (ETB)"
+                  hint="Set a realistic range for serious offers"
+                  error={budgetError}
+                  required
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="relative flex-1">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground/60 pointer-events-none">
+                        ETB
+                      </span>
+                      <Input
+                        id="budget_min"
+                        name="budget_min"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={formData.budget_min}
+                        onChange={handleChange}
+                        placeholder="Min"
+                        required
+                        className={`${inputCls} pl-12`}
+                      />
+                    </div>
+                    <span className="text-sm text-muted-foreground/60 font-medium shrink-0">to</span>
+                    <div className="relative flex-1">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground/60 pointer-events-none">
+                        ETB
+                      </span>
+                      <Input
+                        id="budget_max"
+                        name="budget_max"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={formData.budget_max}
+                        onChange={handleChange}
+                        placeholder="Max"
+                        required
+                        className={`${inputCls} pl-12`}
+                      />
+                    </div>
+                  </div>
+                </FloatingField>
+              </SectionCard>
 
               {/* ── Delivery & Timeline ── */}
-              <section>
-                <SectionHeading icon={MapPin} title="Delivery & Timeline" />
-                <div className="space-y-6">
+              <SectionCard
+                title="Delivery & Timeline"
+                description="Tell sellers where and when you need this"
+              >
+                <FloatingField
+                  id="location"
+                  label="Delivery location"
+                  hint="Where should it be delivered?"
+                  required
+                >
+                  <Select value={formData.location} onValueChange={handleSelect("location")} required>
+                    <SelectTrigger id="location" className={`${inputCls} w-full`}>
+                      <SelectValue placeholder="Select city" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {locations.map((loc) => (
+                        <SelectItem key={loc} value={loc}>
+                          {loc}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FloatingField>
 
-                  <FloatingField
-                    id="location"
-                    label="Delivery Location *"
-                    hint="Where should the product or service be delivered?"
-                  >
-                    <Select value={formData.location} onValueChange={handleSelect("location")} required>
-                      <SelectTrigger id="location" className={`${inputCls} w-full`}>
-                        <SelectValue placeholder="Select city" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {locations.map((loc) => (
-                          <SelectItem key={loc} value={loc} className="text-base py-2.5">
-                            {loc}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                {showCustomLocation && (
+                  <FloatingField id="custom_location" label="Specify location">
+                    <Input
+                      id="custom_location"
+                      value={customLocation}
+                      onChange={(e) => setCustomLocation(e.target.value)}
+                      placeholder="E.g., Hawassa, SNNPR"
+                      className={inputCls}
+                    />
                   </FloatingField>
+                )}
 
-                  {showCustomLocation && (
-                    <FloatingField id="custom_location" label="Specify Location">
-                      <Input
-                        id="custom_location"
-                        value={customLocation}
-                        onChange={(e) => setCustomLocation(e.target.value)}
-                        placeholder="e.g., Hawassa, SNNPR"
-                        className={inputCls}
-                      />
-                    </FloatingField>
-                  )}
-
-                  <FloatingField
-                    id="deadline"
-                    label="When do you need this?"
-                    hint="Helps sellers prioritize your request"
-                  >
-                    <Select value={formData.deadline} onValueChange={handleSelect("deadline")}>
-                      <SelectTrigger id="deadline" className={`${inputCls} w-full`}>
-                        <SelectValue placeholder="Select timeline (optional)" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {deadlineOptions.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value} className="text-base py-2.5">
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FloatingField>
-                </div>
-              </section>
+                <FloatingField
+                  id="deadline"
+                  label="When do you need this?"
+                  hint="Helps sellers prioritize your request"
+                >
+                  <Select value={formData.deadline} onValueChange={handleSelect("deadline")}>
+                    <SelectTrigger id="deadline" className={`${inputCls} w-full`}>
+                      <SelectValue placeholder="Select timeline (optional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {deadlineOptions.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FloatingField>
+              </SectionCard>
 
               {/* ── Submit ── */}
-              <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-border/40">
+              <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-border/40">
                 <Button
                   type="submit"
-                  disabled={loading}
-                  className="w-full sm:w-auto h-10 px-6 text-sm font-semibold bg-primary text-background hover:bg-primary/80 rounded-xl shadow-none"
+                  disabled={loading || !isFormValid}
+                  className="flex-1 h-11 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg shadow-lg shadow-primary/25 hover:shadow-primary/35 transition-all disabled:opacity-50 disabled:cursor-not-allowed gap-2"
                 >
                   {loading ? (
-                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Creating…</>
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Creating request…
+                    </>
                   ) : (
-                    <>Post Request <ChevronRight className="w-4 h-4 ml-1.5" /></>
+                    <>
+                      <Zap className="w-4 h-4" />
+                      Post Request
+                      <ChevronRight className="w-4 h-4" />
+                    </>
                   )}
                 </Button>
-                <Link href="/buyer/requests" className="w-full sm:w-auto">
+                <Link href="/buyer/requests" className="flex-1 sm:flex-none">
                   <Button
                     type="button"
-                    variant="ghost"
-                    className="w-full h-10 px-6 text-sm rounded-xl text-muted-foreground hover:text-foreground"
+                    variant="outline"
+                    className="w-full h-11 text-sm font-semibold rounded-lg border-border/60 hover:border-border hover:bg-secondary/30 transition-colors"
                   >
                     Cancel
                   </Button>
@@ -486,85 +511,103 @@ export default function CreateRequestPage() {
             {/* ══════════════════════════════════════
                 RIGHT — preview + tips
             ══════════════════════════════════════ */}
-            <div className="space-y-4 lg:sticky lg:top-8 lg:h-fit">
+            <div className="space-y-6 lg:sticky lg:top-20 lg:h-fit">
 
               {/* Request preview card */}
-              <div className="rounded-2xl border border-border/60 overflow-hidden">
-                <div className="px-5 py-3.5 border-b border-border/40">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                    Preview
+              <Card className="border-border/40 bg-linear-to-br from-card/80 to-card/40 shadow-sm overflow-hidden pt-0">
+                <CardHeader className="p-4 bg-primary/5 m-0">
+                  <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                     Preview
                   </p>
-                </div>
-                <div className="p-4">
-                  <div className="rounded-xl border border-border/30 overflow-hidden bg-card/60">
-                    {/* Icon banner in place of image */}
-                    {/* <div className="aspect-video bg-muted/30 flex items-center justify-center">
-                      <ShoppingBag className="w-10 h-10 text-muted-foreground/20" />
-                    </div> */}
-                    <div className="p-3.5 space-y-2.5">
-                      <Badge
-                        variant="outline"
-                        className="rounded-full border-border/40 bg-background/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-foreground/60"
-                      >
-                        {formData.category || "Category"}
+                </CardHeader>
+                <CardContent className="">
+                  <div className="space-y-3">
+                    {formData.category && (
+                      <Badge className="bg-primary/10 text-primary border border-primary/20 rounded-full text-xs font-semibold">
+                        {formData.category}
                       </Badge>
-                      <h4 className="text-sm font-semibold text-foreground line-clamp-2 leading-snug">
-                        {formData.title || "Request Title"}
-                      </h4>
-                      <div className="h-px bg-border/50" />
-                      <div className="space-y-1">
-                        {(formData.budget_min || formData.budget_max) ? (
-                          <p className="text-base font-bold text-foreground">
-                            {formData.budget_min && formData.budget_max
-                              ? `${Number(formData.budget_min).toLocaleString()} – ${Number(formData.budget_max).toLocaleString()} ETB`
-                              : `${Number(formData.budget_min || formData.budget_max).toLocaleString()} ETB`}
-                          </p>
-                        ) : (
-                          <p className="text-base font-bold text-foreground">Budget TBD</p>
-                        )}
-                        {locationLabel && (
-                          <p className="text-xs text-muted-foreground flex items-center gap-1">
-                            <MapPin className="w-3 h-3 shrink-0" />
-                            {locationLabel}
-                          </p>
-                        )}
-                        {deadlineLabel && (
-                          <p className="text-xs text-muted-foreground">
-                            ⏱ {deadlineLabel}
-                          </p>
-                        )}
-                      </div>
+                    )}
+                    <h4 className="text-base font-bold text-foreground leading-snug line-clamp-2">
+                      {formData.title || "Your request title appears here"}
+                    </h4>
+                    <div className="h-px bg-border/40" />
+                    <div className="space-y-2">
+                      {formData.budget_min && formData.budget_max ? (
+                        <p className="text-lg font-bold text-primary">
+                          {Number(formData.budget_min).toLocaleString()} – {Number(formData.budget_max).toLocaleString()} ETB
+                        </p>
+                      ) : (
+                        <p className="text-sm text-muted-foreground/60">Budget range</p>
+                      )}
+                      {locationLabel && (
+                        <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                          <MapPin className="w-3 h-3 shrink-0" />
+                          {locationLabel}
+                        </p>
+                      )}
+                      {deadlineLabel && (
+                        <p className="text-xs text-muted-foreground">
+                          ⏱ {deadlineLabel}
+                        </p>
+                      )}
                     </div>
                   </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
 
               {/* Tips card */}
-              <div className="rounded-2xl border border-border/60 overflow-hidden">
-                <div className="px-5 py-3.5 border-b border-border/40">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                    Tips
-                  </p>
-                </div>
-                <div className="p-5 space-y-4">
+              <Card className="border-border/40 bg-gradient-to-br from-emerald-50/40 to-emerald-50/10 dark:from-emerald-950/20 dark:to-emerald-950/5 shadow-sm">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-bold flex items-center gap-2 text-foreground">
+                    <Zap className="w-4 h-4 text-emerald-600" />
+                    Tips for Great Offers
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
                   {[
-                    "Be specific in your title — sellers find you faster.",
-                    "Describe specs, quality standards, and intended use clearly.",
-                    "Set a realistic budget range to receive serious offers.",
-                    "Adding a deadline helps sellers prioritize your request.",
+                    {
+                      title: "Be specific",
+                      desc: "Clear titles help sellers find you faster.",
+                    },
+                    {
+                      title: "Detail matters",
+                      desc: "Specs and quality standards get better offers.",
+                    },
+                    {
+                      title: "Realistic budget",
+                      desc: "A fair range attracts serious sellers.",
+                    },
+                    {
+                      title: "Set timeline",
+                      desc: "Deadlines help sellers prioritize your request.",
+                    },
                   ].map((tip, i) => (
                     <div key={i} className="flex items-start gap-3">
-                      <div className="w-5 h-5 rounded-full bg-foreground/8 border border-border/50 flex items-center justify-center shrink-0 mt-0.5">
-                        <span className="text-[10px] font-bold text-foreground/60">
-                          {i + 1}
-                        </span>
+                      <div className="w-6 h-6 rounded-full bg-emerald-600/20 border border-emerald-600/30 flex items-center justify-center shrink-0 mt-0.5">
+                        <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
                       </div>
-                      <p className="text-xs text-muted-foreground leading-relaxed">{tip}</p>
+                      <div>
+                        <p className="text-xs font-semibold text-foreground">
+                          {tip.title}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {tip.desc}
+                        </p>
+                      </div>
                     </div>
                   ))}
-                </div>
-              </div>
+                </CardContent>
+              </Card>
 
+              {/* Info card */}
+              <Card className="border-border/40 bg-gradient-to-br from-blue-50/40 to-blue-50/10 dark:from-blue-950/20 dark:to-blue-950/5 shadow-sm">
+                <CardContent className="pt-5">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    <span className="font-semibold text-foreground block mb-2">💡 Pro tip</span>
+                    Requests with detailed descriptions and clear budgets get 3x more quality offers. Take time to explain what you need!
+                  </p>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </form>

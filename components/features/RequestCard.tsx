@@ -49,100 +49,89 @@ export function RequestCard({ request, userId, userType, showActions = true }: R
   const dotStyle = STATUS_DOT[request.status] ?? STATUS_DOT.closed;
 
   const showMakeOffer = isSeller && isOpen && !isOwner;
+  const detailsLink = showMakeOffer ? ROUTES.REQUEST_MAKE_OFFER(request.id) : ROUTES.REQUESTS_DETAIL(request.id);
 
   return (
-    <Card className="group relative flex flex-col overflow-hidden rounded-xl border border-border/50 bg-linear-to-b from-card to-card/95 shadow-sm transition-all duration-500 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/5 hover:border-primary/20 py-0">
-      
-      {/* Decorative Gradient Glow */}
-      <div className="absolute -right-12 -top-12 h-24 w-24 rounded-full bg-primary/5 blur-3xl transition-opacity opacity-0 group-hover:opacity-100" />
+    <Link href={detailsLink} className="h-full">
+      <Card className="group relative flex flex-col overflow-hidden rounded-xl border border-border/50 bg-linear-to-b from-card to-card/95 shadow-sm transition-all duration-500 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/5 hover:border-primary/20 py-0 cursor-pointer h-full">
+        
+        {/* Decorative Gradient Glow */}
+        <div className="absolute -right-12 -top-12 h-24 w-24 rounded-full bg-primary/5 blur-3xl transition-opacity opacity-0 group-hover:opacity-100" />
 
-      <CardContent className="flex flex-1 flex-col p-5 sm:p-6">
-        {/* Top Row: Status & Badges */}
-        <div className="mb-4 flex items-center justify-between">
-          <Badge
-            variant="outline"
-            className={`flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-widest border ${statusStyle}`}
-          >
-            <span className={`h-2 w-2 rounded-full ${dotStyle}`} />
-            {request.status}
-          </Badge>
-
-          {isOwner && (
-            <Badge className="bg-primary/10 text-primary border-none text-[10px] uppercase font-bold tracking-tight">
-              My Request
+        <CardContent className="flex flex-1 flex-col p-5 sm:p-6">
+          {/* Top Row: Status & Badges */}
+          <div className="mb-4 flex items-center justify-between">
+            <Badge
+              variant="outline"
+              className={`flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-widest border ${statusStyle}`}
+            >
+              <span className={`h-2 w-2 rounded-full ${dotStyle}`} />
+              {request.status}
             </Badge>
-          )}
-        </div>
 
-        {/* Title & Category */}
-        <div className="space-y-2 mb-4">
-            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-primary/70">
-                <Layers className="h-3 w-3" />
-                {request.category}
-            </div>
-            <h3 className="text-lg font-bold leading-tight text-foreground transition-colors group-hover:text-primary line-clamp-2">
-                {request.title}
-            </h3>
-        </div>
-
-        {/* Description */}
-        {request.description && (
-          <p className="mb-6 text-sm leading-relaxed text-muted-foreground/80 line-clamp-2 italic font-light">
-            &ldquo;{request.description}&rdquo;
-          </p>
-        )}
-
-        {/* Info Grid */}
-        <div className="mt-auto flex flex-col sm:flex-row justify-between gap-4 border-t border-border/40 pt-5">
-            <div className="flex flex-col gap-1">
-                <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold flex items-center gap-1">
-                   <DollarSign className="h-3 w-3" /> Budget
-                </span>
-                <div className="text-sm font-bold text-foreground">
-                    <BudgetDisplay min={request.budget_min} max={request.budget_max} />
-                </div>
-            </div>
-            <div className="flex flex-col gap-1">
-                <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold flex items-center gap-1">
-                   <Calendar className="h-3 w-3" /> Posted
-                </span>
-                <span className="text-xs font-medium text-foreground/80">
-                    {new Date(request.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                </span>
-            </div>
-        </div>
-
-        {/* Action Button */}
-        {showActions && (
-          <div className="mt-6 space-y-2">
-            {showMakeOffer ? (
-              <Button
-                className="w-full h-11 group/btn relative overflow-hidden rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
-                asChild
-              >
-                <Link href={ROUTES.REQUEST_MAKE_OFFER(request.id)}>
-                  <span className="relative z-10 flex items-center gap-2 font-semibold">
-                    Make Offer
-                    <Send className="h-4 w-4 transition-transform duration-300 group-hover/btn:translate-x-1" />
-                  </span>
-                </Link>
-              </Button>
-            ) : (
-              <Button
-                className="w-full h-11 group/btn relative overflow-hidden rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
-                asChild
-              >
-                <Link href={ROUTES.REQUESTS_DETAIL(request.id)}>
-                  <span className="relative z-10 flex items-center gap-2 font-semibold">
-                    View Details
-                    <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1" />
-                  </span>
-                </Link>
-              </Button>
+            {isOwner && (
+              <Badge className="bg-primary/10 text-primary border-none text-[10px] uppercase font-bold tracking-tight">
+                My Request
+              </Badge>
             )}
           </div>
-        )}
-      </CardContent>
-    </Card>
+
+          {/* Title & Category */}
+          <div className="space-y-2 mb-4">
+              <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-primary/70">
+                  <Layers className="h-3 w-3" />
+                  {request.category}
+              </div>
+              <h3 className="text-lg font-bold leading-tight text-foreground transition-colors group-hover:text-primary line-clamp-2">
+                  {request.title}
+              </h3>
+          </div>
+
+          {/* Description */}
+          {request.description && (
+            <p className="mb-6 text-sm leading-relaxed text-muted-foreground/80 line-clamp-2 italic font-light">
+              &ldquo;{request.description}&rdquo;
+            </p>
+          )}
+
+          {/* Info Grid */}
+          <div className="mt-auto flex flex-col sm:flex-row justify-between gap-4 border-t border-border/40 pt-5">
+              <div className="flex flex-col gap-1">
+                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold flex items-center gap-1">
+                     <DollarSign className="h-3 w-3" /> Budget
+                  </span>
+                  <div className="text-sm font-bold text-foreground">
+                      <BudgetDisplay min={request.budget_min} max={request.budget_max} />
+                  </div>
+              </div>
+              <div className="flex flex-col gap-1">
+                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold flex items-center gap-1">
+                     <Calendar className="h-3 w-3" /> Posted
+                  </span>
+                  <span className="text-xs font-medium text-foreground/80">
+                      {new Date(request.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </span>
+              </div>
+          </div>
+
+          {/* Optional: Action Icon hint */}
+          {showActions && (
+            <div className="mt-6">
+              <div className="flex items-center justify-end text-primary/60 group-hover:text-primary transition-colors">
+                {showMakeOffer ? (
+                  <>
+                    <Send className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                  </>
+                ) : (
+                  <>
+                    <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </Link>
   );
 }
